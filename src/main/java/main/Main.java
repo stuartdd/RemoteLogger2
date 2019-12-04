@@ -17,8 +17,14 @@
  */
 package main;
 
+import common.ConfigData;
+import common.LogLine;
+import common.Notification;
+import common.Notifier;
+import common.Util;
 import java.awt.AWTException;
 import geom.Rect;
+import java.util.Map;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.application.Platform;
@@ -28,15 +34,28 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import server.ServerConfig;
+import server.ServerManager;
 
 /**
  *
  */
-public class Main extends Application {
+public class Main extends Application implements Notifier {
 
     private static Stage mainStage;
     private static Scene mainScene;
     private static FXMLDocumentController controller;
+
+    static void forwardNotification(Notification notification) {
+        int count = 10;
+        while ((controller == null) && (count > 0)) {
+            Util.sleep(100);
+            count--;
+        }
+        if (count > 0) {
+            controller.notifyAction(notification);
+        }
+    }
 
     /**
      * Start the application.
@@ -77,6 +96,7 @@ public class Main extends Application {
         This is so the serial monitor can pass action messages to it.
          */
         controller = loader.getController();
+
         /*
         Save a reference to the scene for later.
          */
@@ -97,6 +117,12 @@ public class Main extends Application {
      * Then we terminate the Java VM
      */
     public static void closeApplication() {
+        ServerManager.stopAllServers();
+        int count = 20;
+        while ((ServerManager.countServersRunning() > 0) && (count > 0)) {
+            Util.sleep(100);
+            count--;
+        }
         Platform.exit();
         System.exit(0);
     }
@@ -113,16 +139,17 @@ public class Main extends Application {
         if (args.length == 0) {
             exitWithHelp("Requires a properties (configuration) file");
         }
+
+        ConfigData.load("config.json");
+        for (Map.Entry<String, ServerConfig> sc : ConfigData.getInstance().getServers().entrySet()) {
+            ServerManager.addServer(sc.getKey(), sc.getValue(), new Main());
+        }
+
+        launch(args);
         /*
         Load it and abort is an error occurs
          */
-//        try {
-//            ConfigData.load(args[0]);
-//        } catch (ConfigException ce) {
-//            exitWithHelp(ce.getMessage());
-//        }
 
-        launch(args);
     }
 
     /**
@@ -144,11 +171,34 @@ public class Main extends Application {
      *
      * @param m The error message
      */
-    private static void exitWithHelp(String m) {
+    public static void exitWithHelp(String m) {
         System.out.println("Error:" + m + "\n"
                 + "Application requires the following parameters:\n"
-                + "  the name of a properties file!");
+                + "  The name of a json configuration file!");
         System.exit(1);
     }
 
+    @Override
+    public void notifyAction(Notification notification) {
+        if (controller != null) {
+            controller.notifyAction(notification);
+        } else {
+            System.out.println(ConfigData.getInstance().timeStamp(notification.getTime()) + " [" + notification.getPort() + "] [" + notification.getAction().toString() + "] " + notification.getMessage());
+        }
+    }
+
+    @Override
+    public void log(int port, String message) {
+        LogLines.add(new LogLine(port, message));
+    }
+
+    @Override
+    public void log(int port, Throwable throwable) {
+        LogLines.add(new LogLine(port, null, throwable));
+    }
+
+    @Override
+    public void log(int port, String message, Throwable throwable) {
+        LogLines.add(new LogLine(port, message, throwable));
+    }
 }

@@ -17,6 +17,10 @@
  */
 package main;
 
+import common.Action;
+import common.ConfigData;
+import common.Notification;
+import common.Notifier;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -31,15 +35,21 @@ import javafx.scene.paint.Color;
 
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.Timer;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
+import javafx.scene.control.Button;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import server.ServerManager;
 
 /**
  *
  */
-public class FXMLDocumentController implements Initializable {
+public class FXMLDocumentController implements Initializable, Notifier {
 
-    @FXML
-    private Canvas canvas1;
     @FXML
     private AnchorPane connectionsAnchorPane;
     @FXML
@@ -50,14 +60,23 @@ public class FXMLDocumentController implements Initializable {
     private TabPane mainTabbedPane;
     @FXML
     private Tab connectionsTab;
+
     @FXML
     private Label label;
+
+    @FXML
+    private Label serverStateLabel;
+
+    @FXML
+    private Button buttonStartStopServer;
+
     @FXML
     private ChoiceBox portsChoiceBox;
+    @FXML
+    private ChoiceBox serverChoiceBox;
 
     private GraphicsContext connectionCanvasGraphics;
     private GraphicsContext gc;
-    private Timer displayTimer = new Timer();
     /*
     Colours for each line
      */
@@ -67,42 +86,79 @@ public class FXMLDocumentController implements Initializable {
      */
     private double[] scales = new double[]{4000, 4000, 2000, 1500};
 
+    private int currentSelectedServerPort = -1;
 
-    /*
-    Every message read from the serial port is sent here.
+    @FXML
+    public void handleCloseApplicationButton() {
+        Main.closeApplication();
+    }
 
-     We create a Reading object. If get errors from reading it the Reading object returned is null.
-
-     We record the time differenct for each message to give us the latency for the reading
-     */
-    public boolean messageReceived(String message) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
+    public void serverPortSelectionChanged(int newServerPort) {
+        if (currentSelectedServerPort > 0) {
+            if (newServerPort == currentSelectedServerPort) {
+                return;
             }
-        });
+        }
         /*
-        return false to stop the serial port reader!
+        If any changes to state then save them to disk
          */
-        return true;
+        if (newServerPort > 0) {
+            currentSelectedServerPort = newServerPort;
+            setserverChoiceBoxColour();
+        }
     }
 
-    /*
-    Set the status text in a JFX Thread
-     */
-    public boolean setStatus(String message) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                label.setText(message);
-            }
-        });
-        return true;
+    public void setserverChoiceBoxColour() {
+        serverStateLabel.setText(ServerManager.getServer(currentSelectedServerPort).getServerState().getInfo());
+        switch (ServerManager.getServer(currentSelectedServerPort).getServerState()) {
+            case SERVER_STARTING:
+            case SERVER_STOPPING:
+                buttonStartStopServer.setDisable(true);
+                serverChoiceBox.setBackground(new Background(new BackgroundFill(Color.PINK, CornerRadii.EMPTY, Insets.EMPTY)));
+                break;
+            case SERVER_STOPPED:
+                buttonStartStopServer.setDisable(false);
+                buttonStartStopServer.setText("Start");
+                serverChoiceBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN, CornerRadii.EMPTY, Insets.EMPTY)));
+                break;
+            case SERVER_RUNNING:
+                buttonStartStopServer.setDisable(false);
+                buttonStartStopServer.setText("Stop");
+                serverChoiceBox.setBackground(new Background(new BackgroundFill(Color.GREENYELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
+                break;
+            case SERVER_FAIL:
+                buttonStartStopServer.setDisable(false);
+                buttonStartStopServer.setText("Start");
+                serverChoiceBox.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
+                break;
+            case SERVER_PENDING:
+                buttonStartStopServer.setDisable(false);
+                buttonStartStopServer.setText("Start");
+                serverChoiceBox.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+                break;
+        }
     }
-
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        int port = initPortChoiceBox();
+        ServerManager.autoStartServers();
+        serverPortSelectionChanged(port);
+    }
+
+    private int initPortChoiceBox() {
+        serverChoiceBox.setItems(FXCollections.observableArrayList(ServerManager.portList()));
+        serverChoiceBox.getSelectionModel().select(0);
+        serverChoiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                if (oldValue != newValue) {
+                    Integer port = (Integer) serverChoiceBox.getItems().get(newValue.intValue());
+                    Main.forwardNotification(new Notification(port, Action.SERVER_SELECTED, null, "Selected server port [" + port + "]").withData("port", port));
+                }
+            }
+        });
+        return ServerManager.portList().get(0);
     }
 
     /**
@@ -135,6 +191,36 @@ public class FXMLDocumentController implements Initializable {
             connectionCanvas.setHeight(connectionCanvasHeight);
             connectionCanvasGraphics = connectionCanvas.getGraphicsContext2D();
         });
+    }
+
+    @Override
+    public void notifyAction(Notification notification) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                switch (notification.getAction()) {
+                    case SERVER_SELECTED:
+                        serverPortSelectionChanged((Integer) notification.getData("port"));
+                        break;
+                }
+                label.setText(notification.getMessage());
+            }
+        });
+    }
+
+    @Override
+    public void log(int port, String message) {
+        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + message);
+    }
+
+    @Override
+    public void log(int port, Throwable throwable) {
+        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + throwable.getMessage());
+    }
+
+    @Override
+    public void log(int port, String message, Throwable throwable) {
+        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + message + ": " + throwable.getMessage());
     }
 
 }

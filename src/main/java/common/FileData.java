@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Stuart Davies
+ * Copyright (C) 2018 stuartdd
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,21 +13,37 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-package geom;
+package common;
 
-/**
- * Data error occurred.
- */
-public class DataException extends RuntimeException {
+public class FileData {
+    private final String fileName;
+    private final boolean readFromFile;
+    private final String content;
 
-    public DataException(String message, Throwable cause) {
-        super(message, cause);
+    public FileData(String fileName, boolean readFromFile, String content) {
+        this.fileName = fileName;
+        this.readFromFile = readFromFile;
+        this.content = content;
     }
 
-    DataException(String string) {
-        super(string);
+    public String getFileName() {
+        return fileName;
     }
+
+    public boolean isReadFromFile() {
+        return readFromFile;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    @Override
+    public String toString() {
+        return getContent();
+    }
+    
+    
     
 }
