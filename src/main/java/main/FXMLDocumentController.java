@@ -17,6 +17,7 @@
  */
 package main;
 
+import main.fields.FXMLFieldCollection;
 import common.Action;
 import common.ConfigData;
 import common.Notification;
@@ -34,6 +35,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 
 import java.net.URL;
+import java.util.Map;
 import java.util.ResourceBundle;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -43,6 +45,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.VBox;
 import server.ServerManager;
 
 /**
@@ -58,9 +61,10 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private double connectionCanvasHeight;
     @FXML
     private TabPane mainTabbedPane;
-    @FXML
-    private Tab connectionsTab;
 
+    @FXML 
+    private VBox vBoxConnections;
+    
     @FXML
     private Label label;
 
@@ -70,8 +74,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     private Button buttonStartStopServer;
 
-    @FXML
-    private ChoiceBox portsChoiceBox;
+
     @FXML
     private ChoiceBox serverChoiceBox;
 
@@ -85,12 +88,29 @@ public class FXMLDocumentController implements Initializable, Notifier {
     Scaling values for each line
      */
     private double[] scales = new double[]{4000, 4000, 2000, 1500};
-
+    
     private int currentSelectedServerPort = -1;
 
     @FXML
     public void handleCloseApplicationButton() {
         Main.closeApplication();
+    }
+
+    public void tabSelectionChanged(Tab newTab, Tab oldTab) {
+        if (oldTab != null) {
+            if (newTab == oldTab) {
+                return;
+            }
+            /*
+            If any changes to state then save them to disk
+            */
+            System.out.println("CLOSE " + oldTab.getText());
+        }
+        if (newTab.getId().equalsIgnoreCase("connections")) {
+            FXMLFieldCollection fc = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData());
+        }
+        
+        System.out.println("NEW " + newTab.getText());
     }
 
     public void serverPortSelectionChanged(int newServerPort) {
@@ -108,7 +128,78 @@ public class FXMLDocumentController implements Initializable, Notifier {
         }
     }
 
-    public void setserverChoiceBoxColour() {
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        int port = initializePortChoiceBox();
+        Tab tab = initializeTabPanel(0);
+        ServerManager.autoStartServers();
+
+        serverPortSelectionChanged(port);
+        tabSelectionChanged(tab, null);
+    }
+
+    private Tab initializeTabPanel(int index) {
+        mainTabbedPane.getSelectionModel().select(index);
+        mainTabbedPane.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                Tab tabNew = mainTabbedPane.getTabs().get(newValue.intValue());
+                Tab tabOld = mainTabbedPane.getTabs().get(oldValue.intValue());
+                Main.forwardNotification(new Notification(currentSelectedServerPort, Action.TAB_SELECTED, null, "Selected tab [" + tabNew.getText() + "]").withData("newTab", tabNew).withData("oldTab", tabOld));
+            }
+        });
+        return mainTabbedPane.getTabs().get(index);
+    }
+
+    private int initializePortChoiceBox() {
+        serverChoiceBox.setItems(FXCollections.observableArrayList(ServerManager.portList()));
+        serverChoiceBox.getSelectionModel().select(0);
+        serverChoiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                if (oldValue != newValue) {
+                    Integer port = (Integer) serverChoiceBox.getItems().get(newValue.intValue());
+                    Main.forwardNotification(new Notification(port, Action.SERVER_SELECTED, null, "Selected server port [" + port + "]").withData("port", port));
+                }
+            }
+        });
+        return ServerManager.portList().get(0);
+    }
+
+    @Override
+    public void notifyAction(Notification notification) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                switch (notification.getAction()) {
+                    case SERVER_SELECTED:
+                        serverPortSelectionChanged((Integer) notification.getData("port"));
+                        break;
+                    case TAB_SELECTED:
+                        tabSelectionChanged((Tab) notification.getData("newTab"), (Tab) notification.getData("oldTab"));
+                        break;
+                }
+                label.setText(notification.getMessage());
+            }
+        });
+    }
+
+    @Override
+    public void log(int port, String message) {
+        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + message);
+    }
+
+    @Override
+    public void log(int port, Throwable throwable) {
+        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + throwable.getMessage());
+    }
+
+    @Override
+    public void log(int port, String message, Throwable throwable) {
+        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + message + ": " + throwable.getMessage());
+    }
+
+    private void setserverChoiceBoxColour() {
         serverStateLabel.setText(ServerManager.getServer(currentSelectedServerPort).getServerState().getInfo());
         switch (ServerManager.getServer(currentSelectedServerPort).getServerState()) {
             case SERVER_STARTING:
@@ -137,28 +228,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 serverChoiceBox.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
                 break;
         }
-    }
-
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        int port = initPortChoiceBox();
-        ServerManager.autoStartServers();
-        serverPortSelectionChanged(port);
-    }
-
-    private int initPortChoiceBox() {
-        serverChoiceBox.setItems(FXCollections.observableArrayList(ServerManager.portList()));
-        serverChoiceBox.getSelectionModel().select(0);
-        serverChoiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                if (oldValue != newValue) {
-                    Integer port = (Integer) serverChoiceBox.getItems().get(newValue.intValue());
-                    Main.forwardNotification(new Notification(port, Action.SERVER_SELECTED, null, "Selected server port [" + port + "]").withData("port", port));
-                }
-            }
-        });
-        return ServerManager.portList().get(0);
     }
 
     /**
@@ -191,36 +260,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
             connectionCanvas.setHeight(connectionCanvasHeight);
             connectionCanvasGraphics = connectionCanvas.getGraphicsContext2D();
         });
-    }
-
-    @Override
-    public void notifyAction(Notification notification) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                switch (notification.getAction()) {
-                    case SERVER_SELECTED:
-                        serverPortSelectionChanged((Integer) notification.getData("port"));
-                        break;
-                }
-                label.setText(notification.getMessage());
-            }
-        });
-    }
-
-    @Override
-    public void log(int port, String message) {
-        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + message);
-    }
-
-    @Override
-    public void log(int port, Throwable throwable) {
-        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + throwable.getMessage());
-    }
-
-    @Override
-    public void log(int port, String message, Throwable throwable) {
-        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + message + ": " + throwable.getMessage());
     }
 
 }

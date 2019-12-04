@@ -90,6 +90,7 @@ public class Main extends Application implements Notifier {
          */
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXMLDocument.fxml"));
         Parent root = loader.load();
+        
 
         /*
         Save a reference to the controller for later.

@@ -17,9 +17,11 @@
 package server;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import common.PropertyDataWithAnnotations;
 import expectations.Expectations;
+import java.beans.BeanProperty;
 
-public class ServerConfig {
+public class ServerConfig implements PropertyDataWithAnnotations {
 
     private String expectationsFile;
     private boolean autoStart = false;
@@ -43,6 +45,7 @@ public class ServerConfig {
     public ServerConfig() {
     }
 
+    @BeanProperty(description = "Expectation File")
     public String getExpectationsFile() {
         return expectationsFile;
     }
@@ -51,6 +54,7 @@ public class ServerConfig {
         this.expectationsFile = expectationsFile;
     }
 
+    @BeanProperty(description = "Start on load")
     public boolean isAutoStart() {
         return autoStart;
     }
@@ -59,6 +63,7 @@ public class ServerConfig {
         this.autoStart = autoStart;
     }
 
+    @BeanProperty(description = "Show Port in logs")
     public boolean isShowPort() {
         return showPort;
     }
@@ -67,6 +72,7 @@ public class ServerConfig {
         this.showPort = showPort;
     }
 
+    @BeanProperty(description = "Time to close server (Seconds)")
     public int getTimeToClose() {
         return timeToClose;
     }
@@ -75,6 +81,7 @@ public class ServerConfig {
         this.timeToClose = timeToClose;
     }
 
+    @BeanProperty(description = "Verbose logging")
     public boolean isVerbose() {
         return verbose;
     }
@@ -87,6 +94,7 @@ public class ServerConfig {
         return expectations;
     }
 
+    @BeanProperty(description = "Wrire properties to the log")
     public boolean isLogProperties() {
         return logProperties;
     }

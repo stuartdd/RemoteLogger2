@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import common.ConfigDataException;
+import common.PropertyDataWithAnnotations;
+import java.util.HashMap;
 
 /**
  *
@@ -144,6 +146,14 @@ public class ServerManager {
         }
         Arrays.sort(in);
         return in;
+    }
+
+    public static Map<String, PropertyDataWithAnnotations> serverConfigData() {
+        Map<String, PropertyDataWithAnnotations> ret = new HashMap<>();
+        for (Map.Entry<Integer, Server> s:servers.entrySet()) {
+            ret.put(s.getKey().toString(), s.getValue().getServerConfig());
+        }
+        return ret;
     }
 
     

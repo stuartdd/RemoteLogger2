@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.Pane?>
+
+<Pane fx:id="checkbox" maxHeight="37.0" minHeight="37.0" prefHeight="37.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+         <children>
+            <Label fx:id="label" layoutX="5.0" layoutY="10.0" prefWidth="250.0" text="Label" />
+      <TextField layoutX="250.0" layoutY="6.0" prefHeight="25.0" prefWidth="250.0" />
+         </children>
+      </Pane>

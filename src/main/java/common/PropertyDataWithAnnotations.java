@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 stuartdd
+ * Copyright (C) 2019 Stuart Davies
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,13 +13,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package common;
 
-public enum Action {
-    SERVER_SELECTED,
-    TAB_SELECTED,
-    LOG_BODY,
-    LOG_HEADER,
-    SERVER_STATE
+/**
+ *
+ * @author Stuart
+ */
+public interface PropertyDataWithAnnotations {
+
 }
