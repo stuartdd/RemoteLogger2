@@ -32,10 +32,12 @@ import javafx.scene.layout.VBox;
  */
 public class FXMLFieldCollection {
 
+    
+    
     private List<FXMLField> fields = new ArrayList<>();
     private final VBox container;
 
-    public FXMLFieldCollection(VBox container, Map<String, PropertyDataWithAnnotations> data) {
+    public FXMLFieldCollection(VBox container, Map<String, PropertyDataWithAnnotations> data, boolean ro) {
         this.container = container;
         try {
             for (Map.Entry<String, PropertyDataWithAnnotations> obj : data.entrySet()) {
@@ -43,19 +45,18 @@ public class FXMLFieldCollection {
                 fields.add((new FXMLHeadingField(obj.getKey() + ":")));
                 for (String prop : beanWrapper.getPropertyList()) {
                     if (beanWrapper.getParameterType(prop).equals(int.class) || beanWrapper.getParameterType(prop).equals(Integer.class)) {
-                        fields.add(new FXMLIntegerField(beanWrapper, prop, (Integer)beanWrapper.getValue(prop)));
+                        fields.add(new FXMLIntegerField(beanWrapper, prop, (Integer)beanWrapper.getValue(prop),ro));
                     }
                     if (beanWrapper.getParameterType(prop).equals(boolean.class) || beanWrapper.getParameterType(prop).equals(Boolean.class)) {
-                        fields.add(new FXMLBooleanField(beanWrapper, prop, (Boolean) beanWrapper.getValue(prop)));
+                        fields.add(new FXMLBooleanField(beanWrapper, prop, (Boolean) beanWrapper.getValue(prop),ro));
                     }
                     if (beanWrapper.getParameterType(prop).equals(String.class)) {
-                        fields.add(new FXMLStringField(beanWrapper, prop, (String) beanWrapper.getValue(prop)));
+                        fields.add(new FXMLStringField(beanWrapper, prop, (String) beanWrapper.getValue(prop),ro));
                     }
                 }
             }
             for (FXMLField field : fields) {
                 this.container.getChildren().add(field.getPane());
-                field.setWidth(this.container.getWidth());
             }
         } catch (IOException ex) {
             Logger.getLogger(FXMLFieldCollection.class.getName()).log(Level.SEVERE, null, ex);

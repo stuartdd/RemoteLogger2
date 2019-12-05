@@ -31,24 +31,13 @@ import javafx.scene.layout.Pane;
  *
  * @author Stuart
  */
-public class FXMLBooleanField implements FXMLField, ChangeListener<Boolean> {
+public class FXMLBooleanField extends FXMLField implements ChangeListener<Boolean> {
 
-    private final Pane pane;
-    private final BeanWrapper beanWrapper;
-    private final String propertyName;
-    private Label label;
     private CheckBox checkBox;
 
-    public FXMLBooleanField(BeanWrapper beanWrapper, String propertyName, Boolean state) throws IOException {
-        this.beanWrapper = beanWrapper;
-        this.propertyName = propertyName;
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXMLBooleanField.fxml"));
-        pane = loader.load();
-        for (Node c : pane.getChildren()) {
-            if (c instanceof Label) {
-                label = (Label) c;
-                label.setText(beanWrapper.getDescription(propertyName));
-            }
+    public FXMLBooleanField(BeanWrapper beanWrapper, String propertyName, Boolean state, boolean readOnly) throws IOException {
+        super("Boolean", beanWrapper, propertyName, readOnly);
+        for (Node c : getPane().getChildren()) {
             if (c instanceof CheckBox) {
                 checkBox = (CheckBox) c;
                 checkBox.setSelected(state);
@@ -58,24 +47,17 @@ public class FXMLBooleanField implements FXMLField, ChangeListener<Boolean> {
     }
 
     @Override
-    public Pane getPane() {
-        return pane;
-    }
-
-    @Override
-    public void setWidth(double width) {
-    }
-
-    @Override
     public void destroy() {
         checkBox.selectedProperty().removeListener(this);
-        pane.getChildren().remove(label);
-        pane.getChildren().remove(checkBox);
+        removeCommonNodes();
+        removeNode(checkBox);
     }
 
     @Override
-    public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
-        beanWrapper.setValue(propertyName, arg2);
+    public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldValue, Boolean newValue) {
+        if (!newValue.equals(oldValue)) {
+            getBeanWrapper().setValue(getPropertyName(), newValue);
+        }
     }
 
 }

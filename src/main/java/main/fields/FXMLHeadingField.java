@@ -28,41 +28,16 @@ import javafx.scene.layout.Pane;
  *
  * @author Stuart
  */
-public class FXMLHeadingField implements FXMLField {
-
-    private final Pane pane;
-    private Label label;
-    private Separator separator;
+public class FXMLHeadingField extends FXMLField {
 
     public FXMLHeadingField(String text) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXMLHeadingField.fxml"));
-        pane = loader.load();
-        for (Node c : pane.getChildren()) {
-            if (c instanceof Label) {
-                label = (Label) c;
-                label.setText(text);
-            }
-            if (c instanceof Separator) {
-                separator = (Separator) c;
-            }
-        }
-    }
-
-    @Override
-    public Pane getPane() {
-        return pane;
-    }
-
-    @Override
-    public void setWidth(double width) {
-        if ((separator != null) && (width > 0)) {
-            separator.setMinWidth(width);
-            separator.setPrefWidth(width);
-        }
+        super("Heading", null, text, true);
+        setColor(HEADING_COLOR);
     }
 
     @Override
     public void destroy() {
+        removeCommonNodes();
     }
 
 }

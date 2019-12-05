@@ -20,34 +20,20 @@ package main.fields;
 import java.io.IOException;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Pane;
 
 /**
  *
  * @author Stuart
  */
-public class FXMLIntegerField implements FXMLField, ChangeListener<String> {
+public class FXMLIntegerField extends FXMLField implements ChangeListener<String> {
 
-    private final Pane pane;
-    private final BeanWrapper beanWrapper;
-    private final String propertyName;
-    private Label label;
     private TextField textField;
 
-    public FXMLIntegerField(BeanWrapper beanWrapper, String propertyName, Integer value) throws IOException {
-        this.beanWrapper = beanWrapper;
-        this.propertyName = propertyName;
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXMLStringField.fxml"));
-        pane = loader.load();
-        for (Node c : pane.getChildren()) {
-            if (c instanceof Label) {
-                label = (Label) c;
-                label.setText(beanWrapper.getDescription(propertyName));
-            }
+    public FXMLIntegerField(BeanWrapper beanWrapper, String propertyName, Integer value, boolean readOnly) throws IOException {
+        super("String", beanWrapper, propertyName, readOnly);
+        for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
                 if (value != null) {
@@ -61,25 +47,23 @@ public class FXMLIntegerField implements FXMLField, ChangeListener<String> {
     }
 
     @Override
-    public Pane getPane() {
-        return pane;
-    }
-
-    @Override
-    public void setWidth(double width) {
-    }
-
-    @Override
     public void destroy() {
-        pane.getChildren().remove(label);
-        pane.getChildren().remove(textField);
         textField.textProperty().removeListener(this);
+        removeCommonNodes();
+        removeNode(textField);
     }
 
     @Override
-    public void changed(ObservableValue<? extends String> arg0, String arg1, String arg2) {
-        Integer i = Integer.parseInt(arg2);
-        beanWrapper.setValue(propertyName, i);
+    public void changed(ObservableValue<? extends String> arg0, String oldValue, String newValue) {
+        setColor();
+        if (!newValue.equals(oldValue)) {
+            try {
+                Integer i = Integer.parseInt(newValue);
+                getBeanWrapper().setValue(getPropertyName(), i);
+            } catch (NumberFormatException e) {
+                setColor(ERROR_COLOR);
+            }
+        }
     }
 
 }

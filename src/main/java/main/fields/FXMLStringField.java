@@ -30,24 +30,13 @@ import javafx.scene.layout.Pane;
  *
  * @author Stuart
  */
-public class FXMLStringField implements FXMLField, ChangeListener<String> {
+public class FXMLStringField extends FXMLField implements ChangeListener<String> {
 
-    private final Pane pane;
-    private final BeanWrapper beanWrapper;
-    private final String propertyName;
-    private Label label;
     private TextField textField;
 
-    public FXMLStringField(BeanWrapper beanWrapper, String propertyName, String value) throws IOException {
-        this.beanWrapper = beanWrapper;
-        this.propertyName = propertyName;
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXMLStringField.fxml"));
-        pane = loader.load();
-        for (Node c : pane.getChildren()) {
-            if (c instanceof Label) {
-                label = (Label) c;
-                label.setText(beanWrapper.getDescription(propertyName));
-            }
+    public FXMLStringField(BeanWrapper beanWrapper, String propertyName, String value, boolean readOnly) throws IOException {
+        super("String", beanWrapper, propertyName, readOnly);
+        for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
                 if (value != null) {
@@ -60,25 +49,19 @@ public class FXMLStringField implements FXMLField, ChangeListener<String> {
         }
     }
 
-    @Override
-    public Pane getPane() {
-        return pane;
-    }
-
-    @Override
-    public void setWidth(double width) {
-    }
 
     @Override
     public void destroy() {
-        pane.getChildren().remove(label);
         textField.textProperty().removeListener(this);
-        pane.getChildren().remove(textField);
+        removeCommonNodes();
+        removeNode(textField);
     }
 
     @Override
-    public void changed(ObservableValue<? extends String> arg0, String arg1, String arg2) {
-        beanWrapper.setValue(propertyName, arg2);
+    public void changed(ObservableValue<? extends String> arg0, String oldValue, String newValue) {
+        if (!newValue.equals(oldValue)) {
+            getBeanWrapper().setValue(getPropertyName(), newValue);
+        }
     }
 
 }

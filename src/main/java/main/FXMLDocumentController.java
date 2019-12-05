@@ -111,7 +111,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
             System.out.println("CLOSE " + oldTab.getText());
         }
         if (newTab.getId().equalsIgnoreCase("connections")) {
-            connectionsFieldCollection = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData());
+            connectionsFieldCollection = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData(),false);
         }
 
         System.out.println("NEW " + newTab.getText());

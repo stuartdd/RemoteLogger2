@@ -17,17 +17,122 @@
  */
 package main.fields;
 
+import java.io.IOException;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 
 /**
  *
  * @author Stuart
  */
-public interface FXMLField {
+public abstract class FXMLField {
 
-    Pane getPane();
-    
-    void setWidth(double width);
+    static final Color ERROR_COLOR = Color.PINK;
+    static final Color RO_COLOR = Color.WHITE;
+    static final Color BG_COLOR = Color.LIGHTGREEN;
+    static final Color HEADING_COLOR = Color.LIGHTGREEN;
 
-    public void destroy();
+    private final Pane pane;
+    private final BeanWrapper beanWrapper;
+    private final String propertyName;
+    private final boolean readOnly;
+    private Label label = null;
+    private Separator separator = null;
+
+    public FXMLField(String type, BeanWrapper beanWrapper, String propertyName, boolean readOnly) {
+        this.beanWrapper = beanWrapper;
+        this.propertyName = propertyName;
+        this.readOnly = readOnly;
+        String fileName = "/FXML" + type + "Field.fxml";
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fileName));
+            pane = loader.load();
+        } catch (Exception e) {
+            throw new FXMLBeanFieldLoaderException("Failed to load:" + fileName, e);
+        }
+        for (Node c : getPane().getChildren()) {
+            if (c instanceof Label) {
+                label = (Label) c;
+                if (beanWrapper == null) {
+                    label.setText(propertyName);
+                } else {
+                    label.setText(beanWrapper.getDescription(propertyName));
+                }
+                label.setLayoutX(5);
+            }
+            if (c instanceof Separator) {
+                separator = (Separator) c;
+            }
+        }
+        setColor();
+    }
+
+    public final Pane getPane() {
+        return pane;
+    }
+
+    public final void setColor() {
+        if (label != null) {
+            if (readOnly) {
+                label.setBackground(pane.getBackground());
+            } else {
+                label.setBackground(new Background(new BackgroundFill(BG_COLOR, CornerRadii.EMPTY, Insets.EMPTY)));
+            }
+        }
+    }
+
+    public void setColor(Color c) {
+        if (label != null) {
+            label.setBackground(new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY)));
+        }
+    }
+
+    public Label getLabel() {
+        return label;
+    }
+
+    public Separator getSeparator() {
+        return separator;
+    }
+
+    public BeanWrapper getBeanWrapper() {
+        return beanWrapper;
+    }
+
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
+    public void setWidth(double width) {
+        if ((separator != null) && (width > 0)) {
+            separator.setMinWidth(width);
+            separator.setPrefWidth(width);
+        }
+    }
+
+    public void removeNode(Node n) {
+        if (n != null) {
+            pane.getChildren().remove(n);
+        }
+    }
+
+    public void removeCommonNodes() {
+        removeNode(separator);
+        removeNode(label);
+    }
+
+    public abstract void destroy();
+
 }
