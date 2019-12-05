@@ -18,6 +18,8 @@
 package main.fields;
 
 import java.io.IOException;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -28,34 +30,56 @@ import javafx.scene.layout.Pane;
  *
  * @author Stuart
  */
-public class FXMLIntegerField {
+public class FXMLIntegerField implements FXMLField, ChangeListener<String> {
 
     private final Pane pane;
+    private final BeanWrapper beanWrapper;
+    private final String propertyName;
     private Label label;
     private TextField textField;
 
-    public FXMLIntegerField(String text, Integer value) throws IOException {
+    public FXMLIntegerField(BeanWrapper beanWrapper, String propertyName, Integer value) throws IOException {
+        this.beanWrapper = beanWrapper;
+        this.propertyName = propertyName;
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXMLStringField.fxml"));
         pane = loader.load();
-        for (Node c:pane.getChildren()) {
+        for (Node c : pane.getChildren()) {
             if (c instanceof Label) {
-                label = (Label)c;
-                label.setText(text);
+                label = (Label) c;
+                label.setText(beanWrapper.getDescription(propertyName));
             }
             if (c instanceof TextField) {
-                textField = (TextField)c;
+                textField = (TextField) c;
                 if (value != null) {
                     textField.setText(value.toString());
                 } else {
                     textField.setText("null");
                 }
-                
+                textField.textProperty().addListener(this);
             }
         }
     }
 
+    @Override
     public Pane getPane() {
         return pane;
+    }
+
+    @Override
+    public void setWidth(double width) {
+    }
+
+    @Override
+    public void destroy() {
+        pane.getChildren().remove(label);
+        pane.getChildren().remove(textField);
+        textField.textProperty().removeListener(this);
+    }
+
+    @Override
+    public void changed(ObservableValue<? extends String> arg0, String arg1, String arg2) {
+        Integer i = Integer.parseInt(arg2);
+        beanWrapper.setValue(propertyName, i);
     }
 
 }

@@ -18,6 +18,8 @@
 package main.fields;
 
 import java.io.IOException;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -28,34 +30,55 @@ import javafx.scene.layout.Pane;
  *
  * @author Stuart
  */
-public class FXMLStringField {
+public class FXMLStringField implements FXMLField, ChangeListener<String> {
 
     private final Pane pane;
+    private final BeanWrapper beanWrapper;
+    private final String propertyName;
     private Label label;
     private TextField textField;
 
-    public FXMLStringField(String text, String value) throws IOException {
+    public FXMLStringField(BeanWrapper beanWrapper, String propertyName, String value) throws IOException {
+        this.beanWrapper = beanWrapper;
+        this.propertyName = propertyName;
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXMLStringField.fxml"));
         pane = loader.load();
-        for (Node c:pane.getChildren()) {
+        for (Node c : pane.getChildren()) {
             if (c instanceof Label) {
-                label = (Label)c;
-                label.setText(text);
+                label = (Label) c;
+                label.setText(beanWrapper.getDescription(propertyName));
             }
             if (c instanceof TextField) {
-                textField = (TextField)c;
+                textField = (TextField) c;
                 if (value != null) {
                     textField.setText(value);
                 } else {
                     textField.setText("null");
                 }
-                
+                textField.textProperty().addListener(this);
             }
         }
     }
 
+    @Override
     public Pane getPane() {
         return pane;
+    }
+
+    @Override
+    public void setWidth(double width) {
+    }
+
+    @Override
+    public void destroy() {
+        pane.getChildren().remove(label);
+        textField.textProperty().removeListener(this);
+        pane.getChildren().remove(textField);
+    }
+
+    @Override
+    public void changed(ObservableValue<? extends String> arg0, String arg1, String arg2) {
+        beanWrapper.setValue(propertyName, arg2);
     }
 
 }

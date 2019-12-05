@@ -21,30 +21,48 @@ import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.Pane;
 
 /**
  *
  * @author Stuart
  */
-public class FXMLHeadingField {
+public class FXMLHeadingField implements FXMLField {
 
     private final Pane pane;
     private Label label;
+    private Separator separator;
 
     public FXMLHeadingField(String text) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXMLHeadingField.fxml"));
         pane = loader.load();
-        for (Node c:pane.getChildren()) {
+        for (Node c : pane.getChildren()) {
             if (c instanceof Label) {
-                label = (Label)c;
+                label = (Label) c;
                 label.setText(text);
+            }
+            if (c instanceof Separator) {
+                separator = (Separator) c;
             }
         }
     }
 
+    @Override
     public Pane getPane() {
         return pane;
+    }
+
+    @Override
+    public void setWidth(double width) {
+        if ((separator != null) && (width > 0)) {
+            separator.setMinWidth(width);
+            separator.setPrefWidth(width);
+        }
+    }
+
+    @Override
+    public void destroy() {
     }
 
 }

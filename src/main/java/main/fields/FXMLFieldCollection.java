@@ -19,7 +19,6 @@ package main.fields;
 
 import common.PropertyDataWithAnnotations;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,30 +32,49 @@ import javafx.scene.layout.VBox;
  */
 public class FXMLFieldCollection {
 
-    FXMLBooleanField inputField;
+    private List<FXMLField> fields = new ArrayList<>();
+    private final VBox container;
 
-    public FXMLFieldCollection(VBox vBoxConnections, Map<String, PropertyDataWithAnnotations> data) {
+    public FXMLFieldCollection(VBox container, Map<String, PropertyDataWithAnnotations> data) {
+        this.container = container;
         try {
             for (Map.Entry<String, PropertyDataWithAnnotations> obj : data.entrySet()) {
-                vBoxConnections.getChildren().add((new FXMLHeadingField(obj.getKey() + ":")).getPane());
                 BeanWrapper beanWrapper = new BeanWrapper(obj.getValue());
+                fields.add((new FXMLHeadingField(obj.getKey() + ":")));
                 for (String prop : beanWrapper.getPropertyList()) {
-                    if (beanWrapper.getParameterType(prop).equals(int.class) || beanWrapper.getParameterType(prop).equals(Integer.class))  {
-                        FXMLIntegerField intField = new FXMLIntegerField(beanWrapper.getDescription(prop), (Integer)beanWrapper.getValue(prop));
-                        vBoxConnections.getChildren().add(intField.getPane());
+                    if (beanWrapper.getParameterType(prop).equals(int.class) || beanWrapper.getParameterType(prop).equals(Integer.class)) {
+                        fields.add(new FXMLIntegerField(beanWrapper, prop, (Integer)beanWrapper.getValue(prop)));
                     }
-                    if (beanWrapper.getParameterType(prop).equals(boolean.class) || beanWrapper.getParameterType(prop).equals(Boolean.class))  {
-                        FXMLBooleanField intField = new FXMLBooleanField(beanWrapper.getDescription(prop), (Boolean)beanWrapper.getValue(prop));
-                        vBoxConnections.getChildren().add(intField.getPane());
+                    if (beanWrapper.getParameterType(prop).equals(boolean.class) || beanWrapper.getParameterType(prop).equals(Boolean.class)) {
+                        fields.add(new FXMLBooleanField(beanWrapper, prop, (Boolean) beanWrapper.getValue(prop)));
                     }
-                    if (beanWrapper.getParameterType(prop).equals(String.class))  {
-                        FXMLStringField intField = new FXMLStringField(beanWrapper.getDescription(prop), (String)beanWrapper.getValue(prop));
-                        vBoxConnections.getChildren().add(intField.getPane());
+                    if (beanWrapper.getParameterType(prop).equals(String.class)) {
+                        fields.add(new FXMLStringField(beanWrapper, prop, (String) beanWrapper.getValue(prop)));
                     }
                 }
+            }
+            for (FXMLField field : fields) {
+                this.container.getChildren().add(field.getPane());
+                field.setWidth(this.container.getWidth());
             }
         } catch (IOException ex) {
             Logger.getLogger(FXMLFieldCollection.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public void setWidth(double width) {
+        if (width > 0) {
+            for (FXMLField field : fields) {
+                field.setWidth(width);
+            }
+        }
+    }
+
+    public void destroy() {
+        for (FXMLField field : fields) {
+            field.destroy();
+            this.container.getChildren().remove(field.getPane());
+        }
+        fields = new ArrayList<>();
     }
 }

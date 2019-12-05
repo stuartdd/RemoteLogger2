@@ -79,6 +79,15 @@ public class BeanWrapper {
         }
         return bp.description();
     }   
+    
+    public void setValue(String name, Object o) {
+         try {
+            Method m = findSetter(name);
+            m.invoke(object, new Object[]{o});
+        } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+            Logger.getLogger(BeanWrapper.class.getName()).log(Level.SEVERE, null, ex);
+        }       
+    }
 
     public Object getValue(String name) {
         try {
@@ -102,6 +111,13 @@ public class BeanWrapper {
         return null;
     }
     
-    public void setValue(Object o) {
+    private Method findSetter(String name) {
+        for (Method m:object.getClass().getMethods()) {
+            if (m.getName().equals("set"+name)) {
+                return m;
+            }
+         }
+        return null;
     }
+    
 }

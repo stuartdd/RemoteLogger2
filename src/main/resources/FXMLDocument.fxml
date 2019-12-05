@@ -33,7 +33,7 @@
                     </AnchorPane>
                   </content>
                 </Tab>
-                <Tab text="Logs">
+                <Tab id="logs" text="Logs">
                   <content>
                     <AnchorPane>
                            <children>
@@ -80,5 +80,7 @@
             </FlowPane>
          </top>
       </BorderPane>
+      <Separator orientation="VERTICAL" prefHeight="200.0" />
+      <Separator prefWidth="200.0" />
     </children>
 </AnchorPane>

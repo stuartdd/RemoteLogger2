@@ -18,6 +18,9 @@
 package main.fields;
 
 import java.io.IOException;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.EventType;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
@@ -28,29 +31,51 @@ import javafx.scene.layout.Pane;
  *
  * @author Stuart
  */
-public class FXMLBooleanField {
+public class FXMLBooleanField implements FXMLField, ChangeListener<Boolean> {
 
-    private Pane pane;
+    private final Pane pane;
+    private final BeanWrapper beanWrapper;
+    private final String propertyName;
     private Label label;
     private CheckBox checkBox;
 
-    public FXMLBooleanField(String text, Boolean state) throws IOException {
+    public FXMLBooleanField(BeanWrapper beanWrapper, String propertyName, Boolean state) throws IOException {
+        this.beanWrapper = beanWrapper;
+        this.propertyName = propertyName;
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXMLBooleanField.fxml"));
         pane = loader.load();
-        for (Node c:pane.getChildren()) {
+        for (Node c : pane.getChildren()) {
             if (c instanceof Label) {
-                label = (Label)c;
-                label.setText(text);
+                label = (Label) c;
+                label.setText(beanWrapper.getDescription(propertyName));
             }
             if (c instanceof CheckBox) {
-                checkBox = (CheckBox)c;
+                checkBox = (CheckBox) c;
                 checkBox.setSelected(state);
+                checkBox.selectedProperty().addListener(this);
             }
         }
     }
 
+    @Override
     public Pane getPane() {
         return pane;
+    }
+
+    @Override
+    public void setWidth(double width) {
+    }
+
+    @Override
+    public void destroy() {
+        checkBox.selectedProperty().removeListener(this);
+        pane.getChildren().remove(label);
+        pane.getChildren().remove(checkBox);
+    }
+
+    @Override
+    public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
+        beanWrapper.setValue(propertyName, arg2);
     }
 
 }

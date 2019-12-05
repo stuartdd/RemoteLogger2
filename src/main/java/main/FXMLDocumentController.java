@@ -22,6 +22,7 @@ import common.Action;
 import common.ConfigData;
 import common.Notification;
 import common.Notifier;
+import java.lang.reflect.Field;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -62,9 +63,10 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     private TabPane mainTabbedPane;
 
-    @FXML 
+    @FXML
     private VBox vBoxConnections;
-    
+    private FXMLFieldCollection connectionsFieldCollection;
+
     @FXML
     private Label label;
 
@@ -73,7 +75,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     private Button buttonStartStopServer;
-
 
     @FXML
     private ChoiceBox serverChoiceBox;
@@ -88,7 +89,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     Scaling values for each line
      */
     private double[] scales = new double[]{4000, 4000, 2000, 1500};
-    
+
     private int currentSelectedServerPort = -1;
 
     @FXML
@@ -101,15 +102,18 @@ public class FXMLDocumentController implements Initializable, Notifier {
             if (newTab == oldTab) {
                 return;
             }
+            if (oldTab.getId().equalsIgnoreCase("connections")) {
+                connectionsFieldCollection.destroy();
+            }
             /*
             If any changes to state then save them to disk
-            */
+             */
             System.out.println("CLOSE " + oldTab.getText());
         }
         if (newTab.getId().equalsIgnoreCase("connections")) {
-            FXMLFieldCollection fc = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData());
+            connectionsFieldCollection = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData());
         }
-        
+
         System.out.println("NEW " + newTab.getText());
     }
 
