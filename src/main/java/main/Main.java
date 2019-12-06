@@ -17,14 +17,18 @@
  */
 package main;
 
+import common.Action;
 import common.ConfigData;
 import common.LogLine;
 import common.Notification;
 import common.Notifier;
 import common.Util;
-import java.awt.AWTException;
 import geom.Rect;
+import java.awt.AWTException;
+import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.application.Platform;
@@ -45,6 +49,7 @@ public class Main extends Application implements Notifier {
     private static Stage mainStage;
     private static Scene mainScene;
     private static FXMLDocumentController controller;
+    private static String configFileName;
 
     static void forwardNotification(Notification notification) {
         int count = 10;
@@ -52,8 +57,23 @@ public class Main extends Application implements Notifier {
             Util.sleep(100);
             count--;
         }
-        if (count > 0) {
-            controller.notifyAction(notification);
+        if (count == 0) {
+            return;
+        }
+        switch (notification.getAction()) {
+            case RELOAD_RESTART_SERVERS:
+                ConfigData.load("config.json");
+                controller.notifyAction(new Notification(notification.getPort(), Action.CONFIG_RELOAD, null, "Reloaded Config Data"));
+            case RESTART_SERVERS:
+                if (!stopServers(5000)) {
+                    controller.notifyAction(new Notification(notification.getPort(), Action.ERROR, null, "Failed to stop ALL servers!"));
+                } else {
+                    initServers();
+                    controller.notifyAction(notification);
+                }
+                break;
+            default:
+                controller.notifyAction(notification);
         }
     }
 
@@ -90,7 +110,11 @@ public class Main extends Application implements Notifier {
          */
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXMLDocument.fxml"));
         Parent root = loader.load();
-        
+
+        stage.setX(ConfigData.getInstance().getX());
+        stage.setY(ConfigData.getInstance().getY());
+        stage.setHeight(ConfigData.getInstance().getHeight());
+        stage.setWidth(ConfigData.getInstance().getWidth());
 
         /*
         Save a reference to the controller for later.
@@ -118,11 +142,19 @@ public class Main extends Application implements Notifier {
      * Then we terminate the Java VM
      */
     public static void closeApplication() {
-        ServerManager.stopAllServers();
-        int count = 20;
-        while ((ServerManager.countServersRunning() > 0) && (count > 0)) {
-            Util.sleep(100);
-            count--;
+        if (ConfigData.canWriteToFile()) {
+            ConfigData.getInstance().setX(mainStage.getX());
+            ConfigData.getInstance().setY(mainStage.getY());
+            ConfigData.getInstance().setWidth(mainStage.getWidth());
+            ConfigData.getInstance().setHeight(mainStage.getHeight());
+            try {
+                ConfigData.store();
+            } catch (IOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        if (!stopServers(5000)) {
+            System.out.println("Failed to stop ALL servers. Waited 5 seconds!");
         }
         Platform.exit();
         System.exit(0);
@@ -134,17 +166,15 @@ public class Main extends Application implements Notifier {
      * Currently just the config file name
      */
     public static void main(String[] args) throws AWTException {
+        configFileName = "config.json";
         /*
         Check we have a config file name. Abort if not.
          */
         if (args.length == 0) {
             exitWithHelp("Requires a properties (configuration) file");
         }
-
-        ConfigData.load("config.json");
-        for (Map.Entry<String, ServerConfig> sc : ConfigData.getInstance().getServers().entrySet()) {
-            ServerManager.addServer(sc.getKey(), sc.getValue(), new Main());
-        }
+        loadConfig();
+        initServers();
 
         launch(args);
         /*
@@ -190,16 +220,41 @@ public class Main extends Application implements Notifier {
 
     @Override
     public void log(int port, String message) {
+        System.out.println("+++++ " + message);
         LogLines.add(new LogLine(port, message));
     }
 
     @Override
     public void log(int port, Throwable throwable) {
+        System.out.println("+++++ " + throwable.getMessage());
         LogLines.add(new LogLine(port, null, throwable));
     }
 
     @Override
     public void log(int port, String message, Throwable throwable) {
+        System.out.println("+++++ " + message + ": " + throwable.getMessage());
         LogLines.add(new LogLine(port, message, throwable));
+    }
+
+    private static boolean stopServers(long timeOut) {
+        long timeToGiveUp = System.currentTimeMillis() + timeOut;
+        ServerManager.stopAllServers();
+        while ((ServerManager.countServersRunning() > 0) && (System.currentTimeMillis() < timeToGiveUp)) {
+            Util.sleep(50);
+        }
+        return (System.currentTimeMillis() < timeToGiveUp);
+    }
+
+    private static void initServers() {
+        ServerManager.clear();
+        for (Map.Entry<String, ServerConfig> sc : ConfigData.getInstance().getServers().entrySet()) {
+            ServerManager.addServer(sc.getKey(), sc.getValue(), new Main());
+        }
+        ServerManager.autoStartServers();
+    }
+
+    private static void loadConfig() {
+        ConfigData.load(configFileName);
+
     }
 }

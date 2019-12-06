@@ -105,9 +105,9 @@ public class Server {
         return false;
     }
 
-    public void stop() {
+    public void stop(boolean now) {
         if (serverThread != null) {
-            serverThread.stopServer();
+            serverThread.stopServer(now);
         }
     }
 

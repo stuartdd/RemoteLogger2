@@ -77,7 +77,7 @@ public class MockServer {
 
     public void stop() {
         if (server != null) {
-            server.stop();
+            server.stop(false);
         }
         int count = 0;
         while (server.isRunning() && (count < 10000)) {

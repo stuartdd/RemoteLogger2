@@ -16,12 +16,11 @@
  */
 package server;
 
-import common.Action;
 import com.sun.net.httpserver.HttpServer;
 import common.Notifier;
+import common.Util;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import common.Util;
 
 public class ServerThread extends Thread {
 
@@ -29,11 +28,13 @@ public class ServerThread extends Thread {
     private final Server server;
     private boolean running;
     private boolean serverCanRun;
+    private int timeToClose;
     private final ExpectationHandler expectationHandler;
     private final ControlHandler controlHandler;
 
     public ServerThread(Server server) {
         this.server = server;
+        this.timeToClose = server.getTimeToClose();
         this.running = false;
         this.serverCanRun = true;
         this.expectationHandler = new ExpectationHandler(server);
@@ -61,8 +62,8 @@ public class ServerThread extends Thread {
         do {
             Util.sleep(50);
         } while (serverCanRun);
-        newState(ServerState.SERVER_STOPPING, "["+serverCanRun+"] Time to close:" + server.getTimeToClose());
-        httpServer.stop(server.getTimeToClose());
+        newState(ServerState.SERVER_STOPPING, "["+serverCanRun+"] Time to close:" + timeToClose);
+        httpServer.stop(timeToClose);
         newState(ServerState.SERVER_STOPPED, null);
         running = false;
     }
@@ -104,9 +105,14 @@ public class ServerThread extends Thread {
         return running;
     }
 
-    public void stopServer() {
+    public void stopServer(boolean now) {
         if (server.getServerNotifier() != null) {
             server.getServerNotifier().log(server.getPort(), "STOP-SERVER Via stopServer()");
+        }
+        if (now) {
+            timeToClose = 0;
+        } else {
+            timeToClose = server.getTimeToClose();
         }
         serverCanRun = false;
     }

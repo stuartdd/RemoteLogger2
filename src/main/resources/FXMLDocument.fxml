@@ -24,11 +24,25 @@
                   <content>
                     <AnchorPane fx:id="connectionsAnchorPane">
                            <children>
-                              <ScrollPane prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                 <content>
-                                    <VBox fx:id="vBoxConnections" />
-                                 </content>
-                              </ScrollPane>
+                              <BorderPane prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <center>
+                                    <ScrollPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                                       <content>
+                                          <VBox fx:id="vBoxConnections" />
+                                       </content>
+                                    </ScrollPane>
+                                 </center>
+                                 <top>
+                                    <FlowPane prefHeight="14.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                                       <children>
+                                          <Separator orientation="VERTICAL" prefHeight="28.0" prefWidth="7.0" />
+                                          <Button fx:id="buttonSaveConfigChanges" mnemonicParsing="false" onAction="#handleButtonSaveConfigChanges" text="Restart Servers with Changes" />
+                                          <Separator orientation="VERTICAL" prefHeight="33.0" prefWidth="30.0" />
+                                          <Button fx:id="buttonReloadConfigChanges" mnemonicParsing="false" onAction="#handleButtonReloadConfigChanges" text="Restart Servers with original Configuration" />
+                                       </children>
+                                    </FlowPane>
+                                 </top>
+                              </BorderPane>
                            </children>
                     </AnchorPane>
                   </content>

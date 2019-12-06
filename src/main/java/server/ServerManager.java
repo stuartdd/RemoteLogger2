@@ -34,6 +34,10 @@ import java.util.HashMap;
 public class ServerManager {
 
     private static Map<Integer, Server> servers = new ConcurrentHashMap<>();
+ 
+    public static void clear() {
+        servers = new ConcurrentHashMap<>();
+    }
 
     public static void addServer(String portStr, ServerConfig config, Notifier serverNotifier) {
         int port;
@@ -71,13 +75,13 @@ public class ServerManager {
     public static void stopServer(int port) {
         Server server = servers.get(port);
         if (server != null) {
-            server.stop();
+            server.stop(false);
         }
     }
 
     public static void stopAllServers() {
         for (Server server : servers.values()) {
-            server.stop();
+            server.stop(true);
         }
     }
 
@@ -187,4 +191,5 @@ public class ServerManager {
         }
         return server.getExpectationManager();
     }
+
 }

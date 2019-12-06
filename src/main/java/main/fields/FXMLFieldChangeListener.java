@@ -17,27 +17,10 @@
  */
 package main.fields;
 
-import java.io.IOException;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
-import javafx.scene.layout.Pane;
-
 /**
  *
  * @author Stuart
  */
-public class FXMLHeadingField extends FXMLField {
-
-    public FXMLHeadingField(String text) throws IOException {
-        super("Heading", null, text, true, null);
-        setColor(HEADING_COLOR);
-    }
-
-    @Override
-    public void destroy() {
-        removeCommonNodes();
-    }
-
+public interface FXMLFieldChangeListener {
+    void changed(boolean error);
 }

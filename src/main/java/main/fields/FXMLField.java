@@ -44,13 +44,15 @@ public abstract class FXMLField {
     private final BeanWrapper beanWrapper;
     private final String propertyName;
     private final boolean readOnly;
+    private final FXMLFieldChangeListener changeListener;
     private Label label = null;
     private Separator separator = null;
 
-    public FXMLField(String type, BeanWrapper beanWrapper, String propertyName, boolean readOnly) {
+    public FXMLField(String type, BeanWrapper beanWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
         this.beanWrapper = beanWrapper;
         this.propertyName = propertyName;
         this.readOnly = readOnly;
+        this.changeListener = changeListener;
         String fileName = "/FXML" + type + "Field.fxml";
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fileName));
@@ -133,6 +135,12 @@ public abstract class FXMLField {
         removeNode(label);
     }
 
+    public void notifyChange(boolean error) {
+        if (changeListener != null) {
+            changeListener.changed(error);
+        }
+    }
+    
     public abstract void destroy();
 
 }

@@ -22,6 +22,7 @@ import common.Action;
 import common.ConfigData;
 import common.Notification;
 import common.Notifier;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -47,6 +48,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.VBox;
+import main.fields.FXMLFieldChangeListener;
 import server.ServerManager;
 
 /**
@@ -75,6 +77,10 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     private Button buttonStartStopServer;
+    @FXML
+    private Button buttonSaveConfigChanges;
+    @FXML
+    private Button buttonReloadConfigChanges;
 
     @FXML
     private ChoiceBox serverChoiceBox;
@@ -91,10 +97,21 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private double[] scales = new double[]{4000, 4000, 2000, 1500};
 
     private int currentSelectedServerPort = -1;
+    private boolean configDataHasChanged = false;
 
     @FXML
     public void handleCloseApplicationButton() {
         Main.closeApplication();
+    }
+
+    @FXML
+    public void handleButtonSaveConfigChanges() {
+        Main.forwardNotification(new Notification(currentSelectedServerPort, Action.RESTART_SERVERS, null, "Restarting Servers"));
+    }
+
+    @FXML
+    public void handleButtonReloadConfigChanges() {
+        Main.forwardNotification(new Notification(currentSelectedServerPort, Action.RELOAD_RESTART_SERVERS, null, "Restarting Servers"));
     }
 
     public void tabSelectionChanged(Tab newTab, Tab oldTab) {
@@ -111,7 +128,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
             System.out.println("CLOSE " + oldTab.getText());
         }
         if (newTab.getId().equalsIgnoreCase("connections")) {
-            connectionsFieldCollection = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData(),false);
+            initializeConnectionDataTab();
         }
 
         System.out.println("NEW " + newTab.getText());
@@ -134,10 +151,9 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        configDataHasChanged = false;
         int port = initializePortChoiceBox();
         Tab tab = initializeTabPanel(0);
-        ServerManager.autoStartServers();
-
         serverPortSelectionChanged(port);
         tabSelectionChanged(tab, null);
     }
@@ -153,6 +169,24 @@ public class FXMLDocumentController implements Initializable, Notifier {
             }
         });
         return mainTabbedPane.getTabs().get(index);
+    }
+
+    private void initializeConnectionDataTab() {
+        buttonSaveConfigChanges.setDisable(!configDataHasChanged);
+        buttonReloadConfigChanges.setDisable(!configDataHasChanged);
+        connectionsFieldCollection = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData(), false, new FXMLFieldChangeListener() {
+            @Override
+            public void changed(boolean error) {
+                if (error) {
+                    buttonSaveConfigChanges.setDisable(true);
+                    buttonReloadConfigChanges.setDisable(true);
+                } else {
+                    configDataHasChanged = true;
+                    buttonSaveConfigChanges.setDisable(!configDataHasChanged);
+                    buttonReloadConfigChanges.setDisable(!configDataHasChanged);
+                }
+            }
+        });
     }
 
     private int initializePortChoiceBox() {
@@ -176,6 +210,13 @@ public class FXMLDocumentController implements Initializable, Notifier {
             @Override
             public void run() {
                 switch (notification.getAction()) {
+                    case CONFIG_RELOAD:
+                        configDataHasChanged = false;
+                        if (connectionsFieldCollection != null) {
+                            connectionsFieldCollection.destroy();
+                        }
+                        initializeConnectionDataTab();
+                        break;
                     case SERVER_SELECTED:
                         serverPortSelectionChanged((Integer) notification.getData("port"));
                         break;

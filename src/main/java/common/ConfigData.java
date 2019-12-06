@@ -17,12 +17,15 @@
 package common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import common.FileData;
-import common.Util;
 import config.Config;
-import config.Config;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
+import json.JsonUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -30,6 +33,18 @@ import server.ServerConfig;
 
 public class ConfigData extends Config {
 
+    public static void store() throws IOException {
+        File f = new File(writeFileName);
+        String s = JsonUtils.toJsonFormatted(ConfigData.instance);
+        Files.writeString(f.toPath(), s, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+    }
+
+    public static boolean wouldOverwrite() {
+        File f = new File(writeFileName);
+        return f.exists();        
+    }
+    
+    
     private Map<String, ServerConfig> servers = new HashMap<>();
     private String packagedRequestsFile;
     private String selectedPackagedRequestName;

@@ -20,11 +20,8 @@ package main.fields;
 import java.io.IOException;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Pane;
 
 /**
  *
@@ -34,8 +31,8 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
 
     private TextField textField;
 
-    public FXMLStringField(BeanWrapper beanWrapper, String propertyName, String value, boolean readOnly) throws IOException {
-        super("String", beanWrapper, propertyName, readOnly);
+    public FXMLStringField(BeanWrapper beanWrapper, String propertyName, String value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super("String", beanWrapper, propertyName, readOnly, changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
@@ -61,6 +58,7 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
     public void changed(ObservableValue<? extends String> arg0, String oldValue, String newValue) {
         if (!newValue.equals(oldValue)) {
             getBeanWrapper().setValue(getPropertyName(), newValue);
+            notifyChange(false);
         }
     }
 

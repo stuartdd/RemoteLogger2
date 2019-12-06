@@ -31,8 +31,8 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
 
     private TextField textField;
 
-    public FXMLIntegerField(BeanWrapper beanWrapper, String propertyName, Integer value, boolean readOnly) throws IOException {
-        super("String", beanWrapper, propertyName, readOnly);
+    public FXMLIntegerField(BeanWrapper beanWrapper, String propertyName, Integer value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super("String", beanWrapper, propertyName, readOnly, changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
@@ -60,9 +60,11 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
             try {
                 Integer i = Integer.parseInt(newValue);
                 getBeanWrapper().setValue(getPropertyName(), i);
+                notifyChange(false);
             } catch (NumberFormatException e) {
                 setColor(ERROR_COLOR);
-            }
+                 notifyChange(true);
+           }
         }
     }
 
