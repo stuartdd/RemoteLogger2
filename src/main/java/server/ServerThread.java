@@ -25,7 +25,7 @@ import java.net.InetSocketAddress;
 public class ServerThread extends Thread {
 
     private ServerState serverState = ServerState.SERVER_STOPPED;
-    private final Server server;
+    private final Server theServer;
     private boolean running;
     private boolean serverCanRun;
     private int timeToClose;
@@ -33,7 +33,7 @@ public class ServerThread extends Thread {
     private final ControlHandler controlHandler;
 
     public ServerThread(Server server) {
-        this.server = server;
+        this.theServer = server;
         this.timeToClose = server.getTimeToClose();
         this.running = false;
         this.serverCanRun = true;
@@ -49,7 +49,7 @@ public class ServerThread extends Thread {
         HttpServer httpServer;
         try {
             newState(ServerState.SERVER_STARTING, "");
-            httpServer = bind(server.getPort(), server.getServerNotifier());
+            httpServer = bind(theServer.getPort(), theServer.getServerNotifier());
             httpServer.createContext("/control", controlHandler);
             httpServer.createContext("/", expectationHandler);
             httpServer.setExecutor(null); // creates a default executor
@@ -62,7 +62,7 @@ public class ServerThread extends Thread {
         do {
             Util.sleep(50);
         } while (serverCanRun);
-        newState(ServerState.SERVER_STOPPING, "["+serverCanRun+"] Time to close:" + timeToClose);
+        newState(ServerState.SERVER_STOPPING, " Time to close:" + timeToClose);
         httpServer.stop(timeToClose);
         newState(ServerState.SERVER_STOPPED, null);
         running = false;
@@ -70,11 +70,11 @@ public class ServerThread extends Thread {
 
     private HttpServer bind(int port, Notifier notifier) throws IOException {
         int tries = 0;
-        HttpServer server = null;
+        HttpServer newServer = null;
         IOException exception = null;
-        while ((tries < 20) && (server == null)) {
+        while ((tries < 20) && (newServer == null)) {
             try {
-                server = HttpServer.create(new InetSocketAddress(port), 0);
+                newServer = HttpServer.create(new InetSocketAddress(port), 0);
             } catch (IOException ex) {
                 exception = ex;
             }
@@ -84,16 +84,16 @@ public class ServerThread extends Thread {
             }
             Util.sleep(100);
         }
-        if ((server == null) && (exception != null)) {
+        if ((newServer == null) && (exception != null)) {
             throw exception;
         }
-        return server;
+        return newServer;
     }
 
     private synchronized void newState(ServerState state, String additional) {
         serverState = state;
-        if (server.getServerNotifier() != null) {
-            server.getServerNotifier().log(server.getPort(), serverState + (additional == null ? "" : ". " + additional));
+        if (theServer.getServerNotifier() != null) {
+            theServer.getServerNotifier().log(theServer.getPort(), serverState + (additional == null ? "" : ". " + additional));
         }
     }
 
@@ -106,13 +106,13 @@ public class ServerThread extends Thread {
     }
 
     public void stopServer(boolean now) {
-        if (server.getServerNotifier() != null) {
-            server.getServerNotifier().log(server.getPort(), "STOP-SERVER Via stopServer()");
+        if (theServer.getServerNotifier() != null) {
+            theServer.getServerNotifier().log(theServer.getPort(), "STOP-SERVER Via stopServer()");
         }
         if (now) {
             timeToClose = 0;
         } else {
-            timeToClose = server.getTimeToClose();
+            timeToClose = theServer.getTimeToClose();
         }
         serverCanRun = false;
     }

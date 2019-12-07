@@ -51,26 +51,19 @@ public class Main extends Application implements Notifier {
     private static FXMLDocumentController controller;
     private static String configFileName;
 
-    static void forwardNotification(Notification notification) {
-        int count = 10;
-        while ((controller == null) && (count > 0)) {
-            Util.sleep(100);
-            count--;
-        }
-        if (count == 0) {
-            return;
-        }
+    static void sendNotification(Notification notification) {
+        waitForController(1000);
         switch (notification.getAction()) {
             case RELOAD_RESTART_SERVERS:
                 ConfigData.load("config.json");
                 controller.notifyAction(new Notification(notification.getPort(), Action.CONFIG_RELOAD, null, "Reloaded Config Data"));
             case RESTART_SERVERS:
-                if (!stopServers(5000)) {
-                    controller.notifyAction(new Notification(notification.getPort(), Action.ERROR, null, "Failed to stop ALL servers!"));
-                } else {
-                    initServers();
-                    controller.notifyAction(notification);
-                }
+                    if (initServers()) {
+                        controller.notifyAction(notification);
+                    } else {
+                        controller.notifyAction(new Notification(notification.getPort(), Action.ERROR, null, "Failed to stop ALL servers!"));
+                    }
+                    
                 break;
             default:
                 controller.notifyAction(notification);
@@ -127,7 +120,6 @@ public class Main extends Application implements Notifier {
          */
         mainScene = new Scene(root);
 
-//        stage.setTitle(ConfigData.getValue("app.name", "Main"));
         stage.setScene(mainScene);
         stage.show();
     }
@@ -174,6 +166,7 @@ public class Main extends Application implements Notifier {
             exitWithHelp("Requires a properties (configuration) file");
         }
         loadConfig();
+        
         initServers();
 
         launch(args);
@@ -236,21 +229,33 @@ public class Main extends Application implements Notifier {
         LogLines.add(new LogLine(port, message, throwable));
     }
 
+    private static boolean waitForController(long timeOut) {
+        long timeToGiveUp = System.currentTimeMillis() + timeOut;
+        while ((controller == null) && (System.currentTimeMillis() < timeToGiveUp)) {
+            Util.sleep(100);
+        }
+        return (System.currentTimeMillis() < timeToGiveUp);
+    }
+    
     private static boolean stopServers(long timeOut) {
         long timeToGiveUp = System.currentTimeMillis() + timeOut;
         ServerManager.stopAllServers();
         while ((ServerManager.countServersRunning() > 0) && (System.currentTimeMillis() < timeToGiveUp)) {
-            Util.sleep(50);
+            Util.sleep(100);
         }
         return (System.currentTimeMillis() < timeToGiveUp);
     }
 
-    private static void initServers() {
+    private static boolean initServers() {
+        if (!stopServers(0)) {
+            return false;
+        }
         ServerManager.clear();
         for (Map.Entry<String, ServerConfig> sc : ConfigData.getInstance().getServers().entrySet()) {
             ServerManager.addServer(sc.getKey(), sc.getValue(), new Main());
         }
         ServerManager.autoStartServers();
+        return true;
     }
 
     private static void loadConfig() {

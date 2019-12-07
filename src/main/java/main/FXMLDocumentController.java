@@ -22,8 +22,6 @@ import common.Action;
 import common.ConfigData;
 import common.Notification;
 import common.Notifier;
-import java.io.IOException;
-import java.lang.reflect.Field;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -37,7 +35,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 
 import java.net.URL;
-import java.util.Map;
 import java.util.ResourceBundle;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -106,12 +103,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     public void handleButtonSaveConfigChanges() {
-        Main.forwardNotification(new Notification(currentSelectedServerPort, Action.RESTART_SERVERS, null, "Restarting Servers"));
+        Main.sendNotification(new Notification(currentSelectedServerPort, Action.RESTART_SERVERS, null, "Restarting Servers"));
     }
 
     @FXML
     public void handleButtonReloadConfigChanges() {
-        Main.forwardNotification(new Notification(currentSelectedServerPort, Action.RELOAD_RESTART_SERVERS, null, "Restarting Servers"));
+        Main.sendNotification(new Notification(currentSelectedServerPort, Action.RELOAD_RESTART_SERVERS, null, "Restarting Servers"));
     }
 
     public void tabSelectionChanged(Tab newTab, Tab oldTab) {
@@ -165,7 +162,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 Tab tabNew = mainTabbedPane.getTabs().get(newValue.intValue());
                 Tab tabOld = mainTabbedPane.getTabs().get(oldValue.intValue());
-                Main.forwardNotification(new Notification(currentSelectedServerPort, Action.TAB_SELECTED, null, "Selected tab [" + tabNew.getText() + "]").withData("newTab", tabNew).withData("oldTab", tabOld));
+                Main.sendNotification(new Notification(currentSelectedServerPort, Action.TAB_SELECTED, null, "Selected tab [" + tabNew.getText() + "]").withData("newTab", tabNew).withData("oldTab", tabOld));
             }
         });
         return mainTabbedPane.getTabs().get(index);
@@ -197,7 +194,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 if (oldValue != newValue) {
                     Integer port = (Integer) serverChoiceBox.getItems().get(newValue.intValue());
-                    Main.forwardNotification(new Notification(port, Action.SERVER_SELECTED, null, "Selected server port [" + port + "]").withData("port", port));
+                    Main.sendNotification(new Notification(port, Action.SERVER_SELECTED, null, "Selected server port [" + port + "]").withData("port", port));
                 }
             }
         });
