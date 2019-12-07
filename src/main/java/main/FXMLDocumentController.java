@@ -164,7 +164,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private void initializeConnectionDataTab() {
         buttonSaveConfigChanges.setDisable(!configDataHasChanged);
         buttonReloadConfigChanges.setDisable(!configDataHasChanged);
-        connectionsFieldCollection = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData(), false, new FXMLFieldChangeListener() {
+        connectionsFieldCollection = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData(), false, "Server %{id}:", new FXMLFieldChangeListener() {
             @Override
             public void changed(boolean error) {
                 if (error) {

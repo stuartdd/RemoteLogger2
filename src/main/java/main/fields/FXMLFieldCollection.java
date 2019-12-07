@@ -41,12 +41,13 @@ public class FXMLFieldCollection {
     
     private final VBox container;
 
-    public FXMLFieldCollection(VBox container, Map<String, PropertyDataWithAnnotations> data, boolean ro, FXMLFieldChangeListener changeListener) {
+    public FXMLFieldCollection(VBox container, Map<String, PropertyDataWithAnnotations> data, boolean ro, String headingTemplate, FXMLFieldChangeListener changeListener) {
         this.container = container;
         try {
             for (Map.Entry<String, PropertyDataWithAnnotations> obj : data.entrySet()) {
                 BeanWrapper beanWrapper = new BeanWrapper(obj.getValue());
-                FXMLHeadingField heading = new FXMLHeadingField(obj.getKey(), obj.getKey() + ":", changeListener);
+                String h = headingTemplate.replaceAll("%\\{id\\}", obj.getKey());
+                FXMLHeadingField heading = new FXMLHeadingField(obj.getKey(), h, changeListener);
                 headings.put(obj.getKey(), heading);
                 fields.add(heading);
                 for (String prop : beanWrapper.getPropertyList()) {

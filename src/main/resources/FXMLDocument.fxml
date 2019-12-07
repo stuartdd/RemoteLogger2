@@ -20,7 +20,7 @@
          <center>
             <TabPane fx:id="mainTabbedPane" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
               <tabs>
-                <Tab id="connections" text="Connections">
+                <Tab id="connections" text="Servers">
                   <content>
                     <AnchorPane fx:id="connectionsAnchorPane">
                            <children>

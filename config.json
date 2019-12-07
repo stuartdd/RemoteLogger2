@@ -2,15 +2,15 @@
   "servers" : {
     "5012" : {
       "expectationsFile" : "expectations.json",
-      "autoStart" : false,
+      "autoStart" : true,
       "showPort" : true,
-      "timeToClose" : 5,
+      "timeToClose" : 4,
       "verbose" : true,
       "logProperties" : true
     },
     "5003" : {
       "expectationsFile" : "expectations.json",
-      "autoStart" : true,
+      "autoStart" : false,
       "showPort" : true,
       "timeToClose" : 1,
       "verbose" : true,
@@ -29,7 +29,7 @@
   "showPort" : true,
   "x" : 106.0,
   "y" : 30.0,
-  "width" : 609.0,
+  "width" : 743.0,
   "height" : 712.0,
   "expDividerPos" : [ 0.2456703014753047, 0.6247594611930725 ],
   "packDividerPos" : [ 0.11802437459910199, 0.7434252726106478 ]
