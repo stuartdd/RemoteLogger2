@@ -17,36 +17,35 @@
  */
 package main;
 
-import main.fields.FXMLFieldCollection;
 import common.Action;
-import common.ConfigData;
+import common.LogLine;
 import common.Notification;
 import common.Notifier;
+import java.net.URL;
+import java.util.ResourceBundle;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.paint.Color;
-
-import java.net.URL;
-import java.util.ResourceBundle;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
-import javafx.scene.control.Button;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import main.fields.FXMLFieldChangeListener;
+import main.fields.FXMLFieldCollection;
 import server.ServerManager;
+import server.ServerState;
 
 /**
  *
@@ -82,33 +81,27 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     private ChoiceBox serverChoiceBox;
 
-    private GraphicsContext connectionCanvasGraphics;
-    private GraphicsContext gc;
-    /*
-    Colours for each line
-     */
-    private Color[] colours = new Color[]{Color.RED, Color.GREEN, Color.BLUE, Color.WHITE};
-    /*
-    Scaling values for each line
-     */
-    private double[] scales = new double[]{4000, 4000, 2000, 1500};
-
     private int currentSelectedServerPort = -1;
     private boolean configDataHasChanged = false;
 
     @FXML
     public void handleCloseApplicationButton() {
-        Main.closeApplication();
+        Main.closeApplication(0);
+    }
+
+    @FXML
+    public void handleButtonStartStopServer() {
+        Main.controllerNotification(new Notification(currentSelectedServerPort, Action.START_STOP_SERVER, "Start/Stop Server"));
     }
 
     @FXML
     public void handleButtonSaveConfigChanges() {
-        Main.sendNotification(new Notification(currentSelectedServerPort, Action.RESTART_SERVERS, null, "Restarting Servers"));
+        Main.controllerNotification(new Notification(currentSelectedServerPort, Action.RESTART_SERVERS, null, "Restarting Servers"));
     }
 
     @FXML
     public void handleButtonReloadConfigChanges() {
-        Main.sendNotification(new Notification(currentSelectedServerPort, Action.RELOAD_RESTART_SERVERS, null, "Restarting Servers"));
+        Main.controllerNotification(new Notification(currentSelectedServerPort, Action.RELOAD_RESTART_SERVERS, null, "Restarting Servers"));
     }
 
     public void tabSelectionChanged(Tab newTab, Tab oldTab) {
@@ -162,7 +155,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 Tab tabNew = mainTabbedPane.getTabs().get(newValue.intValue());
                 Tab tabOld = mainTabbedPane.getTabs().get(oldValue.intValue());
-                Main.sendNotification(new Notification(currentSelectedServerPort, Action.TAB_SELECTED, null, "Selected tab [" + tabNew.getText() + "]").withData("newTab", tabNew).withData("oldTab", tabOld));
+                Main.controllerNotification(new Notification(currentSelectedServerPort, Action.TAB_SELECTED, null, "Selected tab [" + tabNew.getText() + "]").withData("newTab", tabNew).withData("oldTab", tabOld));
             }
         });
         return mainTabbedPane.getTabs().get(index);
@@ -183,7 +176,31 @@ public class FXMLDocumentController implements Initializable, Notifier {
                     buttonReloadConfigChanges.setDisable(!configDataHasChanged);
                 }
             }
+
+            @Override
+            public void select(String id) {
+                for (Object o:serverChoiceBox.getItems()) {
+                    if (o.toString().equals(id)) {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                serverChoiceBox.getSelectionModel().select(o);
+                            }
+                        });
+                        break;
+                    }
+                }
+            } 
         });
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                for (int p: ServerManager.ports()) {
+                    connectionsFieldCollection.setHeadingColour(""+p, colorForServerState(ServerManager.getServerState(p)));
+                }               
+            }
+        });
+
     }
 
     private int initializePortChoiceBox() {
@@ -194,7 +211,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 if (oldValue != newValue) {
                     Integer port = (Integer) serverChoiceBox.getItems().get(newValue.intValue());
-                    Main.sendNotification(new Notification(port, Action.SERVER_SELECTED, null, "Selected server port [" + port + "]").withData("port", port));
+                    Main.controllerNotification(new Notification(port, Action.SERVER_SELECTED, null, "Selected server port [" + port + "]").withData("port", port));
                 }
             }
         });
@@ -203,6 +220,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @Override
     public void notifyAction(Notification notification) {
+        System.out.println(notification.toString());
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -220,6 +238,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
                     case TAB_SELECTED:
                         tabSelectionChanged((Tab) notification.getData("newTab"), (Tab) notification.getData("oldTab"));
                         break;
+                    case SERVER_STATE:
+                        setserverChoiceBoxColour();
+                        if (connectionsFieldCollection!=null) {
+                            connectionsFieldCollection.setHeadingColour(""+notification.getPort(), colorForServerState((ServerState)notification.getData("state")));            
+                        }
+                        break;
                 }
                 label.setText(notification.getMessage());
             }
@@ -227,81 +251,46 @@ public class FXMLDocumentController implements Initializable, Notifier {
     }
 
     @Override
-    public void log(int port, String message) {
-        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + message);
-    }
-
-    @Override
-    public void log(int port, Throwable throwable) {
-        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + throwable.getMessage());
-    }
-
-    @Override
-    public void log(int port, String message, Throwable throwable) {
-        System.out.println(ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + message + ": " + throwable.getMessage());
+    public void log(LogLine ll) {
+        System.out.println(ll.toString());
     }
 
     private void setserverChoiceBoxColour() {
         serverStateLabel.setText(ServerManager.getServer(currentSelectedServerPort).getServerState().getInfo());
         switch (ServerManager.getServer(currentSelectedServerPort).getServerState()) {
-            case SERVER_STARTING:
-            case SERVER_STOPPING:
-                buttonStartStopServer.setDisable(true);
-                serverChoiceBox.setBackground(new Background(new BackgroundFill(Color.PINK, CornerRadii.EMPTY, Insets.EMPTY)));
-                break;
             case SERVER_STOPPED:
-                buttonStartStopServer.setDisable(false);
-                buttonStartStopServer.setText("Start");
-                serverChoiceBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN, CornerRadii.EMPTY, Insets.EMPTY)));
+                setServerDetail(currentSelectedServerPort, false, "Start");
                 break;
             case SERVER_RUNNING:
-                buttonStartStopServer.setDisable(false);
-                buttonStartStopServer.setText("Stop");
-                serverChoiceBox.setBackground(new Background(new BackgroundFill(Color.GREENYELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
+                setServerDetail(currentSelectedServerPort, false, "Stop");
                 break;
             case SERVER_FAIL:
-                buttonStartStopServer.setDisable(false);
-                buttonStartStopServer.setText("Start");
-                serverChoiceBox.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
+                setServerDetail(currentSelectedServerPort, false, "Start");
                 break;
-            case SERVER_PENDING:
-                buttonStartStopServer.setDisable(false);
-                buttonStartStopServer.setText("Start");
-                serverChoiceBox.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-                break;
+            default:
+                setServerDetail(currentSelectedServerPort, true, "Wait");
         }
     }
 
-    /**
-     * The canvas (graph plot) is contained inside connectionsAnchorPane.
-     * connectionsAnchorPane has a height and a width property that can cbe
-     * listened to. When it changes we can call a method
-     */
-    private void initTheCanvas() {
-        /*
-        Add a listener to the Width property that sets the canvas to the same width
-         */
-        connectionsAnchorPane.widthProperty().addListener((obs, oldVal, newVal) -> {
-            /*
-            Width has changed. Update the canvas width!
-             */
-            connectionCanvasWidth = newVal.doubleValue();
-            connectionCanvas.setWidth(connectionCanvasWidth);
-            connectionCanvasGraphics = connectionCanvas.getGraphicsContext2D();
-        });
-        /*
-        Add a listener to the height property that sets the canvas to the same height
-         */
-        connectionsAnchorPane.heightProperty().addListener((obs, oldVal, newVal) -> {
-            /*
-            Height has changed. Update the canvas height!
-            Note canvas starts 50 pixels from the top of the connectionsAnchorPane
-             */
-            connectionCanvasHeight = newVal.doubleValue() - 50;
-            connectionCanvas.setLayoutY(50);
-            connectionCanvas.setHeight(connectionCanvasHeight);
-            connectionCanvasGraphics = connectionCanvas.getGraphicsContext2D();
-        });
+    private void setServerDetail(int port, boolean disabled, String text) {
+        buttonStartStopServer.setDisable(disabled);
+        buttonStartStopServer.setText(text);
+        serverChoiceBox.setBackground(new Background(new BackgroundFill(colorForServerState(ServerManager.getServerState(port)), CornerRadii.EMPTY, Insets.EMPTY)));
     }
+    
+    private Color colorForServerState(ServerState state) {
+        if (state != null) {
+            switch (state) {
+                case SERVER_STOPPED:
+                    return Color.LIGHTGREEN;
+                case SERVER_RUNNING:
+                    return Color.GREENYELLOW;
+                case SERVER_FAIL:
+                    return Color.RED;
+            }
+        }
+        return Color.PINK;
+    }
+
 
 }

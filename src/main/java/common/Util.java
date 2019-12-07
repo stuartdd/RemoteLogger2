@@ -221,7 +221,7 @@ public class Util {
                 if (Files.exists(p)) {
                     try {
                         if (notifier != null) {
-                            notifier.log(-1, type + " File found: " + p.toString());
+                            notifier.log(new LogLine(-1, type + " File found: " + p.toString()));
                         }
                         return new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
                     } catch (IOException ex) {
@@ -229,7 +229,7 @@ public class Util {
                     }
                 } else {
                     if (notifier != null) {
-                        notifier.log(-1, type + " File NOT found: " + p.toString());
+                        notifier.log(new LogLine(-1, type + " File NOT found: " + p.toString()));
                     }
                 }
             }
@@ -250,7 +250,7 @@ public class Util {
             InputStream is = Util.class.getResourceAsStream(resPath);
             if (is == null) {
                 if (notifier != null) {
-                    notifier.log(-1, type + " Resource CHECK: " + resPath);
+                    notifier.log(new LogLine(-1, type + " Resource CHECK: " + resPath));
                 }
             } else {
                 return readResource(resPath, type, list, notifier);
@@ -266,12 +266,12 @@ public class Util {
         }
         if (is == null) {
             if (notifier != null) {
-                notifier.log(-1, type + " Resource file NOT found: " + file);
+                notifier.log(new LogLine(-1, type + " Resource file NOT found: " + file));
             }
             throw new FileException(type + " Resource [" + file + "] Not Found in path(s) [" + list + "] or on the class path");
         }
         if (notifier != null) {
-            notifier.log(-1, type + " Resource found: " + file);
+            notifier.log(new LogLine(-1, type + " Resource found: " + file));
         }
         StringBuilder sb = new StringBuilder();
         int content;

@@ -28,18 +28,18 @@ public class LogLine {
     private final String message;
     private final Throwable exception;
 
-    public LogLine(long time, int port, String message) {
-        this.time = time;
-        this.port = port;
-        this.message = message;
-        this.exception = null;
-    }
-
     public LogLine(int port, String message) {
         this.time = System.currentTimeMillis();
         this.port = port;
         this.message = message;
         this.exception = null;
+    }
+
+    public LogLine(int port, Throwable ex) {
+        this.time = System.currentTimeMillis();
+        this.port = port;
+        this.message = null;
+        this.exception = ex;
     }
 
     public LogLine(int port, String message, Throwable ex) {
@@ -53,17 +53,42 @@ public class LogLine {
         return time;
     }
 
+    public boolean hasException() {
+        return (exception != null);
+    }
+
+    public boolean hasPort() {
+        return (port > 0);
+    }
+
     public int getPort() {
         return port;
     }
 
+    public boolean hasMessage() {
+        if (message == null) {
+            return false;
+        }
+        if (message.trim().length() == 0) {
+            return false;
+        }
+        return true;
+    }
+
     public String getMessage() {
-        return message;
+        if (hasMessage()) {
+            return message;
+        }
+        return "";
     }
 
     @Override
     public String toString() {
-        return ConfigData.getInstance().timeStamp(time) + (port < 0 ? "" : " [" + port + "] ") + message;
+        return toString(null);
+    }
+
+    public String toString(String dev) {
+        return ConfigData.getInstance().timeStamp(time) + " [-] " + (hasPort() ? " [" + port + "]" : " ") + (dev == null ? " " : " [" + dev + "] ") + getMessage() + (exception == null ? "." : "."+exception.getMessage());
     }
 
 }

@@ -22,6 +22,7 @@ import client.ClientConfig;
 import client.ClientResponse;
 import com.sun.net.httpserver.HttpExchange;
 import common.FileException;
+import common.LogLine;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -185,7 +186,7 @@ public class ExpectationManager {
             try {
                 serverStatistics.inc(ServerStatistics.STAT.MATCH, true);
                 if (serverNotifier != null) {
-                    serverNotifier.log(getPort(), "MATCHED " + foundExpectation);
+                    serverNotifier.log(new LogLine(getPort(), "MATCHED " + foundExpectation));
                 }
                 if (foundExpectation.getForward() == null) {
                     mockResponse = createMockResponse(foundExpectation, map);
@@ -194,13 +195,13 @@ public class ExpectationManager {
                 }
             } catch (ExpectationException | FileException ee) {
                 if (serverNotifier != null) {
-                    serverNotifier.log(getPort(), new IOException("Read file failed for expectation: " + foundExpectation.getName() + ". " + ee.getMessage(), ee));
+                    serverNotifier.log(new LogLine(getPort(), new IOException("Read file failed for expectation: " + foundExpectation.getName() + ". " + ee.getMessage(), ee)));
                 }
             }
         } else {
             serverStatistics.inc(ServerStatistics.STAT.MISSMATCH, true);
             if (serverNotifier != null) {
-                serverNotifier.log(getPort(), "Expectation not met. Returning Not Found (404)");
+                serverNotifier.log(new LogLine(getPort(), "Expectation not met. Returning Not Found (404)"));
             }
         }
         map.put("STATUS", "" + mockResponse.getStatus());
@@ -244,7 +245,7 @@ public class ExpectationManager {
         }
         ClientConfig clientConfig = new ClientConfig(Template.parse(forward.getHost(), map, true), forward.getPort(), headers);
         if (serverNotifier != null) {
-            serverNotifier.log(getPort(), "FORWARDING TO: " + forward.toString());
+            serverNotifier.log(new LogLine(getPort(), "FORWARDING TO: " + forward.toString()));
         }
         Client client = new Client(clientConfig, serverNotifier);
         try {
@@ -252,7 +253,7 @@ public class ExpectationManager {
             return new MockResponse(resp.getBody(), resp.getStatus(), resp.getHeaders());
         } catch (Exception e) {
             if (serverNotifier != null) {
-                serverNotifier.log(getPort(), e);
+                serverNotifier.log(new LogLine(getPort(), e));
             }
             return new MockResponse("Forward failed:" + e.getMessage(), 500, null);
         }
@@ -285,7 +286,7 @@ public class ExpectationManager {
     public Expectation findMatchingExpectation(Map<String, Object> map) {
         if (expectations == null) {
             if (serverNotifier != null) {
-                serverNotifier.log(getPort(), "No Expectation have been set!");
+                serverNotifier.log(new LogLine(getPort(), "No Expectation have been set!"));
             }
             return null;
         }
@@ -303,19 +304,19 @@ public class ExpectationManager {
     private Expectation testExpectationMatches(Expectation exp, Map<String, Object> map1) {
         if (doesNotMatchStringOrNullExp(exp.getMethod(), map1.get("METHOD"))) {
             if (serverNotifier != null) {
-                serverNotifier.log(getPort(), "MIS-MATCH:'" + exp.getName() + "' METHOD:'" + exp.getMethod() + "' != '" + map1.get("METHOD") + "'");
+                serverNotifier.log(new LogLine(getPort(), "MIS-MATCH:'" + exp.getName() + "' METHOD:'" + exp.getMethod() + "' != '" + map1.get("METHOD") + "'"));
             }
             return null;
         }
         if (doesNotMatchStringOrNullExp(exp.getBodyType(), map1.get("BODY-TYPE"))) {
             if (serverNotifier != null) {
-                serverNotifier.log(getPort(), "MIS-MATCH:'" + exp.getName() + "' BODY-TYPE:'" + exp.getBodyType() + "' != '" + map1.get("BODY-TYPE") + "'");
+                serverNotifier.log(new LogLine(getPort(), "MIS-MATCH:'" + exp.getName() + "' BODY-TYPE:'" + exp.getBodyType() + "' != '" + map1.get("BODY-TYPE") + "'"));
             }
             return null;
         }
         if (!exp.multiPathMatch(map1.get("PATH"))) {
             if (serverNotifier != null) {
-                serverNotifier.log(getPort(), "MIS-MATCH:'" + exp.getName() + "' PATH:'" + exp.getPath() + "' != '" + map1.get("PATH") + "'");
+                serverNotifier.log(new LogLine(getPort(), "MIS-MATCH:'" + exp.getName() + "' PATH:'" + exp.getPath() + "' != '" + map1.get("PATH") + "'"));
             }
             return null;
         }
@@ -332,13 +333,13 @@ public class ExpectationManager {
             Object actual = map.get(ass.getKey());
             if (actual == null) {
                 if (serverNotifier != null) {
-                    serverNotifier.log(getPort(), "MIS-MATCH:'" + exp.getName() + "': ASSERT:'" + ass.getKey() + "' Not Found");
+                    serverNotifier.log(new LogLine(getPort(), "MIS-MATCH:'" + exp.getName() + "': ASSERT:'" + ass.getKey() + "' Not Found"));
                 }
                 return true;
             }
             if (!exp.assertMatch(ass.getKey(), actual.toString())) {
                 if (serverNotifier != null) {
-                    serverNotifier.log(getPort(), "MIS-MATCH:'" + exp.getName() + "': ASSERT:' " + ass.getKey() + "'='" + ass.getValue() + "'. Does not match '" + actual + "'");
+                    serverNotifier.log(new LogLine(getPort(), "MIS-MATCH:'" + exp.getName() + "': ASSERT:' " + ass.getKey() + "'='" + ass.getValue() + "'. Does not match '" + actual + "'"));
                 }
                 return true;
             }
@@ -369,7 +370,7 @@ public class ExpectationManager {
         }
         sb.append("END: -------- " + id).append(": ").append(LS);
         if (serverNotifier != null) {
-            serverNotifier.log(getPort(), NL + sb.toString().trim());
+            serverNotifier.log(new LogLine(getPort(), NL + sb.toString().trim()));
         }
     }
 
@@ -380,7 +381,7 @@ public class ExpectationManager {
         sb.append(resp).append(NL);
         sb.append("-    ").append(id).append(' ').append(LS);
         if (serverNotifier != null) {
-            serverNotifier.log(getPort(), NL + sb.toString().trim());
+            serverNotifier.log(new LogLine(getPort(), NL + sb.toString().trim()));
         }
     }
 
@@ -439,7 +440,7 @@ public class ExpectationManager {
                     expectationsLoadTime = expectationsFile.lastModified();
                 } catch (ExpectationException ex) {
                     if (serverNotifier != null) {
-                        serverNotifier.log(getPort(), "Reload of expectation failed " + expectationsFile.getAbsolutePath(), ex);
+                        serverNotifier.log(new LogLine(getPort(), "Reload of expectation failed " + expectationsFile.getAbsolutePath(), ex));
                     } else {
                         ex.printStackTrace();
                     }

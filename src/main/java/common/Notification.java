@@ -42,6 +42,36 @@ public class Notification {
         this.message = message;
     }
 
+    public Notification(int port, Action action, String message) {
+        this.time = System.currentTimeMillis();
+        this.port = port;
+        this.action = action;
+        this.actionData = new HashMap<>();
+        this.message = message;
+    }
+
+    public Notification(int port, Action action, String id, Object actionOn, String message) {
+        this.time = System.currentTimeMillis();
+        this.port = port;
+        this.action = action;
+        this.actionData = new HashMap<>();
+        this.actionData.put(id, actionOn);
+        this.message = message;
+    }
+
+    public String toString(String dev) {
+        return ConfigData.getInstance().timeStamp(time) + " [+] "
+                + (port < 0 ? "" : " [" + port + "]")
+                + (action == null ? " " : " [" + action.name() + "]")
+                + (dev == null ? " " : " [" + dev + "] ")
+                + message;
+    }
+
+    @Override
+    public String toString() {
+        return toString(null);
+    }
+
     public Notification withData(String name, Object value) {
         if (actionData == null) {
             actionData = new HashMap<>();
@@ -49,7 +79,7 @@ public class Notification {
         actionData.put(name, value);
         return this;
     }
-    
+
     public static String getFormat() {
         return format;
     }
@@ -72,15 +102,6 @@ public class Notification {
 
     public String getMessage() {
         return message;
-    }
-
-    public LogLine getLogLine() {
-        return new LogLine(time, port, (action == null ? "" : " ["+action.name()+"] ") + message);
-    }
-    
-    @Override
-    public String toString() {
-        return ConfigData.getInstance().timeStamp(time) + (port < 0 ? "" : " [" + port + "] ") + (action == null ? "" : " ["+action.name()+"] ") + message;
     }
 
     public Object getData(String name) {

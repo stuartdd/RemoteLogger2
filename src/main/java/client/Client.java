@@ -16,6 +16,7 @@
  */
 package client;
 
+import common.LogLine;
 import common.Notifier;
 import common.Util;
 import java.io.BufferedReader;
@@ -42,8 +43,8 @@ public class Client {
 
     private static final String NL = System.getProperty("line.separator");
 
-    private ClientConfig config;
-    private Notifier clientNotifier;
+    private final ClientConfig config;
+    private final Notifier clientNotifier;
 
     public Client(ClientConfig config, Notifier clientNotifier) {
         this.clientNotifier = clientNotifier;
@@ -105,11 +106,11 @@ public class Client {
                 wr.close();
                 wr = null;
                 if (clientNotifier != null) {
-                    clientNotifier.log(-1, "REQUEST: \nBODY START ----------\n" + body + "\nBODY END   ----------");
+                    clientNotifier.log(new LogLine(-1, "REQUEST: \nBODY START ----------\n" + body + "\nBODY END   ----------"));
                 }
             }
             if (clientNotifier != null) {
-                clientNotifier.log(-1, "REQUEST: " + method.toString() + " TO:" + fullHost);
+                clientNotifier.log(new LogLine(-1, "REQUEST: " + method.toString() + " TO:" + fullHost));
             }
             int responseCode;
             int connectionFailes = 0;
@@ -120,7 +121,7 @@ public class Client {
                 } catch (ConnectException ex) {
                     connectionFailes++;
                     if (clientNotifier != null) {
-                        clientNotifier.log(-1, "CLIENT: Connection Failed [" + connectionFailes + "] " + fullHost);
+                        clientNotifier.log(new LogLine(-1, "CLIENT: Connection Failed [" + connectionFailes + "] " + fullHost));
                     }
                     if (connectionFailes > 5) {
                         throw ex;
@@ -136,7 +137,7 @@ public class Client {
                 is = con.getErrorStream();
                 if (is == null) {
                     if (clientNotifier != null) {
-                        clientNotifier.log(-1, "CLIENT RESP: [" + responseCode + "]: No Response");
+                        clientNotifier.log(new LogLine(-1, "CLIENT RESP: [" + responseCode + "]: No Response"));
                     }
                     return new ClientResponse(responseCode, "");
                 }
@@ -159,12 +160,12 @@ public class Client {
                 }
             }
             if (clientNotifier != null) {
-                clientNotifier.log(-1, "CLIENT RESP:  [" + responseCode + "]:" + response.toString().trim());
+                clientNotifier.log(new LogLine(-1, "CLIENT RESP:  [" + responseCode + "]:" + response.toString().trim()));
             }
             return new ClientResponse(responseCode, response.toString().trim(), headers);
         } catch (ClientException | IOException e) {
             if (clientNotifier != null) {
-                clientNotifier.log(-1, "CLIENT: Failed to send to:" + fullHost, e);
+                clientNotifier.log(new LogLine(-1, "CLIENT: Failed to send to:" + fullHost, e));
             }
             throw new ClientException("CLIENT: Failed to send to:" + fullHost, e);
         } finally {

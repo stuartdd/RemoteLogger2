@@ -23,4 +23,5 @@ package main.fields;
  */
 public interface FXMLFieldChangeListener {
     void changed(boolean error);
+    void select(String id);
 }

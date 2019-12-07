@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import common.Action;
+import common.LogLine;
 import common.Notification;
 import common.Util;
 import expectations.ExpectationManager;
@@ -90,7 +91,7 @@ public class ExpectationHandler implements HttpHandler {
             splitIntoMap(map, null, "PATH", '/');
         }
         if ((serverNotifier != null) && (verbose)) {
-            serverNotifier.log(port, "RECEIVED ---> On PORT=" + port + " BODY-TYPE=" + map.get("BODY-TYPE") + " METHOD=" + map.get("METHOD") + " PATH=" + map.get("PATH"));
+            serverNotifier.log(new LogLine(port, "RECEIVED ---> On PORT=" + port + " BODY-TYPE=" + map.get("BODY-TYPE") + " METHOD=" + map.get("METHOD") + " PATH=" + map.get("PATH")));
         }
         String query = Util.trimmedNull(he.getRequestURI().getQuery());
         if (query != null) {

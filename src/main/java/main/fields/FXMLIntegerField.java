@@ -63,8 +63,8 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                 notifyChange(false);
             } catch (NumberFormatException e) {
                 setColor(ERROR_COLOR);
-                 notifyChange(true);
-           }
+                notifyChange(true);
+            }
         }
     }
 

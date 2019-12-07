@@ -87,7 +87,7 @@
                   <Separator orientation="VERTICAL" prefHeight="26.0" prefWidth="0.0" visible="false" />
                   <ChoiceBox fx:id="serverChoiceBox" prefHeight="25.0" prefWidth="92.0" />
                   <Separator orientation="VERTICAL" prefHeight="34.0" prefWidth="8.0" visible="false" />
-                  <Button fx:id="buttonStartStopServer" mnemonicParsing="false" text="Button" />
+                  <Button fx:id="buttonStartStopServer" mnemonicParsing="false" onAction="#handleButtonStartStopServer" text="Button" />
                   <Separator orientation="VERTICAL" prefHeight="34.0" prefWidth="13.0" visible="false" />
                   <Label fx:id="serverStateLabel" prefHeight="17.0" prefWidth="202.0" text="STATE" />
                </children>

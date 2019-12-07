@@ -16,6 +16,7 @@
  */
 package server;
 
+import common.LogLine;
 import common.Notifier;
 import common.Util;
 import expectations.ExpectationManager;
@@ -51,7 +52,7 @@ public class Server {
             expectationManager = new ExpectationManager(port, serverConfig.expectations(), serverNotifier, serverStatistics, serverConfig.isLogProperties(), serverConfig.isLogProperties());
         }
         if ((serverNotifier != null) && expectationManager.hasNoExpectations()) {
-            serverNotifier.log(port, "Server on " + port + " does not have any expectations defined. 404 will be returned");
+            serverNotifier.log(new LogLine(port, "Server on " + port + " does not have any expectations defined. 404 will be returned"));
 
         }
     }

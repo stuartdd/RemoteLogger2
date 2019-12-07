@@ -27,7 +27,7 @@ public enum ServerState {
     SERVER_STOPPING("Server is Stopping"),
     SERVER_STOPPED("Server is Stopped"),
     SERVER_FAIL("Server error");
-    private String info;
+    private final String info;
 
     private ServerState(String info) {
         this.info = info;

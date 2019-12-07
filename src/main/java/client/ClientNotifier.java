@@ -16,7 +16,7 @@
  */
 package client;
 
-import common.Action;
+import common.LogLine;
 import common.Notification;
 import common.Notifier;
 import org.joda.time.DateTime;
@@ -36,29 +36,15 @@ public class ClientNotifier implements Notifier {
     @Override
     public void notifyAction(Notification notification) {
         if (verbose && (notification.getMessage() != null) && (notification.getAction() != null)) {
-            System.out.println(getTimeStamp(notification.getTime()) + (notification.getPort() <= 0?"":" ["+notification.getPort()+"] ") + notification.getAction().name() + " " + notification.getMessage());
+            System.out.println(notification.toString("CLIENT"));
         }
     }
 
-    public void log(int port, String message) {
-        if (verbose && (message != null)) {
-            System.out.println(getTimeStamp(System.currentTimeMillis()) + (port <= 0?"":" ["+port+"] ") + "CLIENT: " + message);
+    @Override
+    public void log(LogLine ll) {
+        if (verbose && (ll.getMessage() != null)) {
+            System.out.println(ll.toString("CLIENT"));
         }
     }
 
-    public void log(int port, Throwable throwable) {
-        if (throwable != null) {
-            System.out.println(getTimeStamp(System.currentTimeMillis()) + (port <= 0?"":" ["+port+"] ") + "CLIENT: ERROR:" + throwable.getMessage());
-        }
-    }
-
-    public void log(int port, String message, Throwable throwable) {
-        if (throwable != null) {
-            System.out.println(getTimeStamp(System.currentTimeMillis()) + (port <= 0?"":" ["+port+"] ") + "CLIENT: ERROR:" + message + ": " + throwable.getMessage());
-        }
-    }
-
-    public String getTimeStamp(long time) {
-        return (new DateTime(time)).toString("HH:mm:ss.SSS: ");
-    }
 }

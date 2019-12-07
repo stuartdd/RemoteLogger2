@@ -18,7 +18,7 @@
 package main;
 
 import common.ConfigData;
-import common.Action;
+import common.LogLine;
 import common.Notification;
 import common.Notifier;
 import common.Util;
@@ -66,17 +66,8 @@ public class MainHeadless implements Notifier {
     }
 
     @Override
-    public void log(int port, String message) {
-        System.out.println("LOG:" + ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + message);
+    public void log(LogLine ll) {
+        System.out.println(ll.toString());
     }
 
-    @Override
-    public void log(int port, Throwable throwable) {
-        System.out.println("LOG:" + ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + throwable.getMessage());
-    }
-
-    @Override
-    public void log(int port, String message, Throwable throwable) {
-        System.out.println("LOG:" + ConfigData.getInstance().timeStamp(System.currentTimeMillis()) + " [" + port + "] " + message + ": " + throwable.getMessage());
-    }
 }

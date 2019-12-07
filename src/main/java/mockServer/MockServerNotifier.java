@@ -17,6 +17,7 @@
 package mockServer;
 
 import common.Action;
+import common.LogLine;
 import common.Notification;
 import common.Notifier;
 import org.joda.time.DateTime;
@@ -30,28 +31,14 @@ public class MockServerNotifier implements Notifier {
     @Override
     public void notifyAction(Notification notification) {
         if (!notification.getAction().equals(Action.SERVER_STATE)) {
-          System.out.println(getTimeStamp(notification.getTime()) + "Port:" + notification.getPort() + " <MOCK> " + notification.getAction().name() + " " + notification.getMessage());
+            System.out.println(notification.toString());
         }
     }
 
     @Override
-    public void log(int port, String message) {
-        if ((message != null) && (message.trim().length() > 0)) {
-            System.out.println(getTimeStamp(System.currentTimeMillis()) + "Port:" + port + " <MOCK> " + message);
-        }
-    }
-
-    @Override
-    public void log(int port, Throwable throwable) {
-        if (throwable != null) {
-            System.out.println(getTimeStamp(System.currentTimeMillis()) + "Port:" + port + " <MOCK> ERROR:" + throwable.getMessage());
-        }
-    }
-
-    @Override
-    public void log(int port, String message, Throwable throwable) {
-        if (throwable != null) {
-            System.out.println(getTimeStamp(System.currentTimeMillis()) + "Port:" + port + " <MOCK> ERROR:" + message + ": " + throwable.getMessage());
+    public void log(LogLine ll) {
+        if (ll.hasMessage()) {
+            System.out.println(ll.toString());
         }
     }
 

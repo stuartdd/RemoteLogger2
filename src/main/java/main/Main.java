@@ -19,9 +19,7 @@ package main;
 
 import common.Action;
 import common.ConfigData;
-import common.LogLine;
 import common.Notification;
-import common.Notifier;
 import common.Util;
 import geom.Rect;
 import java.awt.AWTException;
@@ -44,30 +42,41 @@ import server.ServerManager;
 /**
  *
  */
-public class Main extends Application implements Notifier {
+public class Main extends Application {
 
     private static Stage mainStage;
     private static Scene mainScene;
     private static FXMLDocumentController controller;
+    private static ControllerNotifier controllerNotifier;
+    
     private static String configFileName;
 
-    static void sendNotification(Notification notification) {
-        waitForController(1000);
-        switch (notification.getAction()) {
+    static boolean controllerNotification(Notification notification) {
+        if (waitForController(1000)) {
+            switch (notification.getAction()) {
             case RELOAD_RESTART_SERVERS:
                 ConfigData.load("config.json");
                 controller.notifyAction(new Notification(notification.getPort(), Action.CONFIG_RELOAD, null, "Reloaded Config Data"));
             case RESTART_SERVERS:
-                    if (initServers()) {
+                    if (initServers(2000)) {
                         controller.notifyAction(notification);
                     } else {
-                        controller.notifyAction(new Notification(notification.getPort(), Action.ERROR, null, "Failed to stop ALL servers!"));
+                        controller.notifyAction(new Notification(notification.getPort(), Action.ERROR, null, "Failed to Re-Start servers!"));
                     }
-                    
                 break;
+            case START_STOP_SERVER:
+                if (ServerManager.isServerRunning(notification.getPort())) {
+                    ServerManager.stopServer(notification.getPort());
+                } else {                    
+                    ServerManager.startServer(notification.getPort());
+                }
             default:
                 controller.notifyAction(notification);
+            }
+        } else {
+            return false;
         }
+        return true;
     }
 
     /**
@@ -95,7 +104,7 @@ public class Main extends Application implements Notifier {
                 /*
                 Clean up and exit the application
                  */
-                closeApplication();
+                closeApplication(0);
             }
         });
         /*
@@ -114,6 +123,7 @@ public class Main extends Application implements Notifier {
         This is so the serial monitor can pass action messages to it.
          */
         controller = loader.getController();
+        controllerNotifier.setController(controller);
 
         /*
         Save a reference to the scene for later.
@@ -125,15 +135,14 @@ public class Main extends Application implements Notifier {
     }
 
     /**
-     * Close the application.
-     *
-     * The serial port monitor should be closed properly.
+     * Close the application.The serial port monitor should be closed properly.
      *
      * Then the Platform (JavaFX) must be told to exit
-     *
+     * 
      * Then we terminate the Java VM
+     * @param returnCode
      */
-    public static void closeApplication() {
+    public static void closeApplication(int returnCode) {
         if (ConfigData.canWriteToFile()) {
             ConfigData.getInstance().setX(mainStage.getX());
             ConfigData.getInstance().setY(mainStage.getY());
@@ -143,13 +152,15 @@ public class Main extends Application implements Notifier {
                 ConfigData.store();
             } catch (IOException ex) {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                returnCode = 1;
             }
         }
         if (!stopServers(5000)) {
-            System.out.println("Failed to stop ALL servers. Waited 5 seconds!");
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "Failed to stop servers. Time out!");
+            returnCode = 1;
         }
         Platform.exit();
-        System.exit(0);
+        System.exit(returnCode);
     }
 
     /**
@@ -165,15 +176,15 @@ public class Main extends Application implements Notifier {
         if (args.length == 0) {
             exitWithHelp("Requires a properties (configuration) file");
         }
+        controllerNotifier = new ControllerNotifier();
         loadConfig();
-        
-        initServers();
-
-        launch(args);
-        /*
-        Load it and abort is an error occurs
-         */
-
+        if (initServers(2000)) {
+            launch(args);            
+        } else {
+            System.err.println("ERROR Failed to start servers. Timed out!");
+            Platform.exit();
+            System.exit(1);
+        }
     }
 
     /**
@@ -189,7 +200,6 @@ public class Main extends Application implements Notifier {
         double y = mainStage.getY() + mainScene.getY();
         return new Rect((int) x, (int) y, (int) mainScene.getWidth(), (int) mainScene.getHeight());
     }
-
     /**
      * Print an error message and exit the app with help.
      *
@@ -200,33 +210,6 @@ public class Main extends Application implements Notifier {
                 + "Application requires the following parameters:\n"
                 + "  The name of a json configuration file!");
         System.exit(1);
-    }
-
-    @Override
-    public void notifyAction(Notification notification) {
-        if (controller != null) {
-            controller.notifyAction(notification);
-        } else {
-            System.out.println(ConfigData.getInstance().timeStamp(notification.getTime()) + " [" + notification.getPort() + "] [" + notification.getAction().toString() + "] " + notification.getMessage());
-        }
-    }
-
-    @Override
-    public void log(int port, String message) {
-        System.out.println("+++++ " + message);
-        LogLines.add(new LogLine(port, message));
-    }
-
-    @Override
-    public void log(int port, Throwable throwable) {
-        System.out.println("+++++ " + throwable.getMessage());
-        LogLines.add(new LogLine(port, null, throwable));
-    }
-
-    @Override
-    public void log(int port, String message, Throwable throwable) {
-        System.out.println("+++++ " + message + ": " + throwable.getMessage());
-        LogLines.add(new LogLine(port, message, throwable));
     }
 
     private static boolean waitForController(long timeOut) {
@@ -246,13 +229,13 @@ public class Main extends Application implements Notifier {
         return (System.currentTimeMillis() < timeToGiveUp);
     }
 
-    private static boolean initServers() {
-        if (!stopServers(0)) {
+    private static boolean initServers(long timeOut) {
+        if (!stopServers(timeOut)) {
             return false;
         }
         ServerManager.clear();
         for (Map.Entry<String, ServerConfig> sc : ConfigData.getInstance().getServers().entrySet()) {
-            ServerManager.addServer(sc.getKey(), sc.getValue(), new Main());
+            ServerManager.addServer(sc.getKey(), sc.getValue(), controllerNotifier);
         }
         ServerManager.autoStartServers();
         return true;
@@ -260,6 +243,5 @@ public class Main extends Application implements Notifier {
 
     private static void loadConfig() {
         ConfigData.load(configFileName);
-
     }
 }

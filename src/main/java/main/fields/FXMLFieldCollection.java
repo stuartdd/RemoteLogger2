@@ -20,11 +20,13 @@ package main.fields;
 import common.PropertyDataWithAnnotations;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 /**
  *
@@ -35,6 +37,8 @@ public class FXMLFieldCollection {
     
     
     private List<FXMLField> fields = new ArrayList<>();
+    private Map<String, FXMLHeadingField> headings = new HashMap<>();
+    
     private final VBox container;
 
     public FXMLFieldCollection(VBox container, Map<String, PropertyDataWithAnnotations> data, boolean ro, FXMLFieldChangeListener changeListener) {
@@ -42,7 +46,9 @@ public class FXMLFieldCollection {
         try {
             for (Map.Entry<String, PropertyDataWithAnnotations> obj : data.entrySet()) {
                 BeanWrapper beanWrapper = new BeanWrapper(obj.getValue());
-                fields.add((new FXMLHeadingField(obj.getKey() + ":")));
+                FXMLHeadingField heading = new FXMLHeadingField(obj.getKey(), obj.getKey() + ":", changeListener);
+                headings.put(obj.getKey(), heading);
+                fields.add(heading);
                 for (String prop : beanWrapper.getPropertyList()) {
                     if (beanWrapper.getParameterType(prop).equals(int.class) || beanWrapper.getParameterType(prop).equals(Integer.class)) {
                         fields.add(new FXMLIntegerField(beanWrapper, prop, (Integer)beanWrapper.getValue(prop),ro,changeListener));
@@ -71,11 +77,23 @@ public class FXMLFieldCollection {
         }
     }
 
+    public void setHeadingColour(String id, Color c) {
+        if (headings.isEmpty()) {
+            return;
+        }
+        FXMLHeadingField heading = headings.get(id);
+        if (heading == null) {
+            return;
+        }
+        heading.setColor(c);
+    }
+    
     public void destroy() {
         for (FXMLField field : fields) {
             field.destroy();
             this.container.getChildren().remove(field.getPane());
         }
         fields = new ArrayList<>();
+        headings = new HashMap<>();
     }
 }

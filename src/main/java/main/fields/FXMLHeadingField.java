@@ -18,11 +18,8 @@
 package main.fields;
 
 import java.io.IOException;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
-import javafx.scene.layout.Pane;
+import javafx.event.EventHandler;
+import javafx.scene.input.MouseEvent;
 
 /**
  *
@@ -30,9 +27,18 @@ import javafx.scene.layout.Pane;
  */
 public class FXMLHeadingField extends FXMLField {
 
-    public FXMLHeadingField(String text) throws IOException {
+    private final String id;
+    
+    public FXMLHeadingField(String id, String text, FXMLFieldChangeListener changeListener) throws IOException {
         super("Heading", null, text, true, null);
+        this.id = id;
         setColor(HEADING_COLOR);
+        getPane().setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent arg0) {
+                changeListener.select(id);
+            }
+        });
     }
 
     @Override

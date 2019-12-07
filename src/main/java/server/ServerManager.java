@@ -16,16 +16,17 @@
  */
 package server;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import common.ConfigDataException;
+import common.LogLine;
 import common.Notifier;
+import common.PropertyDataWithAnnotations;
 import expectations.ExpectationManager;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import common.ConfigDataException;
-import common.PropertyDataWithAnnotations;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -90,7 +91,7 @@ public class ServerManager {
             if (server.isAutoStart()) {
                 if (!server.start()) {
                     if (server.getServerNotifier()!=null) {
-                        server.getServerNotifier().log(server.getPort(), "Server failed to start (Time out)");
+                        server.getServerNotifier().log(new LogLine(server.getPort(), "Server failed to start (Time out)"));
                     }
                 }
             }

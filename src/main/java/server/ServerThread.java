@@ -17,10 +17,15 @@
 package server;
 
 import com.sun.net.httpserver.HttpServer;
+import common.Action;
+import common.LogLine;
+import common.Notification;
 import common.Notifier;
 import common.Util;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ServerThread extends Thread {
 
@@ -77,11 +82,11 @@ public class ServerThread extends Thread {
                 newServer = HttpServer.create(new InetSocketAddress(port), 0);
             } catch (IOException ex) {
                 exception = ex;
+                if (notifier != null) {
+                    notifier.log(new LogLine(port, "Server Port in use. Try " + tries));
+                }
             }
             tries++;
-            if (notifier != null) {
-                notifier.log(port, "Server Port in use. Try " + tries);
-            }
             Util.sleep(100);
         }
         if ((newServer == null) && (exception != null)) {
@@ -92,8 +97,11 @@ public class ServerThread extends Thread {
 
     private synchronized void newState(ServerState state, String additional) {
         serverState = state;
-        if (theServer.getServerNotifier() != null) {
-            theServer.getServerNotifier().log(theServer.getPort(), serverState + (additional == null ? "" : ". " + additional));
+        if (theServer.getServerNotifier() != null) {   
+            Notification notification = new Notification(theServer.getPort(), Action.SERVER_STATE, state.getInfo() + (additional == null ? "" : ". " + additional)).
+                    withData("state", state).
+                    withData("server", theServer);
+            theServer.getServerNotifier().notifyAction(notification);
         }
     }
 
@@ -107,7 +115,7 @@ public class ServerThread extends Thread {
 
     public void stopServer(boolean now) {
         if (theServer.getServerNotifier() != null) {
-            theServer.getServerNotifier().log(theServer.getPort(), "STOP-SERVER Via stopServer()");
+            theServer.getServerNotifier().log(new LogLine(theServer.getPort(), "STOP-SERVER Via stopServer()"));
         }
         if (now) {
             timeToClose = 0;
