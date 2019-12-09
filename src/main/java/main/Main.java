@@ -36,6 +36,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import main.dialogs.Dialogs;
 import server.ServerConfig;
 import server.ServerManager;
 
@@ -104,7 +105,7 @@ public class Main extends Application {
                 /*
                 Clean up and exit the application
                  */
-                closeApplication(0);
+                closeApplication(0, controller==null?false:controller.hasConfigDataHasChanged());
             }
         });
         /*
@@ -135,14 +136,19 @@ public class Main extends Application {
     }
 
     /**
-     * Close the application.The serial port monitor should be closed properly.
+     * Close the application.The serial port monitor should be closed properly.Then the Platform (JavaFX) must be told to exit
+ 
+ Then we terminate the Java VM
      *
-     * Then the Platform (JavaFX) must be told to exit
-     * 
-     * Then we terminate the Java VM
      * @param returnCode
+     * @param saveConfig
      */
-    public static void closeApplication(int returnCode) {
+    public static void closeApplication(int returnCode, boolean saveConfig) {
+        if (saveConfig) {
+            if (!Dialogs.alertOkCancel(0,0,"Changes have been made!", "Save Configuration changes?", "Time to make a decision!")) {
+                loadConfig();
+            };
+        }
         if (ConfigData.canWriteToFile()) {
             ConfigData.getInstance().setX(mainStage.getX());
             ConfigData.getInstance().setY(mainStage.getY());

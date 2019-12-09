@@ -86,7 +86,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     public void handleCloseApplicationButton() {
-        Main.closeApplication(0);
+        Main.closeApplication(0,configDataHasChanged);
     }
 
     @FXML
@@ -104,6 +104,11 @@ public class FXMLDocumentController implements Initializable, Notifier {
         Main.controllerNotification(new Notification(currentSelectedServerPort, Action.RELOAD_RESTART_SERVERS, null, "Restarting Servers"));
     }
 
+    public boolean hasConfigDataHasChanged() {
+        return configDataHasChanged;
+    }
+
+    
     public void tabSelectionChanged(Tab newTab, Tab oldTab) {
         if (oldTab != null) {
             if (newTab == oldTab) {
