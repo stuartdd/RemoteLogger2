@@ -1,9 +1,0 @@
-
-Fsquid:S10664"/Merge this if statement with the enclosing one.(ëóŒë
-]squid:S2259O"?A "NullPointerException" could be thrown; "m" is nullable here.(„ùÏ8Û š¤ï-
-2squid:S3878c"Remove this array creation.(©àÎ‚
-Nsquid:S3878Z"8Remove this array creation and simply pass the elements.(ÌÄö*
-[squid:S2259L"?A "NullPointerException" could be thrown; "m" is nullable here.(¦¶¤ûüÿÿÿÿ
-Usquid:S2259Z"?A "NullPointerException" could be thrown; "m" is nullable here.(ÌÄö*
-isquid:S3776'"RRefactor this method to reduce its Cognitive Complexity from 18 to the 15 allowed.(ïçÜ’
-Vsquid:S2259c"?A "NullPointerException" could be thrown; "m" is nullable here.(©àÎ‚

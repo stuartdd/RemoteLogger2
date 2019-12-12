@@ -1,6 +1,0 @@
-
-`squid:UselessImportCheck"7Remove this unused import 'javafx.scene.control.Label'.(ö²­ÿÿÿÿÿ
-\squid:UselessImportCheck"3Remove this unused import 'javafx.fxml.FXMLLoader'.(À‡ô³úÿÿÿÿ
-\squid:UselessImportCheck"3Remove this unused import 'javafx.event.EventType'.(—ŠÆıÿÿÿÿ
-^squid:UselessImportCheck"5Remove this unused import 'javafx.scene.layout.Pane'.(êÄƒÄşÿÿÿÿ
-¡%squid:RedundantThrowsDeclarationCheck&"qRemove the declaration of thrown exception 'java.io.IOException', as it cannot be thrown from constructor's body.(Â­íH
