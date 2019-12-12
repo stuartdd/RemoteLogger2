@@ -81,7 +81,6 @@ public class ServerConfig implements PropertyDataWithAnnotations {
         this.timeToClose = timeToClose;
     }
 
-    @BeanProperty(description = "Verbose logging")
     public boolean isVerbose() {
         return verbose;
     }

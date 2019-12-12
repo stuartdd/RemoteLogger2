@@ -1,0 +1,19 @@
+
+Ssquid:S1066†"/Merge this if statement with the enclosing one.(®ø—Âøÿÿÿÿ8è¤ï-
+Gsquid:S1604"(Make this anonymous inner class a lambda(î®Èº8è¤ï-
+Lsquid:S1604½"(Make this anonymous inner class a lambda(ôâŠûıÿÿÿÿ8è¤ï-
+Lsquid:S1604È"(Make this anonymous inner class a lambda(ôâŠûıÿÿÿÿ8è¤ï-
+Gsquid:S1604Ö"(Make this anonymous inner class a lambda(æ½Û—8è¤ï-
+Lsquid:S1604å"(Make this anonymous inner class a lambda(ôâŠûıÿÿÿÿ8è¤ï-
+[
+squid:S106{"9Replace this use of System.out or System.err by a logger.(±Ş÷üÿÿÿÿ8è¤ï-
+W
+squid:S106"9Replace this use of System.out or System.err by a logger.(ç¬äÁ8è¤ï-
+\
+squid:S106ä"9Replace this use of System.out or System.err by a logger.(Êµçşÿÿÿÿ8è¤ï-
+”"squid:SwitchLastCaseIsDefaultCheckè"YComplete cases by adding the missing enum constants or add a default case to this switch.(©ô‰×ÿÿÿÿÿ8è¤ï-
+\
+squid:S106„"9Replace this use of System.out or System.err by a logger.(şÇøêøÿÿÿÿ8è¤ï-
+"squid:SwitchLastCaseIsDefaultCheck "YComplete cases by adding the missing enum constants or add a default case to this switch.(ş™ÅŞ8è¤ï-
+\squid:S1068;"9Remove this unused "connectionCanvasWidth" private field.(¿›³üÿÿÿÿ8è¤ï-
+]squid:S1068<":Remove this unused "connectionCanvasHeight" private field.(ÌÆûÿÿÿÿ8è¤ï-

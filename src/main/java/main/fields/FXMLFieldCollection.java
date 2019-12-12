@@ -51,14 +51,18 @@ public class FXMLFieldCollection {
                 headings.put(obj.getKey(), heading);
                 fields.add(heading);
                 for (String prop : beanWrapper.getPropertyList()) {
-                    if (beanWrapper.getParameterType(prop).equals(int.class) || beanWrapper.getParameterType(prop).equals(Integer.class)) {
-                        fields.add(new FXMLIntegerField(beanWrapper, prop, (Integer)beanWrapper.getValue(prop),ro,changeListener));
-                    }
-                    if (beanWrapper.getParameterType(prop).equals(boolean.class) || beanWrapper.getParameterType(prop).equals(Boolean.class)) {
-                        fields.add(new FXMLBooleanField(beanWrapper, prop, (Boolean) beanWrapper.getValue(prop),ro,changeListener));
-                    }
-                    if (beanWrapper.getParameterType(prop).equals(String.class)) {
-                        fields.add(new FXMLStringField(beanWrapper, prop, (String) beanWrapper.getValue(prop),ro,changeListener));
+                    BeanPropertyDescription desc = beanWrapper.getBeanPropertyDescription(prop);
+                    if (desc.isDefined()) {
+                        Class parameterType = desc.getParameterType();
+                        if (parameterType.equals(int.class) || parameterType.equals(Integer.class)) {
+                            fields.add(new FXMLIntegerField(beanWrapper, prop, (Integer) beanWrapper.getValue(prop), ro, changeListener));
+                        }
+                        if (parameterType.equals(boolean.class) || parameterType.equals(Boolean.class)) {
+                            fields.add(new FXMLBooleanField(beanWrapper, prop, (Boolean) beanWrapper.getValue(prop), ro, changeListener));
+                        }
+                        if (parameterType.equals(String.class)) {
+                            fields.add(new FXMLStringField(beanWrapper, prop, (String) beanWrapper.getValue(prop), ro, changeListener));
+                        }
                     }
                 }
             }

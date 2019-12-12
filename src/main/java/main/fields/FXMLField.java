@@ -17,7 +17,6 @@
  */
 package main.fields;
 
-import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -30,7 +29,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 /**
- *
  * @author Stuart
  */
 public abstract class FXMLField {
@@ -42,18 +40,18 @@ public abstract class FXMLField {
 
     private final Pane pane;
     private final BeanWrapper beanWrapper;
-    private final String propertyName;
     private final boolean readOnly;
     private final FXMLFieldChangeListener changeListener;
+    private final String propertyName;
     private Label label = null;
     private Separator separator = null;
 
-    public FXMLField(String type, BeanWrapper beanWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
+    public FXMLField(String fieldType, BeanWrapper beanWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
         this.beanWrapper = beanWrapper;
         this.propertyName = propertyName;
         this.readOnly = readOnly;
         this.changeListener = changeListener;
-        String fileName = "/FXML" + type + "Field.fxml";
+        String fileName = "/FXML" + fieldType + "Field.fxml";
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fileName));
             pane = loader.load();
@@ -63,11 +61,7 @@ public abstract class FXMLField {
         for (Node c : getPane().getChildren()) {
             if (c instanceof Label) {
                 label = (Label) c;
-                if (beanWrapper == null) {
-                    label.setText(propertyName);
-                } else {
-                    label.setText(beanWrapper.getDescription(propertyName));
-                }
+                label.setText(beanWrapper.getBeanPropertyDescription(propertyName).getDescription());
                 label.setLayoutX(5);
             }
             if (c instanceof Separator) {
@@ -75,6 +69,10 @@ public abstract class FXMLField {
             }
         }
         setColor();
+    }
+
+    public String getPropertyName() {
+        return propertyName;
     }
 
     public final Pane getPane() {
@@ -105,14 +103,6 @@ public abstract class FXMLField {
         return separator;
     }
 
-    public BeanWrapper getBeanWrapper() {
-        return beanWrapper;
-    }
-
-    public String getPropertyName() {
-        return propertyName;
-    }
-
     public boolean isReadOnly() {
         return readOnly;
     }
@@ -140,7 +130,7 @@ public abstract class FXMLField {
             changeListener.changed(error);
         }
     }
-    
+
     public abstract void destroy();
 
 }

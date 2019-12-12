@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 public class BeanWrapper {
 
     private final Object object;
-    private final Map<String, Class> properties = new HashMap<>();
+    private final Map<String, BeanPropertyDescription> properties = new HashMap<>();
 
     public BeanWrapper(Object object) {
         this.object = object;
@@ -50,7 +50,7 @@ public class BeanWrapper {
                 for (Method m2 : object.getClass().getMethods()) {
                     if (m2.getName().equals("set" + pName)) {
                         if (m2.getParameterTypes().length == 1) {
-                            properties.put(pName, m2.getParameterTypes()[0]);
+                            properties.put(pName, new BeanPropertyDescription(pName, getDescription(pName), m2.getParameterTypes()[0]));
                             break;
                         }
                     }
@@ -67,7 +67,7 @@ public class BeanWrapper {
         return l;
     }
 
-    public Class getParameterType(String name) {
+    public BeanPropertyDescription getBeanPropertyDescription(String name) {
         return properties.get(name);
     }
     
@@ -75,7 +75,11 @@ public class BeanWrapper {
         Method m = findGetter(name);
         BeanProperty bp = m.getAnnotation(BeanProperty.class);
         if (bp == null) {
-            return name;
+            m = findSetter(name);
+            bp = m.getAnnotation(BeanProperty.class);
+            if (bp == null) {
+                return null;
+            }
         }
         return bp.description();
     }   
