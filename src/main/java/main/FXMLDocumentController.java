@@ -42,6 +42,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import main.fields.BeanPropertyDescription;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
 import server.ServerManager;
@@ -171,7 +172,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
         buttonReloadConfigChanges.setDisable(!configDataHasChanged);
         connectionsFieldCollection = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData(), false, "Server %{id}:", new FXMLFieldChangeListener() {
             @Override
-            public void changed(boolean error) {
+            public void changed(BeanPropertyDescription propertyDescription, boolean error, String message) {
                 if (error) {
                     buttonSaveConfigChanges.setDisable(true);
                     buttonReloadConfigChanges.setDisable(true);
@@ -180,6 +181,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
                     buttonSaveConfigChanges.setDisable(!configDataHasChanged);
                     buttonReloadConfigChanges.setDisable(!configDataHasChanged);
                 }
+                label.setText(message);
             }
 
             @Override

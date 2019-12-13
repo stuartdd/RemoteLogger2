@@ -45,7 +45,7 @@ public class ServerConfig implements PropertyDataWithAnnotations {
     public ServerConfig() {
     }
 
-    @BeanProperty(description = "Expectation File")
+    @BeanProperty(description = "Expectation File | File")
     public String getExpectationsFile() {
         return expectationsFile;
     }
@@ -72,7 +72,7 @@ public class ServerConfig implements PropertyDataWithAnnotations {
         this.showPort = showPort;
     }
 
-    @BeanProperty(description = "Time to close server (Seconds)")
+    @BeanProperty(description = "Time to close server (Seconds) | 0,10")
     public int getTimeToClose() {
         return timeToClose;
     }
@@ -93,7 +93,7 @@ public class ServerConfig implements PropertyDataWithAnnotations {
         return expectations;
     }
 
-    @BeanProperty(description = "Wrire properties to the log")
+    @BeanProperty(description = "Write properties to the log")
     public boolean isLogProperties() {
         return logProperties;
     }

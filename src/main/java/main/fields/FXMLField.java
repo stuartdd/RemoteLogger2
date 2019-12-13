@@ -61,7 +61,11 @@ public abstract class FXMLField {
         for (Node c : getPane().getChildren()) {
             if (c instanceof Label) {
                 label = (Label) c;
-                label.setText(beanWrapper.getBeanPropertyDescription(propertyName).getDescription());
+                if (beanWrapper == null) {
+                    label.setText(propertyName);
+                } else {
+                    label.setText(getBeanPropertyDescription().getDescription());
+                }
                 label.setLayoutX(5);
             }
             if (c instanceof Separator) {
@@ -73,6 +77,10 @@ public abstract class FXMLField {
 
     public String getPropertyName() {
         return propertyName;
+    }
+
+    public BeanPropertyDescription getBeanPropertyDescription() {
+        return beanWrapper.getBeanPropertyDescription(getPropertyName());
     }
 
     public final Pane getPane() {
@@ -89,9 +97,15 @@ public abstract class FXMLField {
         }
     }
 
-    public void setColor(Color c) {
+    public void setBackgroundColor(Color c) {
         if (label != null) {
             label.setBackground(new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY)));
+        }
+    }
+
+    public void setErrorColor() {
+        if (label != null) {
+            label.setBackground(new Background(new BackgroundFill(ERROR_COLOR, CornerRadii.EMPTY, Insets.EMPTY)));
         }
     }
 
@@ -125,12 +139,15 @@ public abstract class FXMLField {
         removeNode(label);
     }
 
-    public void notifyChange(boolean error) {
+    public void notifyChange(boolean error, String message) {
         if (changeListener != null) {
-            changeListener.changed(error);
+            changeListener.changed(getBeanWrapper().getBeanPropertyDescription(getPropertyName()),error, message);
         }
     }
 
     public abstract void destroy();
 
+    public BeanWrapper getBeanWrapper() {
+        return beanWrapper;
+    }
 }

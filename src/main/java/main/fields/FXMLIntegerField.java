@@ -17,19 +17,21 @@
  */
 package main.fields;
 
-import java.io.IOException;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
 
+import java.io.IOException;
+
 /**
- *
  * @author Stuart
  */
 public class FXMLIntegerField extends FXMLField implements ChangeListener<String> {
 
     private TextField textField;
+    private int lowerbound = Integer.MIN_VALUE;
+    private int upperbound = Integer.MAX_VALUE;
 
     public FXMLIntegerField(BeanWrapper beanWrapper, String propertyName, Integer value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
         super("String", beanWrapper, propertyName, readOnly, changeListener);
@@ -44,6 +46,21 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                 textField.textProperty().addListener(this);
             }
         }
+        String bounds = getBeanPropertyDescription().getAdditional();
+        if (bounds != null) {
+            try {
+                String[] list = bounds.split("\\,");
+                if (list.length > 0) {
+                    lowerbound = Integer.parseInt(list[0].trim());
+                }
+                if (list.length > 1) {
+                    upperbound = Integer.parseInt(list[1].trim());
+                }
+            } catch (Exception ex) {
+                setErrorColor();
+                ex.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -56,14 +73,19 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
     @Override
     public void changed(ObservableValue<? extends String> arg0, String oldValue, String newValue) {
         setColor();
-        if (!newValue.equals(oldValue)) {
+        if (!newValue.equals(oldValue) && (!isReadOnly())) {
             try {
                 Integer i = Integer.parseInt(newValue);
-                getBeanWrapper().setValue(getPropertyName(), i);
-                notifyChange(false);
+                if ((i < lowerbound) || (i > upperbound)) {
+                    setErrorColor();
+                    notifyChange(true, "ERROR: Value must be between " + lowerbound + " and " + upperbound);
+                } else {
+                    getBeanWrapper().setValue(getPropertyName(), i);
+                    notifyChange(false, "Property " + getPropertyName() + " updated to:" + newValue);
+                }
             } catch (NumberFormatException e) {
-                setColor(ERROR_COLOR);
-                notifyChange(true);
+                setErrorColor();
+                notifyChange(true, "ERROR: Value is not a valid integer");
             }
         }
     }

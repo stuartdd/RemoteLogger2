@@ -55,9 +55,9 @@ public class FXMLBooleanField extends FXMLField implements ChangeListener<Boolea
 
     @Override
     public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldValue, Boolean newValue) {
-        if (!newValue.equals(oldValue)) {
+        if (!newValue.equals(oldValue) && (!isReadOnly())) {
             getBeanWrapper().setValue(getPropertyName(), newValue);
-            notifyChange(false);
+            notifyChange(false, "Property "+getPropertyName() + " updated");
         }
     }
 

@@ -56,9 +56,9 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
 
     @Override
     public void changed(ObservableValue<? extends String> arg0, String oldValue, String newValue) {
-        if (!newValue.equals(oldValue)) {
+        if (!newValue.equals(oldValue) && (!isReadOnly())) {
             getBeanWrapper().setValue(getPropertyName(), newValue);
-            notifyChange(false);
+            notifyChange(false, "Property "+getPropertyName() + " updated");
         }
     }
 

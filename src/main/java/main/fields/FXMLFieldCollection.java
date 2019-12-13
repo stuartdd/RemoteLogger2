@@ -90,7 +90,7 @@ public class FXMLFieldCollection {
         if (heading == null) {
             return;
         }
-        heading.setColor(c);
+        heading.setBackgroundColor(c);
     }
     
     public void destroy() {

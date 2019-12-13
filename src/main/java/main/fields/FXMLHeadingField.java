@@ -32,7 +32,7 @@ public class FXMLHeadingField extends FXMLField {
     public FXMLHeadingField(String id, String text, FXMLFieldChangeListener changeListener) throws IOException {
         super("Heading", null, text, true, null);
         this.id = id;
-        setColor(HEADING_COLOR);
+        setBackgroundColor(HEADING_COLOR);
         getPane().setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent arg0) {
