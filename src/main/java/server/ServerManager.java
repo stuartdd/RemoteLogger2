@@ -16,6 +16,7 @@
  */
 package server;
 
+import common.CommonLogger;
 import common.ConfigDataException;
 import common.LogLine;
 import common.Notifier;
@@ -40,14 +41,14 @@ public class ServerManager {
         servers = new ConcurrentHashMap<>();
     }
 
-    public static void addServer(String portStr, ServerConfig config, Notifier serverNotifier) {
+    public static void addServer(String portStr, ServerConfig config, Notifier serverNotifier, CommonLogger logger) {
         int port;
         try {
             port = Integer.parseInt(portStr);
         } catch (NumberFormatException ex) {
             throw new ConfigDataException("Port number [" + portStr + "] is invalid");
         }
-        servers.put(port, new Server(port, config, null, serverNotifier));
+        servers.put(port, new Server(port, config, null, serverNotifier, logger));
     }
 
     public static boolean isServerRunning(int port) {
@@ -90,8 +91,8 @@ public class ServerManager {
         for (Server server : servers.values()) {
             if (server.isAutoStart()) {
                 if (!server.start()) {
-                    if (server.getServerNotifier()!=null) {
-                        server.getServerNotifier().log(new LogLine(server.getPort(), "Server failed to start (Time out)"));
+                    if (server.getLogger()!=null) {
+                        server.getLogger().log(new LogLine(server.getPort(), "Server failed to start (Time out)"));
                     }
                 }
             }

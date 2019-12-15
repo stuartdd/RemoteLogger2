@@ -21,6 +21,8 @@ import common.Action;
 import common.LogLine;
 import common.Notification;
 import common.Notifier;
+import geom.Point;
+import geom.Rect;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -34,14 +36,17 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import main.dialogs.Dialogs;
 import main.fields.BeanPropertyDescription;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
@@ -71,6 +76,11 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     private Label serverStateLabel;
+    
+    @FXML
+    private ScrollPane scrollPaneLogLines;
+    @FXML
+    private TextArea textAreaLogLines;
 
     @FXML
     private Button buttonStartStopServer;
@@ -85,6 +95,14 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private int currentSelectedServerPort = -1;
     private boolean configDataHasChanged = false;
 
+    @FXML
+    public void handleClearLogsButton() {
+        Point r = Main.getPoint();
+        if (Dialogs.alertOkCancel(r.x, r.y, "Clear logs", "Erase all log data!", "Press OK to continue")) {
+            Main.getLogLines().clear();
+        }
+    }
+    
     @FXML
     public void handleCloseApplicationButton() {
         Main.closeApplication(0,configDataHasChanged);
@@ -150,10 +168,17 @@ public class FXMLDocumentController implements Initializable, Notifier {
         configDataHasChanged = false;
         int port = initializePortChoiceBox();
         Tab tab = initializeTabPanel(0);
+        initialiseLogLines();
         serverPortSelectionChanged(port);
         tabSelectionChanged(tab, null);
     }
 
+    private void initialiseLogLines() {
+        scrollPaneLogLines.setFitToHeight(true);
+        scrollPaneLogLines.setFitToWidth(true);
+        textAreaLogLines.setText(Main.getLogLines().get(-1));
+    }
+    
     private Tab initializeTabPanel(int index) {
         mainTabbedPane.getSelectionModel().select(index);
         mainTabbedPane.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
@@ -225,9 +250,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
         return ServerManager.portList().get(0);
     }
 
-    @Override
     public void notifyAction(Notification notification) {
-        System.out.println(notification.toString());
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -245,6 +268,9 @@ public class FXMLDocumentController implements Initializable, Notifier {
                     case TAB_SELECTED:
                         tabSelectionChanged((Tab) notification.getData("newTab"), (Tab) notification.getData("oldTab"));
                         break;
+                    case UPDATE_LOG:
+                        textAreaLogLines.setText(Main.getLogLines().get(-1));
+                        break;
                     case SERVER_STATE:
                         setserverChoiceBoxColour();
                         if (connectionsFieldCollection!=null) {
@@ -255,11 +281,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 label.setText(notification.getMessage());
             }
         });
-    }
-
-    @Override
-    public void log(LogLine ll) {
-        System.out.println(ll.toString());
     }
 
     private void setserverChoiceBoxColour() {

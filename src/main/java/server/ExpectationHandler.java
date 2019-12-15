@@ -18,18 +18,18 @@ package server;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import common.Action;
 import common.BodyType;
+import common.CommonLogger;
+import common.Notification;
+import common.Notifier;
+import common.Util;
+import expectations.Expectation;
+import expectations.ExpectationManager;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import common.Action;
-import common.LogLine;
-import common.Notification;
-import common.Util;
-import expectations.ExpectationManager;
-import common.Notifier;
-import expectations.Expectation;
 import java.util.TreeMap;
 import mockServer.MockRequest;
 import mockServer.MockResponse;
@@ -44,6 +44,7 @@ public class ExpectationHandler implements HttpHandler {
     private final Server server;
     private final ExpectationManager expectationManager;
     private ServerCallbackHandler responseHandler;
+    private final CommonLogger logger;
     private final Notifier serverNotifier;
     private final boolean verbose;
 
@@ -53,6 +54,7 @@ public class ExpectationHandler implements HttpHandler {
         this.port = server.getPort();
         this.expectationManager = server.getExpectationManager();
         this.responseHandler = server.getCallbackHandler();
+        this.logger = server.getLogger();
         this.serverNotifier = server.getServerNotifier();
     }
 
@@ -89,9 +91,6 @@ public class ExpectationHandler implements HttpHandler {
             }
             map.put("PATH", he.getRequestURI().getPath());
             splitIntoMap(map, null, "PATH", '/');
-        }
-        if ((serverNotifier != null) && (verbose)) {
-            serverNotifier.log(new LogLine(port, "RECEIVED ---> On PORT=" + port + " BODY-TYPE=" + map.get("BODY-TYPE") + " METHOD=" + map.get("METHOD") + " PATH=" + map.get("PATH")));
         }
         String query = Util.trimmedNull(he.getRequestURI().getQuery());
         if (query != null) {

@@ -16,8 +16,9 @@
  */
 package client;
 
+import common.CommonLogger;
 import common.LogLine;
-import common.Notifier;
+import common.CommonLogger;
 import common.Util;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -44,10 +45,10 @@ public class Client {
     private static final String NL = System.getProperty("line.separator");
 
     private final ClientConfig config;
-    private final Notifier clientNotifier;
+    private final CommonLogger logger;
 
-    public Client(ClientConfig config, Notifier clientNotifier) {
-        this.clientNotifier = clientNotifier;
+    public Client(ClientConfig config, CommonLogger logger) {
+        this.logger = logger;
         this.config = config;
     }
 
@@ -105,12 +106,12 @@ public class Client {
                 wr.flush();
                 wr.close();
                 wr = null;
-                if (clientNotifier != null) {
-                    clientNotifier.log(new LogLine(-1, "REQUEST: \nBODY START ----------\n" + body + "\nBODY END   ----------"));
+                if (logger != null) {
+                    logger.log(new LogLine(-1, "REQUEST: \nBODY START ----------\n" + body + "\nBODY END   ----------"));
                 }
             }
-            if (clientNotifier != null) {
-                clientNotifier.log(new LogLine(-1, "REQUEST: " + method.toString() + " TO:" + fullHost));
+            if (logger != null) {
+                logger.log(new LogLine(-1, "REQUEST: " + method.toString() + " TO:" + fullHost));
             }
             int responseCode;
             int connectionFailes = 0;
@@ -120,8 +121,8 @@ public class Client {
                     break;
                 } catch (ConnectException ex) {
                     connectionFailes++;
-                    if (clientNotifier != null) {
-                        clientNotifier.log(new LogLine(-1, "CLIENT: Connection Failed [" + connectionFailes + "] " + fullHost));
+                    if (logger != null) {
+                        logger.log(new LogLine(-1, "CLIENT: Connection Failed [" + connectionFailes + "] " + fullHost));
                     }
                     if (connectionFailes > 5) {
                         throw ex;
@@ -136,8 +137,8 @@ public class Client {
             } catch (IOException fnfe) {
                 is = con.getErrorStream();
                 if (is == null) {
-                    if (clientNotifier != null) {
-                        clientNotifier.log(new LogLine(-1, "CLIENT RESP: [" + responseCode + "]: No Response"));
+                    if (logger != null) {
+                        logger.log(new LogLine(-1, "CLIENT RESP: [" + responseCode + "]: No Response"));
                     }
                     return new ClientResponse(responseCode, "");
                 }
@@ -159,13 +160,13 @@ public class Client {
                     headers.put(s.getKey(), listToString(s.getValue(), ';'));
                 }
             }
-            if (clientNotifier != null) {
-                clientNotifier.log(new LogLine(-1, "CLIENT RESP:  [" + responseCode + "]:" + response.toString().trim()));
+            if (logger != null) {
+                logger.log(new LogLine(-1, "CLIENT RESP:  [" + responseCode + "]:" + response.toString().trim()));
             }
             return new ClientResponse(responseCode, response.toString().trim(), headers);
         } catch (ClientException | IOException e) {
-            if (clientNotifier != null) {
-                clientNotifier.log(new LogLine(-1, "CLIENT: Failed to send to:" + fullHost, e));
+            if (logger != null) {
+                logger.log(new LogLine(-1, "CLIENT: Failed to send to:" + fullHost, e));
             }
             throw new ClientException("CLIENT: Failed to send to:" + fullHost, e);
         } finally {

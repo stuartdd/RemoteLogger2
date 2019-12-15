@@ -21,6 +21,7 @@ import common.Action;
 import common.ConfigData;
 import common.Notification;
 import common.Util;
+import geom.Point;
 import geom.Rect;
 import java.awt.AWTException;
 import java.io.IOException;
@@ -48,9 +49,14 @@ public class Main extends Application {
     private static Stage mainStage;
     private static Scene mainScene;
     private static FXMLDocumentController controller;
-    private static ControllerNotifier controllerNotifier;
+    private final static LogLines LOG_LINES = new LogLines(100);
+    private final static UiNotifier UI_NOTIFIER = new UiNotifier();
     
     private static String configFileName;
+
+    public static LogLines getLogLines() {
+        return LOG_LINES;
+    }
 
     static boolean controllerNotification(Notification notification) {
         if (waitForController(1000)) {
@@ -124,8 +130,8 @@ public class Main extends Application {
         This is so the serial monitor can pass action messages to it.
          */
         controller = loader.getController();
-        controllerNotifier.setController(controller);
-
+        UI_NOTIFIER.setNotifier(controller);
+        LOG_LINES.setNotifier(UI_NOTIFIER);
         /*
         Save a reference to the scene for later.
          */
@@ -145,9 +151,9 @@ public class Main extends Application {
      */
     public static void closeApplication(int returnCode, boolean saveConfig) {
         if (saveConfig) {
-            if (!Dialogs.alertOkCancel(0,0,"Changes have been made!", "Save Configuration changes?", "Time to make a decision!")) {
+            if (!Dialogs.alertOkCancel(getPoint().x,getPoint().y,"Changes have been made!", "Save Configuration changes?", "Time to make a decision!")) {
                 loadConfig();
-            };
+            }
         }
         if (ConfigData.canWriteToFile()) {
             ConfigData.getInstance().setX(mainStage.getX());
@@ -182,7 +188,6 @@ public class Main extends Application {
         if (args.length == 0) {
             exitWithHelp("Requires a properties (configuration) file");
         }
-        controllerNotifier = new ControllerNotifier();
         loadConfig();
         if (initServers(2000)) {
             launch(args);            
@@ -201,10 +206,8 @@ public class Main extends Application {
      *
      * @return a rectangle
      */
-    public static Rect getRectangle() {
-        double x = mainStage.getX() + mainScene.getX();
-        double y = mainStage.getY() + mainScene.getY();
-        return new Rect((int) x, (int) y, (int) mainScene.getWidth(), (int) mainScene.getHeight());
+    public static Point getPoint() {
+        return new Point((int)mainStage.getX(),(int)mainStage.getY());
     }
     /**
      * Print an error message and exit the app with help.
@@ -241,7 +244,7 @@ public class Main extends Application {
         }
         ServerManager.clear();
         for (Map.Entry<String, ServerConfig> sc : ConfigData.getInstance().getServers().entrySet()) {
-            ServerManager.addServer(sc.getKey(), sc.getValue(), controllerNotifier);
+            ServerManager.addServer(sc.getKey(), sc.getValue(), UI_NOTIFIER, LOG_LINES);
         }
         ServerManager.autoStartServers();
         return true;

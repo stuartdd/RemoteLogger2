@@ -21,14 +21,17 @@ package common;
  *
  * @author Stuart
  */
-public class LogLine {
+public class LogLine implements Loggable {
 
+    private int lineNo = 0;
     private final long time;
     private final int port;
     private final String message;
     private final Throwable exception;
+    private Loggable next;
 
     public LogLine(int port, String message) {
+
         this.time = System.currentTimeMillis();
         this.port = port;
         this.message = message;
@@ -49,6 +52,14 @@ public class LogLine {
         this.exception = ex;
     }
 
+    public int getLineNo() {
+        return lineNo;
+    }
+
+    public void setLineNo(int lineNo) {
+        this.lineNo = lineNo;
+    }
+
     public long getTime() {
         return time;
     }
@@ -63,6 +74,14 @@ public class LogLine {
 
     public int getPort() {
         return port;
+    }
+
+    public Loggable getNext() {
+        return next;
+    }
+
+    public void setNext(Loggable next) {
+        this.next = next;
     }
 
     public boolean hasMessage() {
@@ -88,7 +107,22 @@ public class LogLine {
     }
 
     public String toString(String dev) {
-        return ConfigData.getInstance().timeStamp(time) + " [-] " + (hasPort() ? " [" + port + "]" : " ") + (dev == null ? " " : " [" + dev + "] ") + getMessage() + (exception == null ? "." : "."+exception.getMessage());
+        return pad(lineNo) + " | " + ConfigData.getInstance().timeStamp(time) + " [-] " + (hasPort() ? " [" + port + "]" : " ") + (dev == null ? " " : " [" + dev + "] ") + getMessage() + (exception == null ? "." : "." + exception.getMessage());
     }
 
+    private String pad(int n) {
+        if (n < 10){
+            return "00000"+n;
+        } else if (n < 100) {
+            return "0000"+n;
+        } else if (n < 1000) {
+            return "000"+n;
+        } else if (n < 10000) {
+            return "00"+n;
+        } else if (n < 100000) {
+            return "0"+n;
+        } else {
+            return ""+n; 
+        }
+    }
 }

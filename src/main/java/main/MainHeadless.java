@@ -17,8 +17,10 @@
  */
 package main;
 
-import common.ConfigData;
+import common.CommonLogger;
 import common.LogLine;
+import common.ConfigData;
+import common.Loggable;
 import common.Notification;
 import common.Notifier;
 import common.Util;
@@ -30,8 +32,9 @@ import server.ServerManager;
  *
  * @author Stuart
  */
-public class MainHeadless implements Notifier {
-
+public class MainHeadless implements Notifier, CommonLogger {
+    
+ 
     /**
      * @param args the command line arguments
      *
@@ -46,9 +49,9 @@ public class MainHeadless implements Notifier {
 //        }
 
         ConfigData.load("config.json");
-        Notifier notifier = new MainHeadless();
+        Object notifier = new MainHeadless();
         for (Map.Entry<String, ServerConfig> sc : ConfigData.getInstance().getServers().entrySet()) {
-            ServerManager.addServer(sc.getKey(), sc.getValue(), notifier);
+            ServerManager.addServer(sc.getKey(), sc.getValue(), (Notifier)notifier, (CommonLogger)notifier);
         }
         ServerManager.autoStartServers();
         while (ServerManager.countServersRunning() > 0) {
@@ -66,8 +69,8 @@ public class MainHeadless implements Notifier {
     }
 
     @Override
-    public void log(LogLine ll) {
-        System.out.println(ll.toString());
+    public void log(Loggable l) {
+        System.out.println("LOG:"+l.toString());
     }
 
 }

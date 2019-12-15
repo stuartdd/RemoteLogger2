@@ -28,13 +28,14 @@ import javafx.scene.control.TextInputDialog;
  */
 public class Dialogs {
     
+    
     public static boolean alertOkCancel(double x, double y, String ti, String txt, String ht) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Alert:" + ti);
         alert.setHeaderText(txt);
         alert.setContentText(ht);
-        alert.setX(x + 50);
-        alert.setY(y + 50);
+        alert.setX(x+50);
+        alert.setY(y+50);
         Optional<ButtonType> result = alert.showAndWait();
         return result.get() == ButtonType.OK;
     }

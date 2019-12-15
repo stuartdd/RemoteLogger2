@@ -18,5 +18,4 @@ package common;
 
 public interface Notifier {
     void notifyAction(Notification notification);
-    void log(LogLine logLine);
 }

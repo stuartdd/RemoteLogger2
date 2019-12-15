@@ -17,10 +17,8 @@
 package mockServer;
 
 import common.Action;
-import common.LogLine;
 import common.Notification;
 import common.Notifier;
-import org.joda.time.DateTime;
 
 /**
  *
@@ -33,16 +31,5 @@ public class MockServerNotifier implements Notifier {
         if (!notification.getAction().equals(Action.SERVER_STATE)) {
             System.out.println(notification.toString());
         }
-    }
-
-    @Override
-    public void log(LogLine ll) {
-        if (ll.hasMessage()) {
-            System.out.println(ll.toString());
-        }
-    }
-
-    public String getTimeStamp(long time) {
-        return (new DateTime(time)).toString("HH:mm:ss.SSS: ");
     }
 }

@@ -205,7 +205,7 @@ public class Util {
         return list;
     }
 
-    public static String locateResponseFile(String fileName, String type, String[] paths, Notifier notifier) {
+    public static String locateResponseFile(String fileName, String type, String[] paths, CommonLogger logger) {
         if (fileName == null) {
             throw new FileException(type + "File for " + type + " is not defined");
         }
@@ -220,28 +220,28 @@ public class Util {
                 Path p = Paths.get(path, fileName);
                 if (Files.exists(p)) {
                     try {
-                        if (notifier != null) {
-                            notifier.log(new LogLine(-1, type + " File found: " + p.toString()));
+                        if (logger != null) {
+                            logger.log(new LogLine(-1, type + " File found: " + p.toString()));
                         }
                         return new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
                     } catch (IOException ex) {
                         throw new FileException(type + " File [" + fileName + "] Not readable", ex);
                     }
                 } else {
-                    if (notifier != null) {
-                        notifier.log(new LogLine(-1, type + " File NOT found: " + p.toString()));
+                    if (logger != null) {
+                        logger.log(new LogLine(-1, type + " File NOT found: " + p.toString()));
                     }
                 }
             }
         }
         try {
-            return readResource(paths, fileName, type, sb.toString(), notifier);
+            return readResource(paths, fileName, type, sb.toString(), logger);
         } catch (IOException ex) {
             throw new FileException(type + " File [" + fileName + "] Not readable", ex);
         }
     }
 
-    private static String readResource(String[] paths, String file, String type, String list, Notifier notifier) throws IOException {
+    private static String readResource(String[] paths, String file, String type, String list, CommonLogger logger) throws IOException {
         for (String path : paths) {
             String resPath = path + '/' + file;
             if (!resPath.startsWith("/")) {
@@ -249,29 +249,29 @@ public class Util {
             }
             InputStream is = Util.class.getResourceAsStream(resPath);
             if (is == null) {
-                if (notifier != null) {
-                    notifier.log(new LogLine(-1, type + " Resource CHECK: " + resPath));
+                if (logger != null) {
+                    logger.log(new LogLine(-1, type + " Resource CHECK: " + resPath));
                 }
             } else {
-                return readResource(resPath, type, list, notifier);
+                return readResource(resPath, type, list, logger);
             }
         }
-        return readResource(file, type, list, notifier);
+        return readResource(file, type, list, logger);
     }
 
-    private static String readResource(String file, String type, String list, Notifier notifier) throws IOException {
+    private static String readResource(String file, String type, String list, CommonLogger logger) throws IOException {
         InputStream is = Util.class.getResourceAsStream(file);
         if (is == null) {
             is = FileException.class.getResourceAsStream("/" + file);
         }
         if (is == null) {
-            if (notifier != null) {
-                notifier.log(new LogLine(-1, type + " Resource file NOT found: " + file));
+            if (logger != null) {
+                logger.log(new LogLine(-1, type + " Resource file NOT found: " + file));
             }
             throw new FileException(type + " Resource [" + file + "] Not Found in path(s) [" + list + "] or on the class path");
         }
-        if (notifier != null) {
-            notifier.log(new LogLine(-1, type + " Resource found: " + file));
+        if (logger != null) {
+            logger.log(new LogLine(-1, type + " Resource found: " + file));
         }
         StringBuilder sb = new StringBuilder();
         int content;

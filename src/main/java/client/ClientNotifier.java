@@ -16,10 +16,8 @@
  */
 package client;
 
-import common.LogLine;
 import common.Notification;
 import common.Notifier;
-import org.joda.time.DateTime;
 
 /**
  *
@@ -37,13 +35,6 @@ public class ClientNotifier implements Notifier {
     public void notifyAction(Notification notification) {
         if (verbose && (notification.getMessage() != null) && (notification.getAction() != null)) {
             System.out.println(notification.toString("CLIENT"));
-        }
-    }
-
-    @Override
-    public void log(LogLine ll) {
-        if (verbose && (ll.getMessage() != null)) {
-            System.out.println(ll.toString("CLIENT"));
         }
     }
 

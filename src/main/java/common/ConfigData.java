@@ -44,7 +44,6 @@ public class ConfigData extends Config {
         return f.exists();        
     }
     
-    
     private Map<String, ServerConfig> servers = new HashMap<>();
     private String packagedRequestsFile;
     private String selectedPackagedRequestName;

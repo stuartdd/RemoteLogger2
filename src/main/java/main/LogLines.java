@@ -17,30 +17,78 @@
  */
 package main;
 
+import common.Action;
 import common.LogLine;
-import java.util.ArrayList;
-import java.util.List;
+import common.Loggable;
+import common.CommonLogger;
+import common.Notification;
+import main.dialogs.Dialogs;
 
 /**
  *
  * @author Stuart
  */
-public class LogLines {
+public class LogLines implements CommonLogger {
 
-    private static List<LogLine> logLines = new ArrayList<>();
+    private Loggable head;
+    private Loggable tail;
+    private int count;
+    private int max;
+    private int lineNo = 1;
+    private UiNotifier notifier;
 
-    public static void add(LogLine l) {
-        logLines.add(l);
+    public LogLines(int max) {
+        this.max = max;
+        head = new LogLine(-1, "Start");
+        tail = head;
+        count = 1;
+        lineNo = 1;
     }
 
-    public static List<LogLine> get(int port) {
-        List<LogLine> temp = new ArrayList<>();
-        for (LogLine l : logLines) {
-            if (l.getPort() == port) {
-                temp.add(l);
+    public synchronized void log(Loggable l) {
+        l.setLineNo(lineNo);
+        tail.setNext(l);
+        tail = l;
+        count++;
+        lineNo++;
+        if (count > max) {
+            if (head.getNext() != null) {
+                head = head.getNext();
+                count--;
             }
         }
-        return temp;
+        if (notifier != null) {
+            notifier.notifyAction(new Notification(l.getPort(), Action.UPDATE_LOG, "LOG"));
+        }
     }
 
+    public String get(int port) {
+        StringBuilder sb = new StringBuilder();
+        Loggable ll = head;
+        while (ll != null) {
+            if ((port < 0) || (ll.getPort() == port) || (ll.getPort() < 0)) {
+                sb.append(ll.toString()).append("\n");
+            }
+            ll = ll.getNext();
+        }
+        return sb.toString();
+    }
+
+    public UiNotifier getNotifier() {
+        return notifier;
+    }
+
+    public void setNotifier(UiNotifier notifier) {
+        this.notifier = notifier;
+    }
+
+    public void clear() {
+        head = new LogLine(-1, "Clear");
+        tail = head;
+        count = 1;
+        lineNo = 1;
+        if (notifier != null) {
+            notifier.notifyAction(new Notification(-1, Action.UPDATE_LOG, "LOG"));
+        }
+    }
 }

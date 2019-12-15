@@ -24,7 +24,7 @@ import java.util.Map;
  *
  * @author Stuart
  */
-public class Notification {
+public class Notification implements Loggable {
 
     private static String format;
 
@@ -33,6 +33,7 @@ public class Notification {
     private final Action action;
     private Map<String, Object> actionData;
     private final String message;
+    private Loggable next;
 
     public Notification(int port, Action action, Map<String, Object> actionOn, String message) {
         this.time = System.currentTimeMillis();
@@ -92,6 +93,14 @@ public class Notification {
         return port;
     }
 
+    public Loggable getNext() {
+        return next;
+    }
+
+    public void setNext(Loggable next) {
+        this.next = next;
+    }
+
     public Action getAction() {
         return action;
     }
@@ -109,6 +118,10 @@ public class Notification {
             return null;
         }
         return actionData.get(name);
+    }
+
+    @Override
+    public void setLineNo(int line) {
     }
 
 }

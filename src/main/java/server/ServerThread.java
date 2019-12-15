@@ -18,14 +18,12 @@ package server;
 
 import com.sun.net.httpserver.HttpServer;
 import common.Action;
+import common.CommonLogger;
 import common.LogLine;
 import common.Notification;
-import common.Notifier;
 import common.Util;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ServerThread extends Thread {
 
@@ -54,7 +52,7 @@ public class ServerThread extends Thread {
         HttpServer httpServer;
         try {
             newState(ServerState.SERVER_STARTING, "");
-            httpServer = bind(theServer.getPort(), theServer.getServerNotifier());
+            httpServer = bind(theServer.getPort(), theServer.getLogger());
             httpServer.createContext("/control", controlHandler);
             httpServer.createContext("/", expectationHandler);
             httpServer.setExecutor(null); // creates a default executor
@@ -73,7 +71,7 @@ public class ServerThread extends Thread {
         running = false;
     }
 
-    private HttpServer bind(int port, Notifier notifier) throws IOException {
+    private HttpServer bind(int port, CommonLogger logger) throws IOException {
         int tries = 0;
         HttpServer newServer = null;
         IOException exception = null;
@@ -82,8 +80,8 @@ public class ServerThread extends Thread {
                 newServer = HttpServer.create(new InetSocketAddress(port), 0);
             } catch (IOException ex) {
                 exception = ex;
-                if (notifier != null) {
-                    notifier.log(new LogLine(port, "Server Port in use. Try " + tries));
+                if (logger != null) {
+                    logger.log(new LogLine(port, "Server Port in use. Try " + tries));
                 }
             }
             tries++;
@@ -97,6 +95,7 @@ public class ServerThread extends Thread {
 
     private synchronized void newState(ServerState state, String additional) {
         serverState = state;
+        theServer.getLogger().log(new LogLine(theServer.getPort(), state.getInfo() + (additional == null ? "" : ". " + additional)));
         if (theServer.getServerNotifier() != null) {   
             Notification notification = new Notification(theServer.getPort(), Action.SERVER_STATE, state.getInfo() + (additional == null ? "" : ". " + additional)).
                     withData("state", state).
@@ -114,8 +113,8 @@ public class ServerThread extends Thread {
     }
 
     public void stopServer(boolean now) {
-        if (theServer.getServerNotifier() != null) {
-            theServer.getServerNotifier().log(new LogLine(theServer.getPort(), "STOP-SERVER Via stopServer()"));
+        if (theServer.getLogger()!= null) {
+            theServer.getLogger().log(new LogLine(theServer.getPort(), "STOP-SERVER Via stopServer()"));
         }
         if (now) {
             timeToClose = 0;

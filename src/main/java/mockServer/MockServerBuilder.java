@@ -7,7 +7,6 @@ package mockServer;
 
 import expectations.ExpChain;
 import expectations.Expectation;
-import common.ExpectationException;
 import expectations.Expectations;
 import json.JsonUtils;
 import server.ServerCallbackHandler;
@@ -62,19 +61,19 @@ public class MockServerBuilder {
     }
 
     public MockServer start(int port) {
-        return (new MockServer(port, null, getExpectations(), true)).start();
+        return (new MockServer(port, null, null, getExpectations(), true)).start();
     }
 
     public MockServer start(int port, boolean verbose) {
-        return (new MockServer(port, null, getExpectations(), verbose)).start();
+        return (new MockServer(port, null, null, getExpectations(), verbose)).start();
     }
 
     public MockServer start(int port, ServerCallbackHandler handler) {
-        return (new MockServer(port, handler, getExpectations(), true)).start();
+        return (new MockServer(port, handler, null, getExpectations(), true)).start();
     }
 
     public MockServer start(int port, ServerCallbackHandler handler, boolean verbose) {
-        return (new MockServer(port, handler, getExpectations(), verbose)).start();
+        return (new MockServer(port, handler, null, getExpectations(), verbose)).start();
     }
 
     private void addExpectation(int index, Expectation exp) {

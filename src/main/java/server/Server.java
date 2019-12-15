@@ -16,6 +16,7 @@
  */
 package server;
 
+import common.CommonLogger;
 import common.LogLine;
 import common.Notifier;
 import common.Util;
@@ -28,6 +29,7 @@ import expectations.ExpectationManager;
 public class Server {
 
     private final int port;
+    private final CommonLogger logger;
     private final Notifier serverNotifier;
     private final ServerConfig serverConfig;
     private final ServerCallbackHandler callbackHandler;
@@ -36,25 +38,34 @@ public class Server {
 
     private ServerThread serverThread;
 
-    public Server(int port, ServerConfig serverConfig, ServerCallbackHandler callbackHandler, Notifier serverNotifier) {
+    public Server(int port, ServerConfig serverConfig, ServerCallbackHandler callbackHandler, Notifier serverNotifier, CommonLogger logger) {
         if (serverConfig == null) {
             throw new ServerConfigException("Server serverConfig is null");
         }
         this.port = port;
+        this.logger = logger;
         this.serverNotifier = serverNotifier;
         this.serverConfig = serverConfig;
         this.callbackHandler = callbackHandler;
         this.serverThread = null;
         this.serverStatistics = new ServerStatistics();
         if (serverConfig.expectations() == null) {
-            expectationManager = new ExpectationManager(port, serverConfig.getExpectationsFile(), serverNotifier, serverStatistics, serverConfig.isLogProperties(), serverConfig.isLogProperties());
+            expectationManager = new ExpectationManager(port, serverConfig.getExpectationsFile(), logger, serverStatistics, serverConfig.isLogProperties(), serverConfig.isLogProperties());
         } else {
-            expectationManager = new ExpectationManager(port, serverConfig.expectations(), serverNotifier, serverStatistics, serverConfig.isLogProperties(), serverConfig.isLogProperties());
+            expectationManager = new ExpectationManager(port, serverConfig.expectations(), logger, serverStatistics, serverConfig.isLogProperties(), serverConfig.isLogProperties());
         }
-        if ((serverNotifier != null) && expectationManager.hasNoExpectations()) {
-            serverNotifier.log(new LogLine(port, "Server on " + port + " does not have any expectations defined. 404 will be returned"));
+        if ((logger != null) && expectationManager.hasNoExpectations()) {
+            logger.log(new LogLine(port, "Server on " + port + " does not have any expectations defined. 404 will be returned"));
 
         }
+    }
+
+    public CommonLogger getLogger() {
+        return logger;
+    }
+
+    public Notifier getServerNotifier() {
+        return serverNotifier;
     }
 
     public int getPort() {
@@ -63,10 +74,6 @@ public class Server {
 
     public int getTimeToClose() {
         return serverConfig.getTimeToClose();
-    }
-
-    public Notifier getServerNotifier() {
-        return serverNotifier;
     }
 
     public ServerConfig getServerConfig() {

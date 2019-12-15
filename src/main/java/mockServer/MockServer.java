@@ -16,15 +16,16 @@
  */
 package mockServer;
 
+import common.CommonLogger;
 import common.Util;
 import expectations.ExpChain;
 import expectations.Expectation;
 import expectations.Expectations;
 import json.JsonUtils;
 import server.Server;
+import server.ServerCallbackHandler;
 import server.ServerConfig;
 import server.ServerStatistics;
-import server.ServerCallbackHandler;
 
 /**
  *
@@ -34,16 +35,16 @@ public class MockServer {
 
     private Server server;
 
-    public MockServer(int port, ServerCallbackHandler responseHandler, String expectationFile, boolean verbose) {
-        server = new Server(port, new ServerConfig(Expectations.fromFile(expectationFile), 0, verbose, verbose), responseHandler, new MockServerNotifier());
+    public MockServer(int port, ServerCallbackHandler responseHandler, CommonLogger logger, String expectationFile, boolean verbose) {
+        server = new Server(port, new ServerConfig(Expectations.fromFile(expectationFile), 0, verbose, verbose), responseHandler, new MockServerNotifier(), logger);
     }
 
-    public MockServer(int port, ServerCallbackHandler responseHandler, Expectations expectations, boolean verbose) {
-        server = new Server(port, new ServerConfig(expectations, 0, verbose, verbose), responseHandler, new MockServerNotifier());
+    public MockServer(int port, ServerCallbackHandler responseHandler, CommonLogger logger, Expectations expectations, boolean verbose) {
+        server = new Server(port, new ServerConfig(expectations, 0, verbose, verbose), responseHandler, new MockServerNotifier(), logger);
     }
 
-    public MockServer(int port, ServerCallbackHandler responseHandler, boolean verbose) {
-        server = new Server(port, new ServerConfig(new Expectations(), 0, verbose, verbose), responseHandler, new MockServerNotifier());
+    public MockServer(int port, ServerCallbackHandler responseHandler, CommonLogger logger, boolean verbose) {
+        server = new Server(port, new ServerConfig(new Expectations(), 0, verbose, verbose), responseHandler, new MockServerNotifier(), logger);
     }
 
     public void setCallBackClass(ServerCallbackHandler responseHandler) {
