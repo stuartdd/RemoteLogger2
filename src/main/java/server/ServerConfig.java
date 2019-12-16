@@ -45,7 +45,7 @@ public class ServerConfig implements PropertyDataWithAnnotations {
     public ServerConfig() {
     }
 
-    @BeanProperty(description = "Expectation File | File")
+    @BeanProperty(description = "Expectation File | File,json")
     public String getExpectationsFile() {
         return expectationsFile;
     }

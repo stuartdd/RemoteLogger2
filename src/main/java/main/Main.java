@@ -86,6 +86,10 @@ public class Main extends Application {
         return true;
     }
 
+    public static Stage getStage() {
+        return mainStage;
+    }
+
     /**
      * Start the application.
      *

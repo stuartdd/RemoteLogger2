@@ -20,7 +20,9 @@ package main.fields;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 
@@ -33,8 +35,8 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
     private int lowerbound = Integer.MIN_VALUE;
     private int upperbound = Integer.MAX_VALUE;
 
-    public FXMLIntegerField(BeanWrapper beanWrapper, String propertyName, Integer value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
-        super("String", beanWrapper, propertyName, readOnly, changeListener);
+    public FXMLIntegerField(Stage stage, BeanWrapper beanWrapper, String propertyName, Integer value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, "String", beanWrapper, propertyName, readOnly, changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
@@ -44,6 +46,10 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                     textField.setText("null");
                 }
                 textField.textProperty().addListener(this);
+            } else {
+                if (c instanceof Button) {
+                    ((Button) c).setVisible(false);
+                }
             }
         }
         String bounds = getBeanPropertyDescription().getAdditional();

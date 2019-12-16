@@ -22,6 +22,6 @@ package main.fields;
  * @author Stuart
  */
 public interface FXMLFieldChangeListener {
-    void changed(BeanPropertyDescription propertyDescription, boolean error ,String message);
+    boolean changed(BeanPropertyDescription propertyDescription, boolean error ,String message);
     void select(String id);
 }

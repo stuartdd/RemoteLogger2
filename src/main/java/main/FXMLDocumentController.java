@@ -18,6 +18,7 @@
 package main;
 
 import common.Action;
+import common.ConfigData;
 import common.Notification;
 import common.Notifier;
 import geom.Point;
@@ -135,7 +136,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
             }
         }
         if (newTab.getId().equalsIgnoreCase("connections")) {
-            initializeConnectionDataTab();
+            initializeServerDataTab();
         }
         if (newTab.getId().equalsIgnoreCase("logs")) {
             updateTheLogs(false);
@@ -148,9 +149,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 return;
             }
         }
-        /*
-        If any changes to state then save them to disk
-         */
         if (newServerPort > 0) {
             currentSelectedServerPort = newServerPort;
             setserverChoiceBoxColour();
@@ -227,13 +225,13 @@ public class FXMLDocumentController implements Initializable, Notifier {
         return mainTabbedPane.getTabs().get(index);
     }
 
-    private void initializeConnectionDataTab() {
+    private void initializeServerDataTab() {
         long start = System.currentTimeMillis();
         buttonSaveConfigChanges.setDisable(!configDataHasChanged);
         buttonReloadConfigChanges.setDisable(!configDataHasChanged);
-        connectionsFieldCollection = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData(), false, "Server %{id}:", new FXMLFieldChangeListener() {
+        connectionsFieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxConnections, ServerManager.serverConfigData(), false, "Server %{id}:", new FXMLFieldChangeListener() {
             @Override
-            public void changed(BeanPropertyDescription propertyDescription, boolean error, String message) {
+            public boolean changed(BeanPropertyDescription propertyDescription, boolean error, String message) {
                 if (error) {
                     buttonSaveConfigChanges.setDisable(true);
                     buttonReloadConfigChanges.setDisable(true);
@@ -243,6 +241,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
                     buttonReloadConfigChanges.setDisable(!configDataHasChanged);
                 }
                 label.setText(message);
+                return false;
             }
 
             @Override
@@ -273,7 +272,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     private int initializePortChoiceBox() {
         serverChoiceBox.setItems(FXCollections.observableArrayList(ServerManager.portList()));
-        serverChoiceBox.getSelectionModel().select(0);
+        for (Object s:serverChoiceBox.getItems()) {
+            if (s.equals(ConfigData.getInstance().getDefaultPort())) {
+                serverChoiceBox.getSelectionModel().select(s);
+            }
+        }
+
         serverChoiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -296,7 +300,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
                         if (connectionsFieldCollection != null) {
                             connectionsFieldCollection.destroy();
                         }
-                        initializeConnectionDataTab();
+                        initializeServerDataTab();
                         break;
                     case SERVER_SELECTED:
                         serverPortSelectionChanged((Integer) notification.getData("port"));

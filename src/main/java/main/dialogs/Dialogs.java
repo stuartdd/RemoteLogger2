@@ -17,11 +17,15 @@
  */
 package main.dialogs;
 
+import java.io.File;
 import java.util.Optional;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
 /**
  *
  * @author Stuart
@@ -48,6 +52,35 @@ public class Dialogs {
         alert.setX(x + 50);
         alert.setY(y + 50);
         alert.showAndWait();
+    }
+
+    public static String fileChooser(Stage stage, String title, String fileName, String desc, String ext) {
+        File f = new File(fileName);
+        f = new File(f.getAbsolutePath());
+        if (f.exists()) {
+            f = f.getParentFile();
+            if (f==null) {
+                f = new File(".");
+            }
+        } else {
+            f = new File(".");
+        }
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle(title);
+        System.out.println("PATH:"+f.getAbsolutePath());
+        fileChooser.setInitialDirectory(f);
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter(desc, "*."+ext),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+        f = fileChooser.showOpenDialog(stage);
+        File p = new File("");
+        p = new File(p.getAbsolutePath());
+        String name = f.getAbsolutePath();
+        if ((f.getParentFile() == null) || (p.equals(f.getParentFile()))) {
+            name = f.getName();
+        }
+        return name;
     }
 
     public static String textInputDialog(double x, double y, String ti, String ht, String prompt, String txt) {

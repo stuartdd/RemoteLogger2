@@ -27,6 +27,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
 /**
  * @author Stuart
@@ -38,6 +39,7 @@ public abstract class FXMLField {
     static final Color BG_COLOR = Color.LIGHTGREEN;
     static final Color HEADING_COLOR = Color.LIGHTGREEN;
 
+    private final Stage stage;
     private final Pane pane;
     private final BeanWrapper beanWrapper;
     private final boolean readOnly;
@@ -46,7 +48,8 @@ public abstract class FXMLField {
     private Label label = null;
     private Separator separator = null;
 
-    public FXMLField(String fieldType, BeanWrapper beanWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
+    public FXMLField(Stage stage, String fieldType, BeanWrapper beanWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
+        this.stage = stage;
         this.beanWrapper = beanWrapper;
         this.propertyName = propertyName;
         this.readOnly = readOnly;
@@ -85,6 +88,10 @@ public abstract class FXMLField {
 
     public final Pane getPane() {
         return pane;
+    }
+
+    public Stage getStage() {
+        return stage;
     }
 
     public final void setColor() {
@@ -139,10 +146,11 @@ public abstract class FXMLField {
         removeNode(label);
     }
 
-    public void notifyChange(boolean error, String message) {
+    public boolean notifyChange(boolean error, String message) {
         if (changeListener != null) {
-            changeListener.changed(getBeanWrapper().getBeanPropertyDescription(getPropertyName()),error, message);
+            return changeListener.changed(getBeanWrapper().getBeanPropertyDescription(getPropertyName()),error, message);
         }
+        return false;
     }
 
     public abstract void destroy();
