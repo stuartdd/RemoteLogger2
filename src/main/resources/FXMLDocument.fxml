@@ -20,6 +20,38 @@
          <center>
             <TabPane fx:id="mainTabbedPane" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
               <tabs>
+                <Tab id="logs" text="Logs">
+                  <content>
+                    <AnchorPane>
+                           <children>
+                              <BorderPane prefHeight="551.0" prefWidth="562.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <left>
+                                    <VBox fx:id="vBoxLogsControlList" alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0" BorderPane.alignment="CENTER">
+                                       <children>
+                                          <Button mnemonicParsing="false" onAction="#handleClearLogsButton" text="Clear Logs" />
+                                       </children>
+                                       <BorderPane.margin>
+                                          <Insets />
+                                       </BorderPane.margin>
+                                       <padding>
+                                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                       </padding>
+                                       <opaqueInsets>
+                                          <Insets />
+                                       </opaqueInsets></VBox>
+                                 </left>
+                                 <center>
+                                    <ScrollPane fx:id="scrollPaneLogLines">
+                                       <content>
+                                          <TextArea fx:id="textAreaLogLines" />
+                                       </content>
+                                    </ScrollPane>
+                                 </center>
+                              </BorderPane>
+                           </children>
+                        </AnchorPane>
+                  </content>
+                </Tab>
                 <Tab id="connections" text="Servers">
                   <content>
                     <AnchorPane fx:id="connectionsAnchorPane">
@@ -45,38 +77,6 @@
                               </BorderPane>
                            </children>
                     </AnchorPane>
-                  </content>
-                </Tab>
-                <Tab id="logs" text="Logs">
-                  <content>
-                    <AnchorPane>
-                           <children>
-                              <BorderPane prefHeight="551.0" prefWidth="562.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                 <left>
-                                    <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0" BorderPane.alignment="CENTER">
-                                       <children>
-                                          <Button mnemonicParsing="false" onAction="#handleClearLogsButton" text="Clear Logs" />
-                                       </children>
-                                       <BorderPane.margin>
-                                          <Insets />
-                                       </BorderPane.margin>
-                                       <padding>
-                                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                       </padding>
-                                       <opaqueInsets>
-                                          <Insets />
-                                       </opaqueInsets></VBox>
-                                 </left>
-                                 <center>
-                                    <ScrollPane fx:id="scrollPaneLogLines">
-                                       <content>
-                                          <TextArea fx:id="textAreaLogLines" />
-                                       </content>
-                                    </ScrollPane>
-                                 </center>
-                              </BorderPane>
-                           </children>
-                        </AnchorPane>
                   </content>
                 </Tab>
               </tabs>

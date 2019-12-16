@@ -17,6 +17,7 @@
  */
 package main;
 
+import com.sun.javafx.beans.event.AbstractNotifyListener;
 import common.Action;
 import common.LogLine;
 import common.Notification;
@@ -26,6 +27,7 @@ import geom.Rect;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -34,6 +36,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -50,6 +53,7 @@ import main.dialogs.Dialogs;
 import main.fields.BeanPropertyDescription;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
+import org.joda.time.LocalTime;
 import server.ServerManager;
 import server.ServerState;
 
@@ -70,6 +74,9 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     private VBox vBoxConnections;
     private FXMLFieldCollection connectionsFieldCollection;
+    
+    @FXML
+    private VBox vBoxLogsControlList;
 
     @FXML
     private Label label;
@@ -127,7 +134,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
         return configDataHasChanged;
     }
 
-    
     public void tabSelectionChanged(Tab newTab, Tab oldTab) {
         if (oldTab != null) {
             if (newTab == oldTab) {
@@ -144,7 +150,9 @@ public class FXMLDocumentController implements Initializable, Notifier {
         if (newTab.getId().equalsIgnoreCase("connections")) {
             initializeConnectionDataTab();
         }
-
+        if (newTab.getId().equalsIgnoreCase("logs")) {
+            updateTheLogs();
+        }
         System.out.println("NEW " + newTab.getText());
     }
 
@@ -173,14 +181,38 @@ public class FXMLDocumentController implements Initializable, Notifier {
         tabSelectionChanged(tab, null);
     }
 
-    private void initialiseLogLines() {
-        scrollPaneLogLines.setFitToHeight(true);
-        scrollPaneLogLines.setFitToWidth(true);
-        textAreaLogLines.setText(Main.getLogLines().get(-1));
+    private void updateTheLogs() {
+        Main.getLogLines().clearFilter();
+        for (int p:ServerManager.ports()) {
+             Main.getLogLines().filter(p, ServerManager.getServer(p).isShowPort());
+        }
+        textAreaLogLines.setText(Main.getLogLines().get());       
     }
     
+    private void initialiseLogLines() {
+        long start = System.currentTimeMillis();
+        scrollPaneLogLines.setFitToHeight(true);
+        scrollPaneLogLines.setFitToWidth(true);
+        for (int p:ServerManager.ports()) {
+            CheckBox cb = new CheckBox("Show:"+p);
+            cb.setUserData(p);
+            cb.setSelected(ServerManager.getServer(p).isShowPort());
+            cb.selectedProperty().addListener(new ChangeListener<Boolean>() {
+                @Override
+                public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
+                    if (!arg1.equals(arg2)) {
+                        ServerManager.getServer((Integer)cb.getUserData()).setShowPort(arg2);
+                        Main.controllerNotification(new Notification((Integer)cb.getUserData(), Action.UPDATE_LOG, "Log "+ (Integer)cb.getUserData()+ (arg2?"Included":"Excluded")));
+                    }
+                }
+            });
+            vBoxLogsControlList.getChildren().add(cb);
+        }
+         System.out.println("TIME:initialiseLogLines:"+(System.currentTimeMillis() - start));
+   }
+    
     private Tab initializeTabPanel(int index) {
-        mainTabbedPane.getSelectionModel().select(index);
+         mainTabbedPane.getSelectionModel().select(index);
         mainTabbedPane.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -193,6 +225,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     }
 
     private void initializeConnectionDataTab() {
+        long start = System.currentTimeMillis();
         buttonSaveConfigChanges.setDisable(!configDataHasChanged);
         buttonReloadConfigChanges.setDisable(!configDataHasChanged);
         connectionsFieldCollection = new FXMLFieldCollection(vBoxConnections, ServerManager.serverConfigData(), false, "Server %{id}:", new FXMLFieldChangeListener() {
@@ -232,7 +265,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 }               
             }
         });
-
+        System.out.println("TIME:initializeConnectionDataTab:"+(System.currentTimeMillis() - start));
     }
 
     private int initializePortChoiceBox() {
@@ -269,7 +302,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
                         tabSelectionChanged((Tab) notification.getData("newTab"), (Tab) notification.getData("oldTab"));
                         break;
                     case UPDATE_LOG:
-                        textAreaLogLines.setText(Main.getLogLines().get(-1));
+                        updateTheLogs();
                         break;
                     case SERVER_STATE:
                         setserverChoiceBoxColour();

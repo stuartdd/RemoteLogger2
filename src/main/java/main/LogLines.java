@@ -18,11 +18,12 @@
 package main;
 
 import common.Action;
+import common.CommonLogger;
 import common.LogLine;
 import common.Loggable;
-import common.CommonLogger;
 import common.Notification;
-import main.dialogs.Dialogs;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -30,6 +31,7 @@ import main.dialogs.Dialogs;
  */
 public class LogLines implements CommonLogger {
 
+    private List<Integer> filters;
     private Loggable head;
     private Loggable tail;
     private int count;
@@ -43,6 +45,8 @@ public class LogLines implements CommonLogger {
         tail = head;
         count = 1;
         lineNo = 1;
+        filters = new ArrayList<>();
+        filters.add(-1);
     }
 
     public synchronized void log(Loggable l) {
@@ -62,11 +66,11 @@ public class LogLines implements CommonLogger {
         }
     }
 
-    public String get(int port) {
+    public String get() {
         StringBuilder sb = new StringBuilder();
         Loggable ll = head;
         while (ll != null) {
-            if ((port < 0) || (ll.getPort() == port) || (ll.getPort() < 0)) {
+            if (matchFilter(ll.getPort())) {
                 sb.append(ll.toString()).append("\n");
             }
             ll = ll.getNext();
@@ -91,4 +95,39 @@ public class LogLines implements CommonLogger {
             notifier.notifyAction(new Notification(-1, Action.UPDATE_LOG, "LOG"));
         }
     }
+
+    private boolean matchFilter(int port) {
+        for (int i:filters) {
+            if (i == port) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public void clearFilter() {
+        filters = new ArrayList<>();
+        filters.add(-1);
+    }
+    
+    public void filter(int port, Boolean add) {
+        if (add) {
+            filters.add(port);
+            if (notifier != null) {
+                notifier.notifyAction(new Notification(-1, Action.UPDATE_LOG, "Add filter " + port));
+            }
+        } else {
+            for (Integer i : filters) {
+                if (i == port) {
+                    filters.remove(i);
+                    if (notifier != null) {
+                        notifier.notifyAction(new Notification(-1, Action.UPDATE_LOG, "Remove filter " + port));
+                    }
+                    return;
+                }
+            }
+        }
+
+    }
+
 }

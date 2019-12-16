@@ -22,7 +22,7 @@
     "bodyType" : null,
     "asserts" : {
       "PATH[3]" : "iso2code",
-      "PATH[1]" : "coundtry"
+      "PATH[1]" : "country"
     },
     "response" : {
       "body" : "{\"message\":\"Hi from India (%{PATH[4]})\"}",
