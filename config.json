@@ -4,7 +4,7 @@
       "expectationsFile" : "expectations.json",
       "autoStart" : true,
       "showPort" : true,
-      "timeToClose" : 5,
+      "timeToClose" : 1,
       "verbose" : true,
       "logProperties" : false
     },
@@ -27,10 +27,10 @@
   "includeEmpty" : false,
   "showTime" : true,
   "showPort" : true,
-  "x" : 54.0,
-  "y" : 39.0,
+  "x" : 2219.0,
+  "y" : 61.0,
   "width" : 1407.0,
   "height" : 760.0,
   "expDividerPos" : [ 0.2456703014753047, 0.6247594611930725 ],
   "packDividerPos" : [ 0.11802437459910199, 0.7434252726106478 ]
-}}
+}}}

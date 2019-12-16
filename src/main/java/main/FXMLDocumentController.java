@@ -17,17 +17,11 @@
  */
 package main;
 
-import com.sun.javafx.beans.event.AbstractNotifyListener;
 import common.Action;
-import common.LogLine;
 import common.Notification;
 import common.Notifier;
 import geom.Point;
-import geom.Rect;
-import java.net.URL;
-import java.util.ResourceBundle;
 import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -35,27 +29,20 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import main.dialogs.Dialogs;
 import main.fields.BeanPropertyDescription;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
-import org.joda.time.LocalTime;
 import server.ServerManager;
 import server.ServerState;
+
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 /**
  *
@@ -64,17 +51,17 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     private AnchorPane connectionsAnchorPane;
+
     @FXML
     private Canvas connectionCanvas;
-    private double connectionCanvasWidth;
-    private double connectionCanvasHeight;
+
     @FXML
     private TabPane mainTabbedPane;
 
     @FXML
     private VBox vBoxConnections;
     private FXMLFieldCollection connectionsFieldCollection;
-    
+
     @FXML
     private VBox vBoxLogsControlList;
 
@@ -83,7 +70,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     private Label serverStateLabel;
-    
+
     @FXML
     private ScrollPane scrollPaneLogLines;
     @FXML
@@ -101,6 +88,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     private int currentSelectedServerPort = -1;
     private boolean configDataHasChanged = false;
+    private Map<Integer, CheckBox> logCheckBoxesByPort = new HashMap<>();
 
     @FXML
     public void handleClearLogsButton() {
@@ -109,10 +97,10 @@ public class FXMLDocumentController implements Initializable, Notifier {
             Main.getLogLines().clear();
         }
     }
-    
+
     @FXML
     public void handleCloseApplicationButton() {
-        Main.closeApplication(0,configDataHasChanged);
+        Main.closeApplication(0, configDataHasChanged);
     }
 
     @FXML
@@ -142,18 +130,16 @@ public class FXMLDocumentController implements Initializable, Notifier {
             if (oldTab.getId().equalsIgnoreCase("connections")) {
                 connectionsFieldCollection.destroy();
             }
-            /*
-            If any changes to state then save them to disk
-             */
-            System.out.println("CLOSE " + oldTab.getText());
+            if (oldTab.getId().equalsIgnoreCase("logs")) {
+                updateTheLogs(true);
+            }
         }
         if (newTab.getId().equalsIgnoreCase("connections")) {
             initializeConnectionDataTab();
         }
         if (newTab.getId().equalsIgnoreCase("logs")) {
-            updateTheLogs();
+            updateTheLogs(false);
         }
-        System.out.println("NEW " + newTab.getText());
     }
 
     public void serverPortSelectionChanged(int newServerPort) {
@@ -176,43 +162,60 @@ public class FXMLDocumentController implements Initializable, Notifier {
         configDataHasChanged = false;
         int port = initializePortChoiceBox();
         Tab tab = initializeTabPanel(0);
-        initialiseLogLines();
+        initialiseLogTabPanel();
         serverPortSelectionChanged(port);
         tabSelectionChanged(tab, null);
     }
 
-    private void updateTheLogs() {
-        Main.getLogLines().clearFilter();
-        for (int p:ServerManager.ports()) {
-             Main.getLogLines().filter(p, ServerManager.getServer(p).isShowPort());
-        }
-        textAreaLogLines.setText(Main.getLogLines().get());       
-    }
-    
-    private void initialiseLogLines() {
-        long start = System.currentTimeMillis();
+    private void initialiseLogTabPanel() {
         scrollPaneLogLines.setFitToHeight(true);
         scrollPaneLogLines.setFitToWidth(true);
-        for (int p:ServerManager.ports()) {
-            CheckBox cb = new CheckBox("Show:"+p);
-            cb.setUserData(p);
-            cb.setSelected(ServerManager.getServer(p).isShowPort());
-            cb.selectedProperty().addListener(new ChangeListener<Boolean>() {
-                @Override
-                public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
-                    if (!arg1.equals(arg2)) {
-                        ServerManager.getServer((Integer)cb.getUserData()).setShowPort(arg2);
-                        Main.controllerNotification(new Notification((Integer)cb.getUserData(), Action.UPDATE_LOG, "Log "+ (Integer)cb.getUserData()+ (arg2?"Included":"Excluded")));
-                    }
-                }
-            });
-            vBoxLogsControlList.getChildren().add(cb);
+        logCheckBoxesByPort = new HashMap<>();
+        updateTheLogs(true);
+    }
+
+    private void updateTheLogs(boolean clear) {
+        initialiseLogPanelCheckBoxes(clear);
+        if (clear) {
+            textAreaLogLines.setText("");
+        } else {
+            textAreaLogLines.setText(Main.getLogLines().get());
         }
-         System.out.println("TIME:initialiseLogLines:"+(System.currentTimeMillis() - start));
-   }
-    
+    }
+
+    private void initialiseLogPanelCheckBoxes(boolean clear) {
+        for (CheckBox cb:logCheckBoxesByPort.values()) {
+            vBoxLogsControlList.getChildren().remove(cb);
+        }
+        logCheckBoxesByPort.clear();
+        Main.getLogLines().clearFilter();
+        if (!clear) {
+            for (int p : ServerManager.ports()) {
+                CheckBox cb = new CheckBox("Show:" + p);
+                cb.setUserData(p);
+                cb.setSelected(ServerManager.getServer(p).isShowPort());
+                cb.selectedProperty().addListener(new ChangeListener<Boolean>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
+                        if (!arg1.equals(arg2)) {
+                            int selectedPort = (Integer) cb.getUserData();
+                            ServerManager.getServer(selectedPort).setShowPort(arg2);
+                            configDataHasChanged = true;
+                            Main.getLogLines().filter(selectedPort, arg2);
+                            Main.controllerNotification(new Notification(selectedPort, Action.UPDATE_LOG, "Log " + selectedPort + (arg2 ? "Included" : "Excluded")));
+                        }
+                    }
+                });
+                Main.getLogLines().filter(p, ServerManager.getServer(p).isShowPort());
+                logCheckBoxesByPort.put(p, cb);
+                vBoxLogsControlList.getChildren().add(cb);
+            }
+        }
+    }
+
+
     private Tab initializeTabPanel(int index) {
-         mainTabbedPane.getSelectionModel().select(index);
+        mainTabbedPane.getSelectionModel().select(index);
         mainTabbedPane.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -244,7 +247,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
             @Override
             public void select(String id) {
-                for (Object o:serverChoiceBox.getItems()) {
+                for (Object o : serverChoiceBox.getItems()) {
                     if (o.toString().equals(id)) {
                         Platform.runLater(new Runnable() {
                             @Override
@@ -255,17 +258,17 @@ public class FXMLDocumentController implements Initializable, Notifier {
                         break;
                     }
                 }
-            } 
+            }
         });
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                for (int p: ServerManager.ports()) {
-                    connectionsFieldCollection.setHeadingColour(""+p, colorForServerState(ServerManager.getServerState(p)));
-                }               
+                for (int p : ServerManager.ports()) {
+                    connectionsFieldCollection.setHeadingColour("" + p, colorForServerState(ServerManager.getServerState(p)));
+                }
             }
         });
-        System.out.println("TIME:initializeConnectionDataTab:"+(System.currentTimeMillis() - start));
+        System.out.println("TIME:initializeConnectionDataTab:" + (System.currentTimeMillis() - start));
     }
 
     private int initializePortChoiceBox() {
@@ -302,12 +305,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
                         tabSelectionChanged((Tab) notification.getData("newTab"), (Tab) notification.getData("oldTab"));
                         break;
                     case UPDATE_LOG:
-                        updateTheLogs();
+                        updateTheLogs(false);
                         break;
                     case SERVER_STATE:
                         setserverChoiceBoxColour();
-                        if (connectionsFieldCollection!=null) {
-                            connectionsFieldCollection.setHeadingColour(""+notification.getPort(), colorForServerState((ServerState)notification.getData("state")));            
+                        if (connectionsFieldCollection != null) {
+                            connectionsFieldCollection.setHeadingColour("" + notification.getPort(), colorForServerState((ServerState) notification.getData("state")));
                         }
                         break;
                 }
@@ -338,7 +341,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
         buttonStartStopServer.setText(text);
         serverChoiceBox.setBackground(new Background(new BackgroundFill(colorForServerState(ServerManager.getServerState(port)), CornerRadii.EMPTY, Insets.EMPTY)));
     }
-    
+
     private Color colorForServerState(ServerState state) {
         if (state != null) {
             switch (state) {
