@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
@@ -87,9 +88,15 @@
             </TabPane>
          </center>
          <bottom>
-            <AnchorPane prefHeight="0.0" prefWidth="493.0" BorderPane.alignment="CENTER">
+            <AnchorPane prefHeight="29.0" prefWidth="493.0" BorderPane.alignment="CENTER">
                <children>
-                  <Label fx:id="label" prefHeight="28.0" prefWidth="471.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Label fx:id="labelStatus" layoutY="-6.0" prefHeight="33.0" prefWidth="493.0" text="Status" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="-6.0">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding></Label>
                </children>
             </AnchorPane>
          </bottom>

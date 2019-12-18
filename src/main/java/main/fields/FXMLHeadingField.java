@@ -28,16 +28,14 @@ import javafx.stage.Stage;
  */
 public class FXMLHeadingField extends FXMLField {
 
-    private final String id;
     
-    public FXMLHeadingField(Stage stage, String id, String text, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, "Heading", null, text, true, null);
-        this.id = id;
+    public FXMLHeadingField(Stage stage, int id, String text, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, id,"Heading", null, text, true, null);
         setBackgroundColor(HEADING_COLOR);
         getPane().setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent arg0) {
-                changeListener.select(id);
+                changeListener.select(getIdString());
             }
         });
     }

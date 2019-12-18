@@ -26,6 +26,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import main.dialogs.Dialogs;
+
 import java.io.IOException;
 
 /**
@@ -36,8 +37,8 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
     private TextField textField;
     private Button fileButton;
 
-    public FXMLStringField(Stage stage, BeanWrapper beanWrapper, String propertyName, String value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, "String", beanWrapper, propertyName, readOnly, changeListener);
+    public FXMLStringField(Stage stage, int id, BeanWrapper beanWrapper, String propertyName, String value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, id, "String", beanWrapper, propertyName, readOnly, changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
@@ -50,14 +51,15 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
             } else {
                 if (c instanceof Button) {
                     fileButton = (Button) c;
-                    if (getBeanPropertyDescription().getAdditional().toLowerCase().contains("file")) {
-                        fileButton.setVisible(true);
+                    if (getBeanPropertyDescription().getFlag("type", "").equalsIgnoreCase("file")) {
+                        String ext = getBeanPropertyDescription().getFlag("ext", "json");
+                        String desc = getBeanPropertyDescription().getFlag("desc", "File type *."+ext);
                         textField.setEditable(false);
                         fileButton.setOnAction(new EventHandler<ActionEvent>() {
                             @Override
                             public void handle(ActionEvent actionEvent) {
                                 String oldName = ((String) beanWrapper.getValue(propertyName));
-                                String newName = Dialogs.fileChooser(getStage(), "Select: "+beanWrapper.getBeanPropertyDescription(propertyName).getDescription(), oldName, "JSON", "json");
+                                String newName = Dialogs.fileChooser(getStage(), "Select: " + beanWrapper.getBeanPropertyDescription(propertyName).getDescription(), oldName, desc, ext);
                                 if ((newName != null) && (!newName.equals(oldName))) {
                                     textField.setText(newName);
                                 }
@@ -83,10 +85,20 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
     @Override
     public void changed(ObservableValue<? extends String> arg0, String oldValue, String newValue) {
         if (!newValue.equals(oldValue) && (!isReadOnly())) {
-            if (notifyChange(false, "Property " + getPropertyName() + " updated")) {
-                getBeanWrapper().setValue(getPropertyName(), newValue);
-            } else {
-                throw new FXMLBeanFieldLoaderException("XXX");
+            try {
+                textField.textProperty().removeListener(this);
+                String reason = validateChange(oldValue, newValue);
+                if (reason == null) {
+                    setError(false);
+                    getBeanWrapper().setValue(getPropertyName(), newValue);
+                    notifyChange("Property '" + getBeanPropertyDescription().getDescription() + "' updated");
+                } else {
+                    setError(true);
+                    textField.setText(oldValue);
+                    notifyChange("!ERROR '" + getBeanPropertyDescription().getDescription() + "' Reason: " + reason);
+                }
+            } finally {
+                textField.textProperty().addListener(this);
             }
         }
     }

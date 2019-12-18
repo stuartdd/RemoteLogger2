@@ -28,11 +28,11 @@ import model.ModelProvider;
  *
  * @author 802996013
  */
-public class Expectations implements ModelProvider {
+public class Expectations {
 
     private List<Expectation> expectations = new ArrayList<>();
     private String[] paths;
-    private boolean logProperies;
+    private boolean logProperties;
 
     public List<Expectation> getExpectations() {
         return expectations;
@@ -46,38 +46,17 @@ public class Expectations implements ModelProvider {
         return paths;
     }
 
-    @JsonIgnore
-    public int size() {
-        if (expectations == null) {
-            expectations = new ArrayList<>();
-        }
-        return expectations.size();
-    }
 
     public void setPaths(String[] paths) {
         this.paths = paths;
     }
 
     public boolean isLogProperies() {
-        return logProperies;
+        return logProperties;
     }
 
-    public void setLogProperies(boolean logProperies) {
-        this.logProperies = logProperies;
-    }
-
-    public Expectations withLogProperies(boolean listMap) {
-        this.setLogProperies(listMap);
-        return this;
-    }
-
-    public Expectations withPaths(String[] paths) {
-        this.setPaths(paths);
-        return this;
-    }
-
-    public Expectations addExpectation(String json) {
-        return addExpectation((Expectation) JsonUtils.beanFromJson(Expectation.class, json));
+    public void setLogProperties(boolean logProperties) {
+        this.logProperties = logProperties;
     }
 
     public Expectations addExpectation(Expectation expectation) {
@@ -92,13 +71,6 @@ public class Expectations implements ModelProvider {
         return this;
     }
 
-    public static Expectations newExpectation(String json) {
-        Expectations expectations = new Expectations();
-        expectations.addExpectation(json);
-        ExpectationManager.testExpectations(expectations);
-        return expectations;
-    }
-
     public static Expectations fromString(String json) {
         Expectations ex = (Expectations) JsonUtils.beanFromJson(Expectations.class, json);
         ExpectationManager.testExpectations(ex);
@@ -110,83 +82,11 @@ public class Expectations implements ModelProvider {
     }
 
     @JsonIgnore
-    @Override
-    public int getModelIndex(String modelName) {
-        for (int i=0; i<size(); i++) {
-            if (expectations.get(i).getName().equals(modelName)) {
-                return i;
-            }
+    public int size() {
+        if (expectations == null) {
+            expectations = new ArrayList<>();
         }
-        return -1;
+        return expectations.size();
     }
-
-    @Override
-    public void addModel(Model model) {
-        expectations.add((Expectation) model);
-    }
-
-    @Override
-    public void addModel(int pos, Model model) {
-        expectations.add(pos, (Expectation) model);
-    }
-
-    @JsonIgnore
-    @Override
-    public Model getModel(int index) {
-        return expectations.get(index);
-    }
-
-    @JsonIgnore
-    @Override
-    public Model getModel(String modelName) {
-        for (Expectation exp : expectations) {
-            if (exp.getName().equals(modelName)) {
-                return exp;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public synchronized boolean deleteModel(String modelName) {
-        boolean deleted = false;
-        List<Expectation> expList = new ArrayList<>();
-        for (Expectation exp : expectations) {
-            if (!exp.getName().equals(modelName)) {
-                expList.add(exp);
-            } else {
-                deleted = true;
-            }
-        }
-        expectations = expList;
-        return deleted;
-    }
-
-    public synchronized void removeAll() {
-        expectations.clear();
-    }
-    
-    @Override
-    public synchronized boolean replaceModel(String withThisModelJson) {
-        Expectation exp = (Expectation) JsonUtils.beanFromJson(Expectations.class, withThisModelJson);
-        return replaceModel(exp.getName(), exp);
-    }
-    
-    @Override
-    public synchronized boolean replaceModel(String replaceModelName, Model withThisModel) {
-        boolean replaced = false;
-        List<Expectation> expList = new ArrayList<>();
-        for (Expectation exp : expectations) {
-            if (!exp.getName().equals(replaceModelName)) {
-                expList.add(exp);
-            } else {
-                replaced = true;
-                expList.add((Expectation) withThisModel);
-            }
-        }
-        expectations = expList;
-        return replaced;
-    }
-
 
 }

@@ -49,14 +49,9 @@ public class Server {
         this.callbackHandler = callbackHandler;
         this.serverThread = null;
         this.serverStatistics = new ServerStatistics();
-        if (serverConfig.expectations() == null) {
-            expectationManager = new ExpectationManager(port, serverConfig.getExpectationsFile(), logger, serverStatistics, serverConfig.isLogProperties(), serverConfig.isLogProperties());
-        } else {
-            expectationManager = new ExpectationManager(port, serverConfig.expectations(), logger, serverStatistics, serverConfig.isLogProperties(), serverConfig.isLogProperties());
-        }
+        this.expectationManager = new ExpectationManager(port, serverConfig.getExpectationsFile(), logger, serverStatistics, serverConfig.isLogProperties(), serverConfig.isLogProperties());
         if ((logger != null) && expectationManager.hasNoExpectations()) {
             logger.log(new LogLine(port, "Server on " + port + " does not have any expectations defined. 404 will be returned"));
-
         }
     }
 

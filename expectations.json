@@ -86,5 +86,5 @@
     "forward" : null
   } ],
   "paths" : [ ".", "/appl", "/bea" ],
-  "logProperies" : false
+  "logProperties" : false
 }

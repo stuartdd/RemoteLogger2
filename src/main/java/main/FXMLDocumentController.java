@@ -17,10 +17,9 @@
  */
 package main;
 
-import common.Action;
-import common.ConfigData;
-import common.Notification;
-import common.Notifier;
+import common.*;
+import expectations.ExpectationManager;
+import expectations.Expectations;
 import geom.Point;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -67,7 +66,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private VBox vBoxLogsControlList;
 
     @FXML
-    private Label label;
+    private Label labelStatus;
 
     @FXML
     private Label serverStateLabel;
@@ -151,12 +150,13 @@ public class FXMLDocumentController implements Initializable, Notifier {
         }
         if (newServerPort > 0) {
             currentSelectedServerPort = newServerPort;
-            setserverChoiceBoxColour();
+            setServerChoiceBoxColour();
         }
     }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        setStatus("OK");
         configDataHasChanged = false;
         int port = initializePortChoiceBox();
         Tab tab = initializeTabPanel(0);
@@ -226,22 +226,33 @@ public class FXMLDocumentController implements Initializable, Notifier {
     }
 
     private void initializeServerDataTab() {
-        long start = System.currentTimeMillis();
         buttonSaveConfigChanges.setDisable(!configDataHasChanged);
         buttonReloadConfigChanges.setDisable(!configDataHasChanged);
         connectionsFieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxConnections, ServerManager.serverConfigData(), false, "Server %{id}:", new FXMLFieldChangeListener() {
             @Override
-            public boolean changed(BeanPropertyDescription propertyDescription, boolean error, String message) {
-                if (error) {
+            public void changed(BeanPropertyDescription propertyDescription, Integer id, String message) {
+                if (connectionsFieldCollection.isError()) {
                     buttonSaveConfigChanges.setDisable(true);
-                    buttonReloadConfigChanges.setDisable(true);
+                    buttonReloadConfigChanges.setDisable(false);
                 } else {
                     configDataHasChanged = true;
-                    buttonSaveConfigChanges.setDisable(!configDataHasChanged);
-                    buttonReloadConfigChanges.setDisable(!configDataHasChanged);
+                    buttonSaveConfigChanges.setDisable(false);
+                    buttonReloadConfigChanges.setDisable(false);
                 }
-                label.setText(message);
-                return false;
+                setStatus(message);
+            }
+
+            @Override
+            public String validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newValue) {
+                String validationId = propertyDescription.getFlag("validation", null);
+                if (validationId.equalsIgnoreCase("exp")) {
+                    try {
+                        new ExpectationManager(id, (String)newValue);
+                    } catch (Exception e) {
+                        return e.getMessage();
+                    }
+                }
+                return null;
             }
 
             @Override
@@ -259,6 +270,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 }
             }
         });
+
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -267,7 +279,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 }
             }
         });
-        System.out.println("TIME:initializeConnectionDataTab:" + (System.currentTimeMillis() - start));
     }
 
     private int initializePortChoiceBox() {
@@ -312,18 +323,29 @@ public class FXMLDocumentController implements Initializable, Notifier {
                         updateTheLogs(false);
                         break;
                     case SERVER_STATE:
-                        setserverChoiceBoxColour();
+                        setServerChoiceBoxColour();
                         if (connectionsFieldCollection != null) {
                             connectionsFieldCollection.setHeadingColour("" + notification.getPort(), colorForServerState((ServerState) notification.getData("state")));
                         }
                         break;
                 }
-                label.setText(notification.getMessage());
+                setStatus(notification.getMessage());
             }
         });
     }
 
-    private void setserverChoiceBoxColour() {
+    private void setStatus(String message) {
+        if (message.startsWith("!")) {
+            labelStatus.setBackground(new Background(new BackgroundFill(Color.PINK, CornerRadii.EMPTY, Insets.EMPTY)));
+            labelStatus.setText(message.substring(1));
+        } else {
+            labelStatus.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN, CornerRadii.EMPTY, Insets.EMPTY)));
+            labelStatus.setText(message);
+        }
+
+    }
+
+    private void setServerChoiceBoxColour() {
         serverStateLabel.setText(ServerManager.getServer(currentSelectedServerPort).getServerState().getInfo());
         switch (ServerManager.getServer(currentSelectedServerPort).getServerState()) {
             case SERVER_STOPPED:

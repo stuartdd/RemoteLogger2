@@ -35,8 +35,8 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
     private int lowerbound = Integer.MIN_VALUE;
     private int upperbound = Integer.MAX_VALUE;
 
-    public FXMLIntegerField(Stage stage, BeanWrapper beanWrapper, String propertyName, Integer value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, "String", beanWrapper, propertyName, readOnly, changeListener);
+    public FXMLIntegerField(Stage stage, int id, BeanWrapper beanWrapper, String propertyName, Integer value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, id, "String", beanWrapper, propertyName, readOnly, changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
@@ -52,21 +52,8 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                 }
             }
         }
-        String bounds = getBeanPropertyDescription().getAdditional();
-        if (bounds != null) {
-            try {
-                String[] list = bounds.split("\\,");
-                if (list.length > 0) {
-                    lowerbound = Integer.parseInt(list[0].trim());
-                }
-                if (list.length > 1) {
-                    upperbound = Integer.parseInt(list[1].trim());
-                }
-            } catch (Exception ex) {
-                setErrorColor();
-                ex.printStackTrace();
-            }
-        }
+        lowerbound = getBeanPropertyDescription().getIntFlag("min", 0);
+        upperbound = getBeanPropertyDescription().getIntFlag("max", lowerbound + 1000);
     }
 
     @Override
@@ -78,20 +65,36 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
 
     @Override
     public void changed(ObservableValue<? extends String> arg0, String oldValue, String newValue) {
-        setColor();
         if (!newValue.equals(oldValue) && (!isReadOnly())) {
             try {
-                Integer i = Integer.parseInt(newValue);
-                if ((i < lowerbound) || (i > upperbound)) {
-                    setErrorColor();
-                    notifyChange(true, "ERROR: Value must be between " + lowerbound + " and " + upperbound);
-                } else {
-                    getBeanWrapper().setValue(getPropertyName(), i);
-                    notifyChange(false, "Property " + getPropertyName() + " updated to:" + newValue);
+                textField.textProperty().removeListener(this);
+                try {
+                    Integer i;
+                    if (newValue.trim().length() == 0) {
+                        setError(true);
+                        textField.setText("");
+                        notifyChange("!ERROR: A value between " + lowerbound + " and " + upperbound + " is required. Value is " + oldValue);
+                        return;
+                    } else {
+                        i = Integer.parseInt(newValue);
+                    }
+                    if ((i < lowerbound) || (i > upperbound)) {
+                        setError(true);
+                        textField.setText(oldValue);
+                        notifyChange("!ERROR: Value [" + newValue + "] must be between " + lowerbound + " and " + upperbound);
+                    } else {
+                        setError(false);
+                        getBeanWrapper().setValue(getPropertyName(), i);
+                        textField.setText("" + i);
+                        notifyChange("Property " + getPropertyName() + " updated to:" + newValue);
+                    }
+                } catch (NumberFormatException e) {
+                    setError(true);
+                    textField.setText(oldValue);
+                    notifyChange("!ERROR: Value [" + newValue + "] is not a valid integer");
                 }
-            } catch (NumberFormatException e) {
-                setErrorColor();
-                notifyChange(true, "ERROR: Value is not a valid integer");
+            } finally {
+                textField.textProperty().addListener(this);
             }
         }
     }

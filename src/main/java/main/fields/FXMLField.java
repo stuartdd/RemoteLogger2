@@ -29,6 +29,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.util.Map;
+
 /**
  * @author Stuart
  */
@@ -45,11 +47,14 @@ public abstract class FXMLField {
     private final boolean readOnly;
     private final FXMLFieldChangeListener changeListener;
     private final String propertyName;
+    private final Integer id;
     private Label label = null;
     private Separator separator = null;
+    private boolean error;
 
-    public FXMLField(Stage stage, String fieldType, BeanWrapper beanWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
+    public FXMLField(Stage stage, Integer id, String fieldType, BeanWrapper beanWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
         this.stage = stage;
+        this.id = id;
         this.beanWrapper = beanWrapper;
         this.propertyName = propertyName;
         this.readOnly = readOnly;
@@ -75,7 +80,26 @@ public abstract class FXMLField {
                 separator = (Separator) c;
             }
         }
-        setColor();
+        setError(false);
+    }
+
+    public boolean isError() {
+        return error;
+    }
+
+    public void setError(boolean error) {
+        if (label != null) {
+            if (error) {
+                setBackgroundColor(ERROR_COLOR);
+            } else {
+                if (readOnly) {
+                    label.setBackground(pane.getBackground());
+                } else {
+                    setBackgroundColor(BG_COLOR);
+                }
+            }
+        }
+        this.error = error;
     }
 
     public String getPropertyName() {
@@ -94,26 +118,12 @@ public abstract class FXMLField {
         return stage;
     }
 
-    public final void setColor() {
-        if (label != null) {
-            if (readOnly) {
-                label.setBackground(pane.getBackground());
-            } else {
-                label.setBackground(new Background(new BackgroundFill(BG_COLOR, CornerRadii.EMPTY, Insets.EMPTY)));
-            }
-        }
+    public Integer getId() {
+        return id;
     }
 
-    public void setBackgroundColor(Color c) {
-        if (label != null) {
-            label.setBackground(new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY)));
-        }
-    }
-
-    public void setErrorColor() {
-        if (label != null) {
-            label.setBackground(new Background(new BackgroundFill(ERROR_COLOR, CornerRadii.EMPTY, Insets.EMPTY)));
-        }
+    public String getIdString() {
+        return ""+id;
     }
 
     public Label getLabel() {
@@ -128,13 +138,6 @@ public abstract class FXMLField {
         return readOnly;
     }
 
-    public void setWidth(double width) {
-        if ((separator != null) && (width > 0)) {
-            separator.setMinWidth(width);
-            separator.setPrefWidth(width);
-        }
-    }
-
     public void removeNode(Node n) {
         if (n != null) {
             pane.getChildren().remove(n);
@@ -146,11 +149,17 @@ public abstract class FXMLField {
         removeNode(label);
     }
 
-    public boolean notifyChange(boolean error, String message) {
+    public void notifyChange(String message) {
         if (changeListener != null) {
-            return changeListener.changed(getBeanWrapper().getBeanPropertyDescription(getPropertyName()),error, message);
+            changeListener.changed(getBeanWrapper().getBeanPropertyDescription(getPropertyName()), getId(), message);
         }
-        return false;
+    }
+
+    public String validateChange(Object oldValue, Object newValue) {
+        if (changeListener != null) {
+            return changeListener.validate(getBeanWrapper().getBeanPropertyDescription(getPropertyName()), getId(), oldValue, newValue);
+        }
+        return null;
     }
 
     public abstract void destroy();
@@ -158,4 +167,11 @@ public abstract class FXMLField {
     public BeanWrapper getBeanWrapper() {
         return beanWrapper;
     }
+
+    public void setBackgroundColor(Color c) {
+        if (label != null) {
+            label.setBackground(new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY)));
+        }
+    }
+
 }

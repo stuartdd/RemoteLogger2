@@ -35,21 +35,19 @@ import javafx.stage.Stage;
  */
 public class FXMLFieldCollection {
 
-    
-    
     private List<FXMLField> fields = new ArrayList<>();
-    private Map<String, FXMLHeadingField> headings = new HashMap<>();
+    private Map<Integer, FXMLHeadingField> headings = new HashMap<>();
     private Stage mainStage;
 
     private final VBox container;
 
-    public FXMLFieldCollection(Stage stage, VBox container, Map<String, PropertyDataWithAnnotations> data, boolean ro, String headingTemplate, FXMLFieldChangeListener changeListener) {
+    public FXMLFieldCollection(Stage stage, VBox container, Map<Integer, PropertyDataWithAnnotations> data, boolean ro, String headingTemplate, FXMLFieldChangeListener changeListener) {
         this.mainStage = stage;
         this.container = container;
         try {
-            for (Map.Entry<String, PropertyDataWithAnnotations> obj : data.entrySet()) {
+            for (Map.Entry<Integer, PropertyDataWithAnnotations> obj : data.entrySet()) {
                 BeanWrapper beanWrapper = new BeanWrapper(obj.getValue());
-                String h = headingTemplate.replaceAll("%\\{id\\}", obj.getKey());
+                String h = headingTemplate.replaceAll("%\\{id\\}", obj.getKey().toString());
                 FXMLHeadingField heading = new FXMLHeadingField(stage, obj.getKey(), h, changeListener);
                 headings.put(obj.getKey(), heading);
                 fields.add(heading);
@@ -58,13 +56,13 @@ public class FXMLFieldCollection {
                     if (desc.isDefined()) {
                         Class parameterType = desc.getParameterType();
                         if (parameterType.equals(int.class) || parameterType.equals(Integer.class)) {
-                            fields.add(new FXMLIntegerField(stage, beanWrapper, prop, (Integer) beanWrapper.getValue(prop), ro, changeListener));
+                            fields.add(new FXMLIntegerField(stage, obj.getKey(), beanWrapper, prop, (Integer) beanWrapper.getValue(prop), ro, changeListener));
                         }
                         if (parameterType.equals(boolean.class) || parameterType.equals(Boolean.class)) {
-                            fields.add(new FXMLBooleanField(stage, beanWrapper, prop, (Boolean) beanWrapper.getValue(prop), ro, changeListener));
+                            fields.add(new FXMLBooleanField(stage, obj.getKey(), beanWrapper, prop, (Boolean) beanWrapper.getValue(prop), ro, changeListener));
                         }
                         if (parameterType.equals(String.class)) {
-                            fields.add(new FXMLStringField(stage, beanWrapper, prop, (String) beanWrapper.getValue(prop), ro, changeListener));
+                            fields.add(new FXMLStringField(stage, obj.getKey(), beanWrapper, prop, (String) beanWrapper.getValue(prop), ro, changeListener));
                         }
                     }
                 }
@@ -77,12 +75,13 @@ public class FXMLFieldCollection {
         }
     }
 
-    public void setWidth(double width) {
-        if (width > 0) {
-            for (FXMLField field : fields) {
-                field.setWidth(width);
+    public boolean isError() {
+        for (FXMLField field:fields) {
+            if (field.isError()) {
+                return true;
             }
         }
+        return false;
     }
 
     public void setHeadingColour(String id, Color c) {

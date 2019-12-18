@@ -154,10 +154,10 @@ public class ServerManager {
         return in;
     }
 
-    public static Map<String, PropertyDataWithAnnotations> serverConfigData() {
-        Map<String, PropertyDataWithAnnotations> ret = new HashMap<>();
+    public static Map<Integer, PropertyDataWithAnnotations> serverConfigData() {
+        Map<Integer, PropertyDataWithAnnotations> ret = new HashMap<>();
         for (Map.Entry<Integer, Server> s:servers.entrySet()) {
-            ret.put(s.getKey().toString(), s.getValue().getServerConfig());
+            ret.put(s.getKey(), s.getValue().getServerConfig());
         }
         return ret;
     }
