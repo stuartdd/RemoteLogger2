@@ -135,7 +135,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
             }
         }
         if (newTab.getId().equalsIgnoreCase("connections")) {
-            initializeServerDataTab();
+            initializeServerDataEditTab();
         }
         if (newTab.getId().equalsIgnoreCase("logs")) {
             updateTheLogs(false);
@@ -159,12 +159,17 @@ public class FXMLDocumentController implements Initializable, Notifier {
         setStatus("OK");
         configDataHasChanged = false;
         int port = initializePortChoiceBox();
-        Tab tab = initializeTabPanel(0);
+        Tab tab = initializeTabsPane(0);
         initialiseLogTabPanel();
         serverPortSelectionChanged(port);
         tabSelectionChanged(tab, null);
     }
 
+    /**
+     * Call once to set up the logs tab.
+     *
+     * Calls updateTheLogs to refresh the log content
+     */
     private void initialiseLogTabPanel() {
         scrollPaneLogLines.setFitToHeight(true);
         scrollPaneLogLines.setFitToWidth(true);
@@ -172,6 +177,13 @@ public class FXMLDocumentController implements Initializable, Notifier {
         updateTheLogs(true);
     }
 
+    /**
+     * Call each time we update the logs.
+     * initialiseLogPanelCheckBoxes ensures that the log check boxes are aligned with the config data and selected.
+     *
+     * Set the text to the current log content
+     * @param clear To clear the text (not the logs)
+     */
     private void updateTheLogs(boolean clear) {
         initialiseLogPanelCheckBoxes(clear);
         if (clear) {
@@ -181,6 +193,10 @@ public class FXMLDocumentController implements Initializable, Notifier {
         }
     }
 
+    /**
+     * Called to add check boxes (one per server) to the log tab
+     * @param clear true to remove (reset) the panel
+     */
     private void initialiseLogPanelCheckBoxes(boolean clear) {
         for (CheckBox cb:logCheckBoxesByPort.values()) {
             vBoxLogsControlList.getChildren().remove(cb);
@@ -212,7 +228,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
     }
 
 
-    private Tab initializeTabPanel(int index) {
+    /**
+     * Call once to set up the TAB pane. Defined initial selection and change listeners.
+     * @param index
+     * @return The current selection index.
+     */
+    private Tab initializeTabsPane(int index) {
         mainTabbedPane.getSelectionModel().select(index);
         mainTabbedPane.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
@@ -225,7 +246,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
         return mainTabbedPane.getTabs().get(index);
     }
 
-    private void initializeServerDataTab() {
+    /**
+     * Call to set up the server data edit
+     *
+     * Should be done each time the tab is selected.
+     */
+    private void initializeServerDataEditTab() {
         buttonSaveConfigChanges.setDisable(!configDataHasChanged);
         buttonReloadConfigChanges.setDisable(!configDataHasChanged);
         connectionsFieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxConnections, ServerManager.serverConfigData(), false, "Server %{id}:", new FXMLFieldChangeListener() {
@@ -275,12 +301,16 @@ public class FXMLDocumentController implements Initializable, Notifier {
             @Override
             public void run() {
                 for (int p : ServerManager.ports()) {
-                    connectionsFieldCollection.setHeadingColour("" + p, colorForServerState(ServerManager.getServerState(p)));
+                    connectionsFieldCollection.setHeadingColour(p, colorForServerState(ServerManager.getServerState(p)));
                 }
             }
         });
     }
 
+    /**
+     * Call once to set up the server port drop down (ChoiceBox)
+     * @return the current port (first in  th eserver list).
+     */
     private int initializePortChoiceBox() {
         serverChoiceBox.setItems(FXCollections.observableArrayList(ServerManager.portList()));
         for (Object s:serverChoiceBox.getItems()) {
@@ -288,7 +318,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 serverChoiceBox.getSelectionModel().select(s);
             }
         }
-
         serverChoiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -298,7 +327,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 }
             }
         });
-        return ServerManager.portList().get(0);
+        return ServerManager.portList().get(serverChoiceBox.getSelectionModel().getSelectedIndex());
     }
 
     public void notifyAction(Notification notification) {
@@ -311,7 +340,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
                         if (connectionsFieldCollection != null) {
                             connectionsFieldCollection.destroy();
                         }
-                        initializeServerDataTab();
+                        initializeServerDataEditTab();
                         break;
                     case SERVER_SELECTED:
                         serverPortSelectionChanged((Integer) notification.getData("port"));
@@ -324,9 +353,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
                         break;
                     case SERVER_STATE:
                         setServerChoiceBoxColour();
-                        if (connectionsFieldCollection != null) {
-                            connectionsFieldCollection.setHeadingColour("" + notification.getPort(), colorForServerState((ServerState) notification.getData("state")));
-                        }
                         break;
                 }
                 setStatus(notification.getMessage());
@@ -334,31 +360,44 @@ public class FXMLDocumentController implements Initializable, Notifier {
         });
     }
 
+    /**
+     * Set the app status text.
+     *
+     * A ! as the first char will paint the background PINK
+     * @param message The status text
+     */
     private void setStatus(String message) {
         if (message.startsWith("!")) {
             labelStatus.setBackground(new Background(new BackgroundFill(Color.PINK, CornerRadii.EMPTY, Insets.EMPTY)));
             labelStatus.setText(message.substring(1));
         } else {
-            labelStatus.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN, CornerRadii.EMPTY, Insets.EMPTY)));
+            labelStatus.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN.brighter(), CornerRadii.EMPTY, Insets.EMPTY)));
             labelStatus.setText(message);
         }
-
     }
 
+    /**
+     * Call whenever a server changes status.
+     *
+     * Updates the port drop down colour. The start stop button status and the status text
+     *
+     * If the server data edit page is set up then sets the heading colour for that server
+     */
     private void setServerChoiceBoxColour() {
         serverStateLabel.setText(ServerManager.getServer(currentSelectedServerPort).getServerState().getInfo());
         switch (ServerManager.getServer(currentSelectedServerPort).getServerState()) {
             case SERVER_STOPPED:
+            case SERVER_FAIL:
                 setServerDetail(currentSelectedServerPort, false, "Start");
                 break;
             case SERVER_RUNNING:
                 setServerDetail(currentSelectedServerPort, false, "Stop");
                 break;
-            case SERVER_FAIL:
-                setServerDetail(currentSelectedServerPort, false, "Start");
-                break;
             default:
                 setServerDetail(currentSelectedServerPort, true, "Wait");
+        }
+        if (connectionsFieldCollection != null) {
+            connectionsFieldCollection.setHeadingColour(currentSelectedServerPort, colorForServerState(ServerManager.getServer(currentSelectedServerPort).getServerState()));
         }
     }
 

@@ -84,7 +84,7 @@ public class FXMLFieldCollection {
         return false;
     }
 
-    public void setHeadingColour(String id, Color c) {
+    public void setHeadingColour(Integer id, Color c) {
         if (headings.isEmpty()) {
             return;
         }
