@@ -39,6 +39,7 @@ import main.fields.FXMLFieldCollection;
 import server.ServerManager;
 import server.ServerState;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -101,6 +102,15 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     public void handleCloseApplicationButton() {
         Main.closeApplication(0, configDataHasChanged);
+    }
+
+    @FXML
+    public void handleSettingsButton() {
+        try {
+            Settings.load();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML

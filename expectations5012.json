@@ -1,0 +1,90 @@
+{
+  "expectations" : [ {
+    "name" : "Test Simple",
+    "method" : "GET",
+    "path" : "/nowtv/accounts/service-status",
+    "bodyType" : "JSON",
+    "asserts" : { },
+    "response" : {
+      "body" : "{\"ntvServiceStatus\": \"healthy\",\"ntvServiceText\": \"The NTV service is Active\"}",
+      "status" : 200,
+      "bodyTemplate" : null,
+      "headers" : {
+        "Content-Type" : "application/json",
+        "Fred" : "FRED"
+      }
+    },
+    "forward" : null
+  }, {
+    "name" : "Get Country Name",
+    "method" : "GET",
+    "path" : null,
+    "bodyType" : null,
+    "asserts" : {
+      "PATH[3]" : "iso2code",
+      "PATH[1]" : "country"
+    },
+    "response" : {
+      "body" : "{\"message\":\"Hi from India (%{PATH[4]})\"}",
+      "status" : 200,
+      "bodyTemplate" : null,
+      "headers" : { }
+    },
+    "forward" : null
+  }, {
+    "name" : "Test Post Response Empty",
+    "method" : "post",
+    "path" : "/pre",
+    "bodyType" : null,
+    "asserts" : { },
+    "response" : null,
+    "forward" : null
+  }, {
+    "name" : "Test Get Response Empty",
+    "method" : "get",
+    "path" : "/gre",
+    "bodyType" : null,
+    "asserts" : { },
+    "response" : null,
+    "forward" : null
+  }, {
+    "name" : "TestForward",
+    "method" : "GET",
+    "path" : "/testforward",
+    "bodyType" : "EMPTY",
+    "asserts" : { },
+    "response" : null,
+    "forward" : {
+      "host" : "http://localhost",
+      "port" : 5003,
+      "path" : "/forward",
+      "method" : "POST",
+      "body" : "{\"message\":\"Forwarded from India, Love from dad in the conservatory\"}",
+      "bodyTemplate" : null,
+      "forwardHeaders" : false,
+      "headers" : {
+        "Content-Type" : "application/json",
+        "Fred" : "FRED"
+      }
+    }
+  }, {
+    "name" : "PostOrders",
+    "method" : "POST",
+    "path" : "/public/v1/account/authorise/email",
+    "bodyType" : "JSON",
+    "asserts" : {
+      "JSON.purchase.vouchers[0]" : "BT_SPECIAL"
+    },
+    "response" : {
+      "body" : "{\"orderId\":\"7409e94e-4eec-4562-8478-eb90ff1ca5f5\"}",
+      "status" : 200,
+      "bodyTemplate" : null,
+      "headers" : {
+        "Accept" : "%{HEAD.Accept}"
+      }
+    },
+    "forward" : null
+  } ],
+  "paths" : [ ".", "/appl", "/bea" ],
+  "logProperties" : false
+}
