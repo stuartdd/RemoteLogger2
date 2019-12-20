@@ -19,7 +19,6 @@ package main;
 
 import common.*;
 import expectations.ExpectationManager;
-import expectations.Expectations;
 import geom.Point;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -62,6 +61,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     private VBox vBoxConnections;
     private FXMLFieldCollection connectionsFieldCollection;
+    private FXMLFieldCollection settingsFieldCollection;
 
     @FXML
     private VBox vBoxLogsControlList;
@@ -104,14 +104,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
         Main.closeApplication(0, configDataHasChanged);
     }
 
-    @FXML
-    public void handleSettingsButton() {
-        try {
-            Settings.load();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     @FXML
     public void handleButtonStartStopServer() {
@@ -256,6 +248,31 @@ public class FXMLDocumentController implements Initializable, Notifier {
         return mainTabbedPane.getTabs().get(index);
     }
 
+    @FXML
+    public void handleSettingsButton() {
+        try {
+            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), new ConfigSettingsDummy(ConfigData.getInstance()), new FXMLFieldChangeListener() {
+                @Override
+                public void changed(BeanPropertyDescription propertyDescription, Integer id, String message) {
+
+                }
+
+                @Override
+                public String validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newvalue) {
+                    return null;
+                }
+
+                @Override
+                public void select(String id) {
+
+                }
+            });
+            boolean accept = FXMLSettingsController.showAndWait();
+            if ()
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     /**
      * Call to set up the server data edit
      *

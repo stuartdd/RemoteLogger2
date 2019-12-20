@@ -18,6 +18,8 @@ package common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import config.Config;
+
+import java.beans.BeanProperty;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +33,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import server.ServerConfig;
 
-public class ConfigData extends Config {
+public class ConfigData extends Config implements PropertyDataWithAnnotations {
 
     public static void store() throws IOException {
         File f = new File(writeFileName);
@@ -47,14 +49,10 @@ public class ConfigData extends Config {
     private Map<String, ServerConfig> servers = new HashMap<>();
     private String packagedRequestsFile;
     private String selectedPackagedRequestName;
-    private String logDateFormat;
     private String timeFormat;
     private int defaultPort;
     private boolean includeHeaders = true;
     private boolean includeBody = true;
-    private boolean includeEmpty = false;
-    private boolean showTime = true;
-    private boolean showPort = true;
     private double x;
     private double y;
     private double width;
@@ -131,13 +129,6 @@ public class ConfigData extends Config {
         return dt.toString(ts);
     }
 
-    public String getLogDateFormat() {
-        return logDateFormat;
-    }
-
-    public void setLogDateFormat(String logDateFormat) {
-        this.logDateFormat = logDateFormat;
-    }
 
     public int getDefaultPort() {
         return defaultPort;
@@ -211,14 +202,6 @@ public class ConfigData extends Config {
         this.includeBody = includeBody;
     }
 
-    public boolean isIncludeEmpty() {
-        return includeEmpty;
-    }
-
-    public void setIncludeEmpty(boolean includeEmpty) {
-        this.includeEmpty = includeEmpty;
-    }
-
     public String getTimeFormat() {
         if (timeFormat == null) {
             return "HH:mm:ss.SSS";
@@ -228,22 +211,6 @@ public class ConfigData extends Config {
 
     public void setTimeFormat(String timeFormat) {
         this.timeFormat = timeFormat;
-    }
-
-    public boolean isShowTime() {
-        return showTime;
-    }
-
-    public void setShowTime(boolean showTime) {
-        this.showTime = showTime;
-    }
-
-    public boolean isShowPort() {
-        return showPort;
-    }
-
-    public void setShowPort(boolean showPort) {
-        this.showPort = showPort;
     }
 
     public static String writeFileName() {
