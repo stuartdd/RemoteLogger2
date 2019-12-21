@@ -22,6 +22,15 @@ public class ConfigSettingsDummy implements PropertyDataWithAnnotations {
         this.includeBody = configData.isIncludeBody();
     }
 
+    public void commit() {
+        configData.setPackagedRequestsFile(this.packagedRequestsFile);
+        configData.setSelectedPackagedRequestName(this.selectedPackagedRequestName);
+        configData.setTimeFormat(this.timeFormat);
+        configData.setDefaultPort(this.defaultPort);
+        configData.setIncludeHeaders(this.includeHeaders); 
+        configData.setIncludeBody(this.includeBody);
+    }
+    
     @BeanProperty(description = "Packaged Requests File | validation=pak,type=file,desc=Json Expectation File,ext=json")
     public String getPackagedRequestsFile() {
         return packagedRequestsFile;

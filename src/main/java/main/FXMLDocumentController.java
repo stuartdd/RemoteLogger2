@@ -20,6 +20,11 @@ package main;
 import common.*;
 import expectations.ExpectationManager;
 import geom.Point;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -37,12 +42,6 @@ import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
 import server.ServerManager;
 import server.ServerState;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
 
 /**
  *
@@ -251,24 +250,15 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     public void handleSettingsButton() {
         try {
-            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), new ConfigSettingsDummy(ConfigData.getInstance()), new FXMLFieldChangeListener() {
-                @Override
-                public void changed(BeanPropertyDescription propertyDescription, Integer id, String message) {
-
+            ConfigSettingsDummy configSettingsDummy = new ConfigSettingsDummy(ConfigData.getInstance());
+            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), configSettingsDummy, null);
+            boolean accept = settingsController.showAndWait();
+            if (accept) {
+                if (settingsController.isUpdated()) {
+                    configSettingsDummy.commit();
+                    configDataHasChanged = true;
                 }
-
-                @Override
-                public String validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newvalue) {
-                    return null;
-                }
-
-                @Override
-                public void select(String id) {
-
-                }
-            });
-            boolean accept = FXMLSettingsController.showAndWait();
-            if ()
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
