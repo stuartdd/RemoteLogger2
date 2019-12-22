@@ -29,8 +29,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
-import java.util.Map;
-
 /**
  * @author Stuart
  */
@@ -88,18 +86,14 @@ public abstract class FXMLField {
     }
 
     public void setError(boolean error) {
-        if (label != null) {
-            if (error) {
+        this.error = error;
+        if (error) {
+            System.out.println("SET:ERROR_COLOR:" + label.getText());
                 setBackgroundColor(ERROR_COLOR);
             } else {
-                if (readOnly) {
-                    label.setBackground(pane.getBackground());
-                } else {
-                    setBackgroundColor(BG_COLOR);
-                }
+            System.out.println("SET:BG_COLOR:" + label.getText());
+            setBackgroundColor(BG_COLOR);
             }
-        }
-        this.error = error;
     }
 
     public String getPropertyName() {
@@ -123,7 +117,7 @@ public abstract class FXMLField {
     }
 
     public String getIdString() {
-        return ""+id;
+        return "" + id;
     }
 
     public Label getLabel() {
@@ -167,10 +161,9 @@ public abstract class FXMLField {
         return beanWrapper;
     }
 
-    public void setBackgroundColor(Color c) {
+    public void setBackgroundColor(Color bgColour) {
         if (label != null) {
-            label.setBackground(new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY)));
+             label.setBackground(new Background(new BackgroundFill(bgColour, CornerRadii.EMPTY, Insets.EMPTY)));
         }
     }
-
 }

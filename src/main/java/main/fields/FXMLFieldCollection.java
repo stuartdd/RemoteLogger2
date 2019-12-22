@@ -48,6 +48,7 @@ public class FXMLFieldCollection {
             for (Map.Entry<Integer, PropertyDataWithAnnotations> obj : data.entrySet()) {
                 BeanWrapper beanWrapper = new BeanWrapper(obj.getValue());
                 String h = headingTemplate.replaceAll("%\\{id\\}", obj.getKey().toString());
+                h = h.replaceAll("%\\{type\\}", obj.getKey().toString());
                 FXMLHeadingField heading = new FXMLHeadingField(stage, obj.getKey(), h, changeListener);
                 headings.put(obj.getKey(), heading);
                 fields.add(heading);

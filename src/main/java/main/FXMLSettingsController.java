@@ -5,12 +5,15 @@ import common.PropertyDataWithAnnotations;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Background;
@@ -24,11 +27,12 @@ import javafx.stage.WindowEvent;
 import main.fields.BeanPropertyDescription;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
+import server.ServerManager;
 
 public class FXMLSettingsController implements FXMLFieldChangeListener {
 
     private Stage modalStage;
-    private FXMLFieldCollection connectionsFieldCollection;
+    private FXMLFieldCollection fieldCollection;
     private PropertyDataWithAnnotations bean;
     private boolean acceptChanges = false;
     private boolean updated;
@@ -42,6 +46,9 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
 
     @FXML
     public ScrollPane scrollPaneSettings;
+
+    @FXML
+    public Button doneButton;
 
     @FXML
     public void handleDoneButton() {
@@ -96,8 +103,8 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
         scrollPaneSettings.setFitToWidth(true);
         Map<Integer, PropertyDataWithAnnotations> map = new HashMap<>();
         map.put(-1, bean);
-        this.connectionsFieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxSettings, map, false, "Settings:", this);
-        return this.connectionsFieldCollection;
+        this.fieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxSettings, map, false, "Settings:", this);
+        return this.fieldCollection;
     }
 
     public Stage getModalStage() {
@@ -120,6 +127,7 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
     public void changed(BeanPropertyDescription propertyDescription, Integer id, String message) {
         if (listener != null) {
             listener.changed(propertyDescription, id, message);
+            setStatus(message);
         }
         updated = true;
     }
@@ -130,7 +138,17 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
             try {
                 listener.validate(propertyDescription, id, oldValue, newvalue);
             } catch (DataValidationException e) {
-                setStatus(e.getMessage());
+                setStatus("!"+e.getMessage());
+                throw e;
+            } finally {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (int p : ServerManager.ports()) {
+                            doneButton.setDisable(fieldCollection.isError());
+                        }
+                    }
+                });
             }
         }
     }

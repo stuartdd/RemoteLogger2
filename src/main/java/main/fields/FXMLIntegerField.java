@@ -53,7 +53,7 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
             }
         }
         lowerbound = getBeanPropertyDescription().getIntFlag("min", 0);
-        upperbound = getBeanPropertyDescription().getIntFlag("max", lowerbound + 1000);
+        upperbound = getBeanPropertyDescription().getIntFlag("max", lowerbound + Integer.MAX_VALUE);
     }
 
     @Override
@@ -77,18 +77,16 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                         i = Integer.parseInt(newValue);
                     }
                     if ((i < lowerbound) || (i > upperbound)) {
-                        throw new DataValidationException("Value [" + newValue + "] must be between " + lowerbound + " and " + upperbound);
+                        throw new DataValidationException("must be between " + lowerbound + " and " + upperbound);
                     } else {
                         setError(false);
                         notifyChange("Property '" + getPropertyName() + "' updated to:" + newValue);
                     }
                 } catch (DataValidationException e) {
                     setError(true);
-                    textField.setText(oldValue);
                     notifyChange("!ERROR: Value [" + newValue + "] " + e.getMessage());
                 } catch (NumberFormatException e) {
                     setError(true);
-                    textField.setText(oldValue);
                     notifyChange("!ERROR: Value [" + newValue + "] is not a valid integer");
                 }
             } finally {
