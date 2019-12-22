@@ -58,7 +58,7 @@ public class ConfigSettingsDummy implements PropertyDataWithAnnotations {
         this.timeFormat = timeFormat;
     }
 
-    @BeanProperty(description = "Default Port | min=1, max=999999 ")
+    @BeanProperty(description = "Default Port | validation=defport")
     public int getDefaultPort() {
         return defaultPort;
     }

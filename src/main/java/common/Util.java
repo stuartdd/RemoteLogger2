@@ -89,6 +89,14 @@ public class Util {
         return sb.toString();
     }
 
+    public static int parseInt(String i, String name) {
+        try {
+            return Integer.parseInt(i);
+        } catch (NumberFormatException e) {
+            throw new DataValidationException("!ERROR: " + name);
+        }
+    }
+
     public static String asString(final List<String> list) {
         StringBuilder sb = new StringBuilder();
         int len = 0;

@@ -251,7 +251,26 @@ public class FXMLDocumentController implements Initializable, Notifier {
     public void handleSettingsButton() {
         try {
             ConfigSettingsDummy configSettingsDummy = new ConfigSettingsDummy(ConfigData.getInstance());
-            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), configSettingsDummy, null);
+            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), configSettingsDummy, new FXMLFieldChangeListener() {
+                @Override
+                public void changed(BeanPropertyDescription propertyDescription, Integer id, String message) {
+                }
+
+                @Override
+                public String validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newvalue) {
+                    if (propertyDescription.isId("defport")) {
+                        if (ServerManager.hasPort(Util.parseInt((String)newvalue, "Should be s valid port number"))) {
+                            return null;
+                        }
+                    }
+                    throw new DataValidationException("Must be an existing server port: "+ServerManager.portList().toString());
+                }
+
+                @Override
+                public void select(String id) {
+                }
+            }
+            );
             boolean accept = settingsController.showAndWait();
             if (accept) {
                 if (settingsController.isUpdated()) {

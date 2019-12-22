@@ -1,5 +1,6 @@
 package main;
 
+import common.DataValidationException;
 import common.PropertyDataWithAnnotations;
 import java.io.IOException;
 import java.util.HashMap;
@@ -9,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -19,6 +21,7 @@ import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
 
 public class FXMLSettingsController implements FXMLFieldChangeListener {
+
     private Stage modalStage;
     private FXMLFieldCollection connectionsFieldCollection;
     private PropertyDataWithAnnotations bean;
@@ -28,6 +31,9 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
 
     @FXML
     public VBox vBoxSettings;
+
+    @FXML
+    public Label labelStatus;
 
     @FXML
     public ScrollPane scrollPaneSettings;
@@ -107,7 +113,7 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
 
     @Override
     public void changed(BeanPropertyDescription propertyDescription, Integer id, String message) {
-        if (listener!=null) {
+        if (listener != null) {
             listener.changed(propertyDescription, id, message);
         }
         updated = true;
@@ -115,19 +121,21 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
 
     @Override
     public String validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newvalue) {
-        if (listener!=null) {
-            return validate(propertyDescription, id, oldValue, newvalue);
-        }        
+        if (listener != null) {
+            try {
+                return validate(propertyDescription, id, oldValue, newvalue);
+            } catch (DataValidationException e) {
+                labelStatus.setText(e.getMessage());
+            }
+        }
         return null;
     }
 
     @Override
     public void select(String id) {
-        if (listener!=null) {
+        if (listener != null) {
             listener.select(id);
         }
     }
 
 }
-
-

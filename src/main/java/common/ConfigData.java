@@ -19,7 +19,6 @@ package common;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import config.Config;
 
-import java.beans.BeanProperty;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

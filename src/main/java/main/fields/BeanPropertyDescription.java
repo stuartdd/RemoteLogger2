@@ -52,6 +52,10 @@ public class BeanPropertyDescription {
         return flags;
     }
 
+    public boolean isId(String iid) {
+        return (getFlag("id", "").equals(iid));
+    }
+    
     public int getIntFlag(String name, int defaultValue) {
         String v = getFlag(name, null);
         if (v == null) {
