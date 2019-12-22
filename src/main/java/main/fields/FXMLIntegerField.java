@@ -17,6 +17,7 @@
  */
 package main.fields;
 
+import common.DataValidationException;
 import java.io.IOException;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -70,23 +71,21 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                 try {
                     Integer i;
                     if (newValue.trim().length() == 0) {
-                        setError(true);
-                        textField.setText("");
-                        notifyChange("!ERROR: A value between " + lowerbound + " and " + upperbound + " is required. Value is " + oldValue);
-                        return;
+                        throw new DataValidationException("A value between " + lowerbound + " and " + upperbound + " is required. Value is " + oldValue);
                     } else {
+                        validateChange(oldValue, newValue);
                         i = Integer.parseInt(newValue);
                     }
                     if ((i < lowerbound) || (i > upperbound)) {
-                        setError(true);
-                        textField.setText(oldValue);
-                        notifyChange("!ERROR: Value [" + newValue + "] must be between " + lowerbound + " and " + upperbound);
+                        throw new DataValidationException("Value [" + newValue + "] must be between " + lowerbound + " and " + upperbound);
                     } else {
                         setError(false);
-                        getBeanWrapper().setValue(getPropertyName(), i);
-                        textField.setText("" + i);
-                        notifyChange("Property " + getPropertyName() + " updated to:" + newValue);
+                        notifyChange("Property '" + getPropertyName() + "' updated to:" + newValue);
                     }
+                } catch (DataValidationException e) {
+                    setError(true);
+                    textField.setText(oldValue);
+                    notifyChange("!ERROR: Value [" + newValue + "] " + e.getMessage());
                 } catch (NumberFormatException e) {
                     setError(true);
                     textField.setText(oldValue);

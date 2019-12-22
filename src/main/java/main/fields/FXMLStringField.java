@@ -17,6 +17,7 @@
  */
 package main.fields;
 
+import common.DataValidationException;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -51,9 +52,9 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
             } else {
                 if (c instanceof Button) {
                     fileButton = (Button) c;
-                    if (getBeanPropertyDescription().getFlag("type", "").equalsIgnoreCase("file")) {
+                    if (getBeanPropertyDescription().isTypeId("file")) {
                         String ext = getBeanPropertyDescription().getFlag("ext", "json");
-                        String desc = getBeanPropertyDescription().getFlag("desc", "File type *."+ext);
+                        String desc = getBeanPropertyDescription().getFlag("desc", "File type *." + ext);
                         textField.setEditable(false);
                         fileButton.setOnAction(new EventHandler<ActionEvent>() {
                             @Override
@@ -74,7 +75,6 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
         }
     }
 
-
     @Override
     public void destroy() {
         textField.textProperty().removeListener(this);
@@ -87,15 +87,15 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
         if (!newValue.equals(oldValue) && (!isReadOnly())) {
             try {
                 textField.textProperty().removeListener(this);
-                String reason = validateChange(oldValue, newValue);
-                if (reason == null) {
+                try {
+                    validateChange(oldValue, newValue);
                     setError(false);
                     getBeanWrapper().setValue(getPropertyName(), newValue);
                     notifyChange("Property '" + getBeanPropertyDescription().getDescription() + "' updated");
-                } else {
+                } catch (DataValidationException e) {
                     setError(true);
                     textField.setText(oldValue);
-                    notifyChange("!ERROR '" + getBeanPropertyDescription().getDescription() + "' Reason: " + reason);
+                    notifyChange("!ERROR '" + getBeanPropertyDescription().getDescription() + "' Reason: " + e.getMessage());
                 }
             } finally {
                 textField.textProperty().addListener(this);

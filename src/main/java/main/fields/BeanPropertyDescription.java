@@ -52,8 +52,29 @@ public class BeanPropertyDescription {
         return flags;
     }
 
+    
+    public String getType() {
+        return getFlag("type", "");
+     }
+    
+    public String getId() {
+        return getFlag("id", "");
+     }
+    
+    public String getValidationId() {
+        return getFlag("validation", "");
+    }
+
     public boolean isId(String iid) {
-        return (getFlag("id", "").equals(iid));
+        return getId().equals(iid);
+    }
+    
+    public boolean isValidationId(String iid) {
+        return getValidationId().equals(iid);
+    }
+
+    public boolean isTypeId(String iid) {
+        return getType().equals(iid);
     }
     
     public int getIntFlag(String name, int defaultValue) {

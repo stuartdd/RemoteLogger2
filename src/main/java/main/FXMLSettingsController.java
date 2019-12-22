@@ -8,11 +8,16 @@ import java.util.Map;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -120,21 +125,30 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
     }
 
     @Override
-    public String validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newvalue) {
+    public void validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newvalue) {
         if (listener != null) {
             try {
-                return validate(propertyDescription, id, oldValue, newvalue);
+                listener.validate(propertyDescription, id, oldValue, newvalue);
             } catch (DataValidationException e) {
-                labelStatus.setText(e.getMessage());
+                setStatus(e.getMessage());
             }
         }
-        return null;
     }
 
     @Override
     public void select(String id) {
         if (listener != null) {
             listener.select(id);
+        }
+    }
+
+    private void setStatus(String message) {
+        if (message.startsWith("!")) {
+            labelStatus.setBackground(new Background(new BackgroundFill(Color.PINK, CornerRadii.EMPTY, Insets.EMPTY)));
+            labelStatus.setText(message.substring(1));
+        } else {
+            labelStatus.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN.brighter(), CornerRadii.EMPTY, Insets.EMPTY)));
+            labelStatus.setText(message);
         }
     }
 

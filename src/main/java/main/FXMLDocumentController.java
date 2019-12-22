@@ -257,13 +257,14 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 }
 
                 @Override
-                public String validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newvalue) {
-                    if (propertyDescription.isId("defport")) {
+                public void validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newvalue) {
+                    if (propertyDescription.isValidationId("defport")) {
                         if (ServerManager.hasPort(Util.parseInt((String)newvalue, "Should be s valid port number"))) {
-                            return null;
+                            return;
                         }
+                        throw new DataValidationException("Must be an existing server port: "+ServerManager.portList().toString());
                     }
-                    throw new DataValidationException("Must be an existing server port: "+ServerManager.portList().toString());
+                    return;
                 }
 
                 @Override
@@ -305,16 +306,14 @@ public class FXMLDocumentController implements Initializable, Notifier {
             }
 
             @Override
-            public String validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newValue) {
-                String validationId = propertyDescription.getFlag("validation", null);
-                if (validationId.equalsIgnoreCase("exp")) {
+            public void validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newValue) {
+                if (propertyDescription.isValidationId("exp")) {
                     try {
                         new ExpectationManager(id, (String)newValue);
                     } catch (Exception e) {
-                        return e.getMessage();
+                        throw new DataValidationException(e.getMessage());
                     }
                 }
-                return null;
             }
 
             @Override

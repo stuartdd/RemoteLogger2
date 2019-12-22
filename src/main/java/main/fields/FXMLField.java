@@ -155,11 +155,10 @@ public abstract class FXMLField {
         }
     }
 
-    public String validateChange(Object oldValue, Object newValue) {
+    public void validateChange(Object oldValue, Object newValue) {
         if (changeListener != null) {
-            return changeListener.validate(getBeanWrapper().getBeanPropertyDescription(getPropertyName()), getId(), oldValue, newValue);
+            changeListener.validate(getBeanWrapper().getBeanPropertyDescription(getPropertyName()), getId(), oldValue, newValue);
         }
-        return null;
     }
 
     public abstract void destroy();
