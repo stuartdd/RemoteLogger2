@@ -35,7 +35,7 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
     private int lowerbound = Integer.MIN_VALUE;
     private int upperbound = Integer.MAX_VALUE;
 
-    public FXMLIntegerField(Stage stage, int id, BeanWrapper beanWrapper, String propertyName, Integer value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+    public FXMLIntegerField(Stage stage, String id, BeanWrapper beanWrapper, String propertyName, Integer value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
         super(stage, id, "String", beanWrapper, propertyName, readOnly, changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
@@ -54,6 +54,15 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
         }
         lowerbound = getBeanPropertyDescription().getIntFlag("min", 0);
         upperbound = getBeanPropertyDescription().getIntFlag("max", lowerbound + Integer.MAX_VALUE);
+    }
+
+    @Override
+    public void doLayout() {
+        if (textField == null) {
+            return;
+        }
+        super.doLayout();
+        textField.setLayoutX(getLabelWidth() + 10);
     }
 
     @Override
@@ -82,12 +91,12 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                         setError(false);
                         notifyChange("Property '" + getPropertyName() + "' updated to:" + newValue);
                     }
-                } catch (DataValidationException e) {
-                    setError(true);
-                    notifyChange("!ERROR: Value [" + newValue + "] " + e.getMessage());
                 } catch (NumberFormatException e) {
                     setError(true);
                     notifyChange("!ERROR: Value [" + newValue + "] is not a valid integer");
+                } catch (Exception e) {
+                    setError(true);
+                    notifyChange("!ERROR: Value [" + newValue + "] " + e.getMessage());
                 }
             } finally {
                 textField.textProperty().addListener(this);

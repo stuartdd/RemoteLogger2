@@ -61,25 +61,4 @@ public class PackagedRequests {
         return packagedRequests.size();
     }
 
-    public boolean replace(PackagedRequest validClonedPackagedRequest) {
-        for (int i = 0; i< packagedRequests.size(); i++) {
-            if (packagedRequests.get(i).getName().equals(validClonedPackagedRequest.getName())) {
-                packagedRequests.remove(i);
-                packagedRequests.add(i, validClonedPackagedRequest);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean delete(String currentPackagedRequestName) {
-        for (int i = 0; i< packagedRequests.size(); i++) {
-            if (packagedRequests.get(i).getName().equals(currentPackagedRequestName)) {
-                packagedRequests.remove(i);
-                return true;
-            }
-        }
-        return false;
-    }
-
 }

@@ -32,7 +32,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import server.ServerConfig;
 
-public class ConfigData extends Config implements PropertyDataWithAnnotations {
+public class ConfigData extends Config {
 
     public static void store() throws IOException {
         File f = new File(writeFileName);

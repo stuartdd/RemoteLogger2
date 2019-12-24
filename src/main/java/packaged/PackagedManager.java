@@ -18,6 +18,8 @@
 package packaged;
 
 import java.io.File;
+import java.util.Calendar;
+
 import json.JsonUtils;
 
 /**
@@ -32,7 +34,11 @@ public class PackagedManager {
         this.filaName = filaName;
         File file = new File(this.filaName);
         if (file.exists()) {
-            PackagedRequests packagedRequests = (PackagedRequests) JsonUtils.beanFromJson(PackagedRequests.class, file);
+            try {
+                PackagedRequests packagedRequests = (PackagedRequests) JsonUtils.beanFromJson(PackagedRequests.class, file);
+            } catch (Exception ex) {
+                throw new PackagedException("Package file '"+file.getAbsolutePath()+"' is not a valid PackagedRequests json file");
+            }
             if (packagedRequests.getPackagedRequests().size() == 0) {
                 throw new PackagedException("Package does not contain any packaged requests");
             }

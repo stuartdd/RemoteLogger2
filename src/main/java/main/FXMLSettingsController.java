@@ -101,8 +101,8 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
         this.updated = false;
         scrollPaneSettings.setFitToHeight(true);
         scrollPaneSettings.setFitToWidth(true);
-        Map<Integer, PropertyDataWithAnnotations> map = new HashMap<>();
-        map.put(-1, bean);
+        Map<String, PropertyDataWithAnnotations> map = new HashMap<>();
+        map.put("data", bean);
         this.fieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxSettings, map, false, "Settings:", this);
         return this.fieldCollection;
     }
@@ -124,7 +124,7 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
     }
 
     @Override
-    public void changed(BeanPropertyDescription propertyDescription, Integer id, String message) {
+    public void changed(BeanPropertyDescription propertyDescription, String id, String message) {
         if (listener != null) {
             listener.changed(propertyDescription, id, message);
             setStatus(message);
@@ -133,11 +133,11 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
     }
 
     @Override
-    public void validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newvalue) {
+    public void validate(BeanPropertyDescription propertyDescription, String id, Object oldValue, Object newvalue) {
         if (listener != null) {
             try {
                 listener.validate(propertyDescription, id, oldValue, newvalue);
-            } catch (DataValidationException e) {
+            } catch (Exception e) {
                 setStatus("!"+e.getMessage());
                 throw e;
             } finally {

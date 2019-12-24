@@ -37,9 +37,11 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
 
     private TextField textField;
     private Button fileButton;
+    private boolean hasFileButton;
 
-    public FXMLStringField(Stage stage, int id, BeanWrapper beanWrapper, String propertyName, String value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+    public FXMLStringField(Stage stage, String id, BeanWrapper beanWrapper, String propertyName, String value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
         super(stage, id, "String", beanWrapper, propertyName, readOnly, changeListener);
+        hasFileButton = false;
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
@@ -53,6 +55,7 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
                 if (c instanceof Button) {
                     fileButton = (Button) c;
                     if (getBeanPropertyDescription().isTypeId("file")) {
+                        hasFileButton = true;
                         String ext = getBeanPropertyDescription().getFlag("ext", "json");
                         String desc = getBeanPropertyDescription().getFlag("desc", "File type *." + ext);
                         textField.setEditable(false);
@@ -76,6 +79,25 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
     }
 
     @Override
+    public void doLayout() {
+        if (textField == null) {
+            return;
+        }
+        super.doLayout();
+        double fWidth = getFieldWidth();
+        double lWidth = getLabelWidth();
+        fileButton.setPrefWidth(40);
+        textField.setLayoutX(lWidth + 10);
+        if (hasFileButton) {
+            textField.setPrefWidth(fWidth - 70);
+            fileButton.setLayoutX(lWidth + fWidth - 50);
+        } else {
+            textField.setPrefWidth(fWidth - 20);
+        }
+    }
+
+
+    @Override
     public void destroy() {
         textField.textProperty().removeListener(this);
         removeCommonNodes();
@@ -92,7 +114,7 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
                     setError(false);
                     getBeanWrapper().setValue(getPropertyName(), newValue);
                     notifyChange("Property '" + getBeanPropertyDescription().getDescription() + "' updated");
-                } catch (DataValidationException e) {
+                } catch (Exception e) {
                     setError(true);
                     textField.setText(oldValue);
                     notifyChange("!ERROR '" + getBeanPropertyDescription().getDescription() + "' Reason: " + e.getMessage());

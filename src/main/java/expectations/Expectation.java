@@ -17,11 +17,15 @@
 package expectations;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.beans.BeanProperty;
 import java.util.HashMap;
 import java.util.Map;
+
+import common.PropertyDataWithAnnotations;
 import model.Model;
 
-public class Expectation implements Model {
+public class Expectation implements PropertyDataWithAnnotations {
 
     private String name;
     private String method;
@@ -38,7 +42,7 @@ public class Expectation implements Model {
     @JsonIgnore
     private MultiStringMatch multiPathMatcher;
 
-    public String getName() {
+   public String getName() {
         return name;
     }
 
@@ -46,6 +50,7 @@ public class Expectation implements Model {
         this.name = name;
     }
 
+    @BeanProperty(description = "Method")
     public String getMethod() {
         return method;
     }
@@ -54,6 +59,7 @@ public class Expectation implements Model {
         this.method = method;
     }
 
+    @BeanProperty(description = "Path")
     public String getPath() {
         return path;
     }

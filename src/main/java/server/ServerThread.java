@@ -32,7 +32,7 @@ public class ServerThread extends Thread {
     private boolean running;
     private boolean serverCanRun;
     private int timeToClose;
-    private final ExpectationHandler expectationHandler;
+    private final ServerExpectationHandler serverExpectationHandler;
     private final ControlHandler controlHandler;
 
     public ServerThread(Server server) {
@@ -40,7 +40,7 @@ public class ServerThread extends Thread {
         this.timeToClose = server.getTimeToClose();
         this.running = false;
         this.serverCanRun = true;
-        this.expectationHandler = new ExpectationHandler(server);
+        this.serverExpectationHandler = new ServerExpectationHandler(server);
         this.controlHandler = new ControlHandler(server);
         newState(ServerState.SERVER_PENDING, "");
     }
@@ -54,7 +54,7 @@ public class ServerThread extends Thread {
             newState(ServerState.SERVER_STARTING, "");
             httpServer = bind(theServer.getPort(), theServer.getLogger());
             httpServer.createContext("/control", controlHandler);
-            httpServer.createContext("/", expectationHandler);
+            httpServer.createContext("/", serverExpectationHandler);
             httpServer.setExecutor(null); // creates a default executor
             httpServer.start();
         } catch (IOException ex) {
@@ -125,14 +125,14 @@ public class ServerThread extends Thread {
     }
 
     void setCallBackClass(ServerCallbackHandler responseHandler) {
-        if (expectationHandler != null) {
-            expectationHandler.setCallBackClass(responseHandler);
+        if (serverExpectationHandler != null) {
+            serverExpectationHandler.setCallBackClass(responseHandler);
         }
     }
 
     ServerCallbackHandler getCallBackClass() {
-        if (expectationHandler != null) {
-            return expectationHandler.getCallBackClass();
+        if (serverExpectationHandler != null) {
+            return serverExpectationHandler.getCallBackClass();
         }
         return null;
     }

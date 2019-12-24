@@ -17,12 +17,15 @@
 package expectations;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import common.PropertyDataWithAnnotations;
 import common.Util;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import json.JsonUtils;
-import model.Model;
-import model.ModelProvider;
+import server.ServerExpectations;
 
 /**
  *
@@ -33,6 +36,15 @@ public class Expectations {
     private List<Expectation> expectations = new ArrayList<>();
     private String[] paths;
     private boolean logProperties;
+
+    public Map<String, PropertyDataWithAnnotations> getExpectationsDataMap() {
+        Map<String, PropertyDataWithAnnotations> ret = new HashMap<>();
+        for (Expectation exp:expectations) {
+            ret.put(exp.getName(), exp);
+        }
+        return ret;
+
+    }
 
     public List<Expectation> getExpectations() {
         return expectations;
@@ -61,19 +73,19 @@ public class Expectations {
 
     public Expectations addExpectation(Expectation expectation) {
         expectations.add(expectation);
-        ExpectationManager.testExpectations(this);
+        ServerExpectations.testExpectations(this);
         return this;
     }
     
     public Expectations addExpectation(int index, Expectation expectation) {
         expectations.add(index, expectation);
-        ExpectationManager.testExpectations(this);
+        ServerExpectations.testExpectations(this);
         return this;
     }
 
     public static Expectations fromString(String json) {
         Expectations ex = (Expectations) JsonUtils.beanFromJson(Expectations.class, json);
-        ExpectationManager.testExpectations(ex);
+        ServerExpectations.testExpectations(ex);
         return ex;
     }
 

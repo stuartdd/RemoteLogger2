@@ -25,7 +25,7 @@ import common.Notification;
 import common.Notifier;
 import common.Util;
 import expectations.Expectation;
-import expectations.ExpectationManager;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,21 +38,21 @@ import mockServer.MockResponse;
  *
  * @author stuart
  */
-public class ExpectationHandler implements HttpHandler {
+public class ServerExpectationHandler implements HttpHandler {
 
     private final int port;
     private final Server server;
-    private final ExpectationManager expectationManager;
+    private final ServerExpectations serverExpectations;
     private ServerCallbackHandler responseHandler;
     private final CommonLogger logger;
     private final Notifier serverNotifier;
     private final boolean verbose;
 
-    public ExpectationHandler(Server server) {
+    public ServerExpectationHandler(Server server) {
         this.server = server;
         this.verbose = server.getServerConfig().isVerbose();
         this.port = server.getPort();
-        this.expectationManager = server.getExpectationManager();
+        this.serverExpectations = server.getServerExpectations();
         this.responseHandler = server.getCallbackHandler();
         this.logger = server.getLogger();
         this.serverNotifier = server.getServerNotifier();
@@ -111,15 +111,15 @@ public class ExpectationHandler implements HttpHandler {
             }
         }
 
-        Expectation foundExpectation = expectationManager.findMatchingExpectation(map);
+        Expectation foundExpectation = serverExpectations.findMatchingExpectation(map);
 
         if (responseHandler != null) {
             MockRequest mockRequest = null;
-            if (expectationManager.hasNoExpectations()) {
-                mockRequest = new MockRequest(port, map, headers, queries, expectationManager, null);
+            if (serverExpectations.hasNoExpectations()) {
+                mockRequest = new MockRequest(port, map, headers, queries, serverExpectations, null);
             } else {
                 if (foundExpectation != null) {
-                    mockRequest = new MockRequest(port, map, headers, queries, expectationManager, foundExpectation);
+                    mockRequest = new MockRequest(port, map, headers, queries, serverExpectations, foundExpectation);
                 }
             }
             if (mockRequest != null) {
@@ -131,10 +131,10 @@ public class ExpectationHandler implements HttpHandler {
                 }
             }
         }
-        if (expectationManager.hasNoExpectations()) {
+        if (serverExpectations.hasNoExpectations()) {
             MockResponse.respond(he, 404, "No Expectation defined", null, null);
         } else {
-            expectationManager.getResponse(he, map, headers, queries, foundExpectation);
+            serverExpectations.getResponse(he, map, headers, queries, foundExpectation);
         }
         this.server.getServerStatistics().inc(ServerStatistics.STAT.RESPONSE, true);
     }

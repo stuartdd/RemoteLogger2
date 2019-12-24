@@ -17,9 +17,8 @@
 package mockServer;
 
 import expectations.Expectation;
-import expectations.ExpectationManager;
+import server.ServerExpectations;
 import java.util.Map;
-import server.ServerStatistics;
 
 /**
  *
@@ -35,9 +34,9 @@ public class MockRequest {
     private final String path;
     private final String method;
     private final Expectation expectation;
-    private final ExpectationManager expectationManager;
+    private final ServerExpectations serverExpectations;
 
-    public MockRequest(int port, Map<String, Object> map, Map<String, String> headers, Map<String, String> queries, ExpectationManager expectationManager, Expectation expectation) {
+    public MockRequest(int port, Map<String, Object> map, Map<String, String> headers, Map<String, String> queries, ServerExpectations serverExpectations, Expectation expectation) {
         this.port = port;
         this.map = map;
         this.headers = headers;
@@ -46,7 +45,7 @@ public class MockRequest {
         this.body = getMapObject("BODY");
         this.path = getMapObject("PATH");
         this.expectation = expectation;
-        this.expectationManager = expectationManager;
+        this.serverExpectations = serverExpectations;
     }
 
     private String getMapObject(String key) {
@@ -90,7 +89,7 @@ public class MockRequest {
     }
 
     public MockResponse createResponse(Map<String, Object> map) {
-        return expectationManager.getResponseData(map, expectation);
+        return serverExpectations.getResponseData(map, expectation);
     }
 
 }

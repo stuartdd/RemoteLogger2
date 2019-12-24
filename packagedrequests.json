@@ -1,0 +1,116 @@
+{
+  "packagedRequests" : [ {
+    "name" : "Test Forwarding. Please keep",
+    "host" : "http://localhost",
+    "port" : 5002,
+    "path" : "/testforward",
+    "method" : "GET",
+    "body" : null,
+    "bodyTemplate" : null,
+    "headers" : null
+  }, {
+    "name" : "NowTV validateAccount",
+    "host" : "http://localhost",
+    "port" : 8080,
+    "path" : "public/v1/account/authorise/email",
+    "method" : "POST",
+    "body" : "{\"email\":\"abc.pass@nowtv.com\"}",
+    "bodyTemplate" : null,
+    "headers" : {
+      "Content-Type" : "application/json",
+      "Accept" : "*/*"
+    }
+  }, {
+    "name" : "Get Offers (New to NowTV)",
+    "host" : "http://localhost",
+    "port" : 8080,
+    "path" : "public/v1/promotion/S0317891/productfamily/SPORT/offers/account/emailid/ER-CrHCM16DnvAUVXdSJcKqRAl8",
+    "method" : "PUT",
+    "body" : "{\"bac\" : \"AB12341234\",\"conk\" : \"ssd@bt.com\",\"ntvIdToken\" : \"8EJBVXKma37FwvF6vH6_YanuVzZMu6Z2LEGNVt7-OjioO2eGs4MiiXI4rNps2G1kMZDlTeYicj-va-XsjMk7rHbMgbUuDacHPHTi9650ZykbkgUj3eZduwNd92llXcEryBm3DC0WZnrcHDDfj5nzCbiA-P0DIBixsf6snuLUBBNot81WlQTk0h2VRmZiKhlHHVnSYTFi7wuUxcsZWtQ4tW3rM4MtS3YAvy6TdTwBS8kkYnHN\",\"vsid\" : \"V3000452153\",\"isLinkedNTV\" : false,\"assetImpact\" : \"mng\",\"regSourcePromo\" : \"Reg source\"}",
+    "bodyTemplate" : null,
+    "headers" : {
+      "Content-Type" : "application/json",
+      "Accept" : "*/*"
+    }
+  }, {
+    "name" : "NowTv Email Challenge",
+    "host" : "http://localhost",
+    "port" : 8080,
+    "path" : "public/v1/account/authorise/emailid/{emailid}/challenge",
+    "method" : "POST",
+    "body" : "{\"oneTimePassword\":\"MyOneTimePassword\", \"challengeToken\":\"abc.passnowtv.com\"}",
+    "bodyTemplate" : null,
+    "headers" : {
+      "Content-Type" : "application/json",
+      "Accept" : "*/*"
+    }
+  }, {
+    "name" : "NowTv Validate Invalid Email",
+    "host" : "http://localhost",
+    "port" : 8080,
+    "path" : "public/v1/account/authorise/email",
+    "method" : "POST",
+    "body" : "{\"email\":\"abc.passnowtv.com\"}",
+    "bodyTemplate" : null,
+    "headers" : {
+      "Accept" : "*/*",
+      "Content-Type" : "application/json"
+    }
+  }, {
+    "name" : "Test Get Country Name",
+    "host" : "http://localhost",
+    "port" : 5002,
+    "path" : "/services.groupkt.com/country/get/iso2code/IN",
+    "method" : "GET",
+    "body" : null,
+    "bodyTemplate" : null,
+    "headers" : null
+  }, {
+    "name" : "Set SSID andPW",
+    "host" : "http://localhost",
+    "port" : 5002,
+    "path" : "/config",
+    "method" : "GET",
+    "body" : null,
+    "bodyTemplate" : null,
+    "headers" : {
+      "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    }
+  }, {
+    "name" : "CH Device",
+    "host" : "http://192.168.1.13",
+    "port" : 80,
+    "path" : "/config",
+    "method" : "GET",
+    "body" : null,
+    "bodyTemplate" : null,
+    "headers" : {
+      "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    }
+  }, {
+    "name" : "CH Read DEVICE",
+    "host" : "http://192.168.1.13",
+    "port" : 80,
+    "path" : "/device",
+    "method" : "GET",
+    "body" : null,
+    "bodyTemplate" : null,
+    "headers" : {
+      "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    }
+  }, {
+    "name" : "PostOrders",
+    "host" : "http://localhost",
+    "port" : 5012,
+    "path" : "public/v1/account/authorise/email",
+    "method" : "POST",
+    "body" : "{ \"cancel\" : null, \"purchase\" : { \"products\" : [ { \"productId\" : \"ENTERTAINMENT_SUBSCRIPTION_MONTH\", \"quantity\" : 2 }, { \"productId\" : \"HAYU_SUBSCRIPTION_MONTH\", \"quantity\" : 3 } ], \"vouchers\" : [ \"BT_SPECIAL\", \"BT_VERY_SPECIAL\" ] }}",
+    "bodyTemplate" : null,
+    "headers" : {
+      "Accept" : "*/*",
+      "Content-Type" : "application/json"
+    }
+  } ],
+  "paths" : [ ".", "/appl", "/bea" ],
+  "verbose" : true
+}

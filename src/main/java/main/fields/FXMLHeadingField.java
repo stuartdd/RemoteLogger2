@@ -29,7 +29,7 @@ import javafx.stage.Stage;
 public class FXMLHeadingField extends FXMLField {
 
     
-    public FXMLHeadingField(Stage stage, int id, String text, FXMLFieldChangeListener changeListener) throws IOException {
+    public FXMLHeadingField(Stage stage, String id, String text, FXMLFieldChangeListener changeListener) throws IOException {
         super(stage, id,"Heading", null, text, true, null);
         setBackgroundColor(HEADING_COLOR);
         getPane().setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -38,6 +38,15 @@ public class FXMLHeadingField extends FXMLField {
                 changeListener.select(getIdString());
             }
         });
+    }
+
+    @Override
+    public void doLayout() {
+        if (getLabel() == null) {
+            return;
+        }
+        super.doLayout();
+        getLabel().setPrefWidth(getStage().getWidth());
     }
 
     @Override

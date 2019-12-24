@@ -32,7 +32,7 @@ public class FXMLBooleanField extends FXMLField implements ChangeListener<Boolea
 
     private CheckBox checkBox;
 
-    public FXMLBooleanField(Stage stage, int id, BeanWrapper beanWrapper, String propertyName, Boolean state, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+    public FXMLBooleanField(Stage stage, String id, BeanWrapper beanWrapper, String propertyName, Boolean state, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
         super(stage, id,"Boolean", beanWrapper, propertyName, readOnly,changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof CheckBox) {
@@ -41,6 +41,15 @@ public class FXMLBooleanField extends FXMLField implements ChangeListener<Boolea
                 checkBox.selectedProperty().addListener(this);
             }
         }
+    }
+
+    @Override
+    public void doLayout() {
+        if (checkBox == null) {
+            return;
+        }
+        super.doLayout();
+        checkBox.setLayoutX(getLabelWidth() + 10);
     }
 
     @Override

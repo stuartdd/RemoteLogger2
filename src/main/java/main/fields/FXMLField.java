@@ -32,7 +32,7 @@ import javafx.stage.Stage;
 /**
  * @author Stuart
  */
-public abstract class FXMLField {
+public abstract class FXMLField implements Comparable {
 
     static final Color ERROR_COLOR = Color.PINK;
     static final Color RO_COLOR = Color.WHITE;
@@ -45,12 +45,12 @@ public abstract class FXMLField {
     private final boolean readOnly;
     private final FXMLFieldChangeListener changeListener;
     private final String propertyName;
-    private final Integer id;
+    private final String id;
     private Label label = null;
     private Separator separator = null;
     private boolean error;
 
-    public FXMLField(Stage stage, Integer id, String fieldType, BeanWrapper beanWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
+    public FXMLField(Stage stage, String id, String fieldType, BeanWrapper beanWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
         this.stage = stage;
         this.id = id;
         this.beanWrapper = beanWrapper;
@@ -79,6 +79,29 @@ public abstract class FXMLField {
             }
         }
         setError(false);
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (o instanceof FXMLField) {
+            return label.getText().compareTo(((FXMLField)o).getLabel().getText());
+        }
+        return -1;
+    }
+
+    public double getFieldWidth() {
+        return (stage.getWidth() / 6) * 4 ;
+    }
+
+    public double getLabelWidth() {
+        return (stage.getWidth() / 6) * 2 ;
+    }
+
+    public void doLayout() {
+        if (label == null) {
+            return;
+        }
+        label.setPrefWidth(getLabelWidth());
     }
 
     public boolean isError() {
@@ -112,7 +135,7 @@ public abstract class FXMLField {
         return stage;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 

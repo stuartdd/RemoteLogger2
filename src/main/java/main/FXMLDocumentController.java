@@ -18,13 +18,7 @@
 package main;
 
 import common.*;
-import expectations.ExpectationManager;
 import geom.Point;
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -40,13 +34,25 @@ import main.dialogs.Dialogs;
 import main.fields.BeanPropertyDescription;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
+import server.ServerExpectations;
 import server.ServerManager;
 import server.ServerState;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 /**
  *
  */
 public class FXMLDocumentController implements Initializable, Notifier {
+
+    private static final String SERVER_TAB_FX_ID = "servers";
+    private static final String LOGS_TAB_FX_ID = "logs";
+    private static final String EXPECTATIONS_TAB_FX_ID = "expectations";
+
 
     @FXML
     private AnchorPane connectionsAnchorPane;
@@ -58,9 +64,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private TabPane mainTabbedPane;
 
     @FXML
-    private VBox vBoxConnections;
-    private FXMLFieldCollection connectionsFieldCollection;
-    private FXMLFieldCollection settingsFieldCollection;
+    private VBox vBoxServers;
+    private FXMLFieldCollection serverFieldCollection;
+
+    @FXML
+    private VBox vBoxExpectations;
+    private FXMLFieldCollection expectationsFieldCollection;
 
     @FXML
     private VBox vBoxLogsControlList;
@@ -86,7 +95,8 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     private ChoiceBox serverChoiceBox;
 
-    private int currentSelectedServerPort = -1;
+    private Integer currentSelectedServerPort = -1;
+    private String currentTabId = null;
     private boolean configDataHasChanged = false;
     private Map<Integer, CheckBox> logCheckBoxesByPort = new HashMap<>();
 
@@ -128,19 +138,27 @@ public class FXMLDocumentController implements Initializable, Notifier {
             if (newTab == oldTab) {
                 return;
             }
-            if (oldTab.getId().equalsIgnoreCase("connections")) {
-                connectionsFieldCollection.destroy();
+            if (oldTab.getId().equalsIgnoreCase(SERVER_TAB_FX_ID)) {
+                serverFieldCollection.destroy();
             }
-            if (oldTab.getId().equalsIgnoreCase("logs")) {
+            if (oldTab.getId().equalsIgnoreCase(LOGS_TAB_FX_ID)) {
                 updateTheLogs(true);
             }
+            if (oldTab.getId().equalsIgnoreCase(EXPECTATIONS_TAB_FX_ID)) {
+                expectationsFieldCollection.destroy();
+            }
+            currentTabId = null;
         }
-        if (newTab.getId().equalsIgnoreCase("connections")) {
+        if (newTab.getId().equalsIgnoreCase(SERVER_TAB_FX_ID)) {
             initializeServerDataEditTab();
         }
-        if (newTab.getId().equalsIgnoreCase("logs")) {
+        if (newTab.getId().equalsIgnoreCase(LOGS_TAB_FX_ID)) {
             updateTheLogs(false);
         }
+        if (newTab.getId().equalsIgnoreCase(EXPECTATIONS_TAB_FX_ID)) {
+            initializeExpectationsDataEditTab();
+        }
+        currentTabId = newTab.getId();
     }
 
     public void serverPortSelectionChanged(int newServerPort) {
@@ -152,6 +170,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
         if (newServerPort > 0) {
             currentSelectedServerPort = newServerPort;
             setServerChoiceBoxColour();
+            if (currentTabId.equals(EXPECTATIONS_TAB_FX_ID) && (expectationsFieldCollection != null)) {
+                if (expectationsFieldCollection.destroy()) {
+                    initializeExpectationsDataEditTab();
+                };
+
+            }
         }
     }
 
@@ -168,7 +192,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     /**
      * Call once to set up the logs tab.
-     *
+     * <p>
      * Calls updateTheLogs to refresh the log content
      */
     private void initialiseLogTabPanel() {
@@ -181,8 +205,9 @@ public class FXMLDocumentController implements Initializable, Notifier {
     /**
      * Call each time we update the logs.
      * initialiseLogPanelCheckBoxes ensures that the log check boxes are aligned with the config data and selected.
-     *
+     * <p>
      * Set the text to the current log content
+     *
      * @param clear To clear the text (not the logs)
      */
     private void updateTheLogs(boolean clear) {
@@ -196,10 +221,11 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     /**
      * Called to add check boxes (one per server) to the log tab
+     *
      * @param clear true to remove (reset) the panel
      */
     private void initialiseLogPanelCheckBoxes(boolean clear) {
-        for (CheckBox cb:logCheckBoxesByPort.values()) {
+        for (CheckBox cb : logCheckBoxesByPort.values()) {
             vBoxLogsControlList.getChildren().remove(cb);
         }
         logCheckBoxesByPort.clear();
@@ -231,6 +257,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     /**
      * Call once to set up the TAB pane. Defined initial selection and change listeners.
+     *
      * @param index
      * @return The current selection index.
      */
@@ -252,29 +279,29 @@ public class FXMLDocumentController implements Initializable, Notifier {
         try {
             ConfigSettingsDummy configSettingsDummy = new ConfigSettingsDummy(ConfigData.getInstance());
             FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), configSettingsDummy, new FXMLFieldChangeListener() {
-                @Override
-                public void changed(BeanPropertyDescription propertyDescription, Integer id, String message) {
-                }
+                        @Override
+                        public void changed(BeanPropertyDescription propertyDescription, String id, String message) {
+                        }
 
-                @Override
-                public void validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newvalue) {
-                    if (propertyDescription.isValidationId("defport")) {
-                        if (ServerManager.hasPort(Util.parseInt((String)newvalue, "Should be s valid port number"))) {
+                        @Override
+                        public void validate(BeanPropertyDescription propertyDescription, String id, Object oldValue, Object newvalue) {
+                            if (propertyDescription.isValidationId("defport")) {
+                                if (ServerManager.hasPort(Util.parseInt((String) newvalue, "Should be s valid port number"))) {
+                                    return;
+                                }
+                                throw new DataValidationException("Must be an existing server port: " + ServerManager.portList().toString());
+                            } else {
+                                if (propertyDescription.isValidationId("pak")) {
+                                    new packaged.PackagedManager((String) newvalue);
+                                }
+                            }
                             return;
                         }
-                        throw new DataValidationException("Must be an existing server port: "+ServerManager.portList().toString());
-                    } else {
-                        if (propertyDescription.isValidationId("pak")) {
-                            new packaged.PackagedManager((String)newvalue);
+
+                        @Override
+                        public void select(String id) {
                         }
                     }
-                    return;
-                }
-
-                @Override
-                public void select(String id) {
-                }
-            }
             );
             boolean accept = settingsController.showAndWait();
             if (accept) {
@@ -287,18 +314,38 @@ public class FXMLDocumentController implements Initializable, Notifier {
             e.printStackTrace();
         }
     }
+
+    private void initializeExpectationsDataEditTab() {
+        expectationsFieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxExpectations, ServerManager.getExpectationsMap(currentSelectedServerPort), false, "%{id}:", new FXMLFieldChangeListener() {
+            @Override
+            public void changed(BeanPropertyDescription propertyDescription, String id, String message) {
+
+            }
+
+            @Override
+            public void validate(BeanPropertyDescription propertyDescription, String id, Object oldValue, Object newvalue) {
+
+            }
+
+            @Override
+            public void select(String id) {
+
+            }
+        });
+    }
+
     /**
      * Call to set up the server data edit
-     *
+     * <p>
      * Should be done each time the tab is selected.
      */
     private void initializeServerDataEditTab() {
         buttonSaveConfigChanges.setDisable(!configDataHasChanged);
         buttonReloadConfigChanges.setDisable(!configDataHasChanged);
-        connectionsFieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxConnections, ServerManager.serverConfigData(), false, "Server %{id}:", new FXMLFieldChangeListener() {
+        serverFieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxServers, ServerManager.serverConfigDataMap(), false, "Server %{id}:", new FXMLFieldChangeListener() {
             @Override
-            public void changed(BeanPropertyDescription propertyDescription, Integer id, String message) {
-                if (connectionsFieldCollection.isError()) {
+            public void changed(BeanPropertyDescription propertyDescription, String id, String message) {
+                if (serverFieldCollection.isError()) {
                     buttonSaveConfigChanges.setDisable(true);
                     buttonReloadConfigChanges.setDisable(false);
                 } else {
@@ -310,10 +357,10 @@ public class FXMLDocumentController implements Initializable, Notifier {
             }
 
             @Override
-            public void validate(BeanPropertyDescription propertyDescription, Integer id, Object oldValue, Object newValue) {
+            public void validate(BeanPropertyDescription propertyDescription, String id, Object oldValue, Object newValue) {
                 if (propertyDescription.isValidationId("exp")) {
                     try {
-                        new ExpectationManager(id, (String)newValue);
+                        new ServerExpectations(Util.parseInt(id, "Server port"), (String) newValue);
                     } catch (Exception e) {
                         throw new DataValidationException(e.getMessage());
                     }
@@ -339,8 +386,8 @@ public class FXMLDocumentController implements Initializable, Notifier {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                for (int p : ServerManager.ports()) {
-                    connectionsFieldCollection.setHeadingColour(p, colorForServerState(ServerManager.getServerState(p)));
+                for (Integer p : ServerManager.ports()) {
+                    serverFieldCollection.setHeadingColour(p.toString(), colorForServerState(ServerManager.getServerState(p)));
                 }
             }
         });
@@ -348,11 +395,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     /**
      * Call once to set up the server port drop down (ChoiceBox)
+     *
      * @return the current port (first in  th eserver list).
      */
     private int initializePortChoiceBox() {
         serverChoiceBox.setItems(FXCollections.observableArrayList(ServerManager.portList()));
-        for (Object s:serverChoiceBox.getItems()) {
+        for (Object s : serverChoiceBox.getItems()) {
             if (s.equals(ConfigData.getInstance().getDefaultPort())) {
                 serverChoiceBox.getSelectionModel().select(s);
             }
@@ -376,8 +424,8 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 switch (notification.getAction()) {
                     case CONFIG_RELOAD:
                         configDataHasChanged = false;
-                        if (connectionsFieldCollection != null) {
-                            connectionsFieldCollection.destroy();
+                        if (serverFieldCollection != null) {
+                            serverFieldCollection.destroy();
                         }
                         initializeServerDataEditTab();
                         break;
@@ -401,8 +449,9 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     /**
      * Set the app status text.
-     *
+     * <p>
      * A ! as the first char will paint the background PINK
+     *
      * @param message The status text
      */
     private void setStatus(String message) {
@@ -417,9 +466,9 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     /**
      * Call whenever a server changes status.
-     *
+     * <p>
      * Updates the port drop down colour. The start stop button status and the status text
-     *
+     * <p>
      * If the server data edit page is set up then sets the heading colour for that server
      */
     private void setServerChoiceBoxColour() {
@@ -435,8 +484,8 @@ public class FXMLDocumentController implements Initializable, Notifier {
             default:
                 setServerDetail(currentSelectedServerPort, true, "Wait");
         }
-        if (connectionsFieldCollection != null) {
-            connectionsFieldCollection.setHeadingColour(currentSelectedServerPort, colorForServerState(ServerManager.getServer(currentSelectedServerPort).getServerState()));
+        if (serverFieldCollection != null) {
+            serverFieldCollection.setHeadingColour(currentSelectedServerPort.toString(), colorForServerState(ServerManager.getServer(currentSelectedServerPort).getServerState()));
         }
     }
 

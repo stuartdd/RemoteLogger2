@@ -21,7 +21,7 @@ import common.ConfigDataException;
 import common.LogLine;
 import common.Notifier;
 import common.PropertyDataWithAnnotations;
-import expectations.ExpectationManager;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -154,10 +154,10 @@ public class ServerManager {
         return in;
     }
 
-    public static Map<Integer, PropertyDataWithAnnotations> serverConfigData() {
-        Map<Integer, PropertyDataWithAnnotations> ret = new HashMap<>();
+    public static Map<String, PropertyDataWithAnnotations> serverConfigDataMap() {
+        Map<String, PropertyDataWithAnnotations> ret = new HashMap<>();
         for (Map.Entry<Integer, Server> s:servers.entrySet()) {
-            ret.put(s.getKey(), s.getValue().getServerConfig());
+            ret.put(s.getKey().toString(), s.getValue().getServerConfig());
         }
         return ret;
     }
@@ -185,13 +185,24 @@ public class ServerManager {
     public static Server getServer(int port) {
         return servers.get(port);
     }
-    
-    public static ExpectationManager getExpectationManager(int port) {
+
+    public static ServerExpectations getExpectationManager(int port) {
         Server server = getServer(port);
         if (server == null) {
             return null;
         }
-        return server.getExpectationManager();
+        return server.getServerExpectations();
+    }
+
+    public static Map<String, PropertyDataWithAnnotations> getExpectationsMap(int port) {
+        Server server = getServer(port);
+        if (server == null) {
+            return null;
+        }
+        if (server.getServerExpectations() == null) {
+            return null;
+        }
+        return server.getServerExpectations().getExpectationsDataMap();
     }
 
 }

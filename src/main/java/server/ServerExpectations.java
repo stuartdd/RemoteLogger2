@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package expectations;
+package server;
 
 import client.Client;
 import client.ClientConfig;
@@ -29,15 +29,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import expectations.Expectation;
+import expectations.Expectations;
+import expectations.ForwardContent;
+import expectations.ResponseContent;
 import json.JsonUtils;
 import mockServer.MockResponse;
-import server.ServerStatistics;
 import template.Template;
 
 /**
  * @author Stuart
  */
-public class ExpectationManager {
+public class ServerExpectations {
 
     private static final String NL = System.getProperty("line.separator");
     private static final String LS = "-----------------------------------------" + NL;
@@ -51,7 +55,7 @@ public class ExpectationManager {
     private boolean verbose;
 
 
-    public ExpectationManager(int port, String fileName, CommonLogger logger, ServerStatistics serverStatistics, boolean verbose, boolean logProperties) {
+    public ServerExpectations(int port, String fileName, CommonLogger logger, ServerStatistics serverStatistics, boolean verbose, boolean logProperties) {
         this.port = port;
         this.logger = logger;
         this.serverStatistics = serverStatistics;
@@ -60,7 +64,7 @@ public class ExpectationManager {
         loadExpectations(fileName);
     }
 
-    public ExpectationManager(int port, String fileName) {
+    public ServerExpectations(int port, String fileName) {
         this.port = port;
         this.logger = null;
         this.serverStatistics = null;
@@ -69,6 +73,9 @@ public class ExpectationManager {
         loadExpectations(fileName);
     }
 
+    public Map<String, PropertyDataWithAnnotations> getExpectationsDataMap() {
+        return expectations.getExpectationsDataMap();
+    }
 
     public Expectations getExpectations() {
         return expectations;
@@ -293,13 +300,13 @@ public class ExpectationManager {
                 fos = new FileOutputStream(expectationsFile);
                 fos.write(exString.getBytes(StandardCharsets.UTF_8));
             } catch (IOException ex) {
-                Logger.getLogger(ExpectationManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ServerExpectations.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
                 if (fos != null) {
                     try {
                         fos.close();
                     } catch (IOException ex) {
-                        Logger.getLogger(ExpectationManager.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(ServerExpectations.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
