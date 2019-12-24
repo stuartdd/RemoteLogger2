@@ -263,6 +263,10 @@ public class FXMLDocumentController implements Initializable, Notifier {
                             return;
                         }
                         throw new DataValidationException("Must be an existing server port: "+ServerManager.portList().toString());
+                    } else {
+                        if (propertyDescription.isValidationId("pak")) {
+                            new packaged.PackagedManager((String)newvalue);
+                        }
                     }
                     return;
                 }

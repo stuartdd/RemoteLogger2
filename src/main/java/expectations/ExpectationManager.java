@@ -21,11 +21,6 @@ import client.ClientConfig;
 import client.ClientResponse;
 import com.sun.net.httpserver.HttpExchange;
 import common.*;
-import json.JsonUtils;
-import mockServer.MockResponse;
-import server.ServerStatistics;
-import template.Template;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,6 +29,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import json.JsonUtils;
+import mockServer.MockResponse;
+import server.ServerStatistics;
+import template.Template;
 
 /**
  * @author Stuart
