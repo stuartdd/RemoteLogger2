@@ -103,7 +103,7 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
         scrollPaneSettings.setFitToWidth(true);
         Map<String, PropertyDataWithAnnotations> map = new HashMap<>();
         map.put("data", bean);
-        this.fieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxSettings, map, false, "Settings:", this);
+        this.fieldCollection = new FXMLFieldCollection(modalStage, vBoxSettings, map, false, "Settings:", this);
         return this.fieldCollection;
     }
 

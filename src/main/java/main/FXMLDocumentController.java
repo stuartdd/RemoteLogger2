@@ -170,13 +170,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
         if (newServerPort > 0) {
             currentSelectedServerPort = newServerPort;
             setServerChoiceBoxColour();
-            if (currentTabId.equals(EXPECTATIONS_TAB_FX_ID) && (expectationsFieldCollection != null)) {
-                if (expectationsFieldCollection.destroy()) {
-                    initializeExpectationsDataEditTab();
-                };
-
-            }
-        }
+         }
     }
 
     @Override
