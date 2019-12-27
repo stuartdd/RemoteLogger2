@@ -35,8 +35,8 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
     private int lowerbound = Integer.MIN_VALUE;
     private int upperbound = Integer.MAX_VALUE;
 
-    public FXMLIntegerField(Stage stage, String id, BeanWrapper beanWrapper, String propertyName, Integer value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, id, "String", beanWrapper, propertyName, readOnly, changeListener);
+    public FXMLIntegerField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, Integer value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, id, "String", beanPropertyWrapper, propertyName, readOnly, changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
@@ -47,13 +47,23 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                 }
                 textField.textProperty().addListener(this);
             } else {
-                if (c instanceof Button) {
+                if ((c instanceof Button) && (!c.getId().equals("buttonRevert"))) {
                     ((Button) c).setVisible(false);
                 }
             }
         }
-        lowerbound = getBeanPropertyDescription().getIntFlag("min", 0);
-        upperbound = getBeanPropertyDescription().getIntFlag("max", lowerbound + Integer.MAX_VALUE);
+        lowerbound = getBeanProperty().getIntFlag("min", 0);
+        upperbound = getBeanProperty().getIntFlag("max", lowerbound + Integer.MAX_VALUE);
+    }
+
+    @Override
+    protected void doRevert() {
+        Object initial = getBeanProperty().getInitialValue();
+        if (initial == null) {
+            textField.setText("");
+        } else {
+            textField.setText(initial.toString());
+        }
     }
 
     @Override
@@ -89,6 +99,7 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                         throw new DataValidationException("must be between " + lowerbound + " and " + upperbound);
                     } else {
                         setError(false);
+                        getBeanPropertyWrapper().setUpdatedValue(getPropertyName(),newValue);
                         notifyChange("Property '" + getPropertyName() + "' updated to:" + newValue);
                     }
                 } catch (NumberFormatException e) {
@@ -96,12 +107,14 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                     notifyChange("!ERROR: Value [" + newValue + "] is not a valid integer");
                 } catch (Exception e) {
                     setError(true);
-                    notifyChange("!ERROR: Value [" + newValue + "] " + e.getMessage());
+                    notifyError("!ERROR: Value [" + newValue + "] " + e.getMessage());
                 }
             } finally {
                 textField.textProperty().addListener(this);
             }
         }
     }
+
+
 
 }

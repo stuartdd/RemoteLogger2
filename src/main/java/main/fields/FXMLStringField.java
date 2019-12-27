@@ -17,7 +17,6 @@
  */
 package main.fields;
 
-import common.DataValidationException;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -39,8 +38,8 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
     private Button fileButton;
     private boolean hasFileButton;
 
-    public FXMLStringField(Stage stage, String id, BeanWrapper beanWrapper, String propertyName, String value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, id, "String", beanWrapper, propertyName, readOnly, changeListener);
+    public FXMLStringField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, id, "String", beanPropertyWrapper, propertyName, readOnly, changeListener);
         hasFileButton = false;
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
@@ -52,18 +51,18 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
                 }
                 textField.textProperty().addListener(this);
             } else {
-                if (c instanceof Button) {
+                if ((c instanceof Button) && (c.getId().equals("buttonFile"))) {
                     fileButton = (Button) c;
-                    if (getBeanPropertyDescription().isTypeId("file")) {
+                    if (getBeanProperty().isTypeId("file")) {
                         hasFileButton = true;
-                        String ext = getBeanPropertyDescription().getFlag("ext", "json");
-                        String desc = getBeanPropertyDescription().getFlag("desc", "File type *." + ext);
+                        String ext = getBeanProperty().getFlag("ext", "json");
+                        String desc = getBeanProperty().getFlag("desc", "File type *." + ext);
                         textField.setEditable(false);
                         fileButton.setOnAction(new EventHandler<ActionEvent>() {
                             @Override
                             public void handle(ActionEvent actionEvent) {
-                                String oldName = ((String) beanWrapper.getValue(propertyName));
-                                String newName = Dialogs.fileChooser(getStage(), "Select: " + beanWrapper.getBeanPropertyDescription(propertyName).getDescription(), oldName, desc, ext);
+                                String oldName = textField.getText();
+                                String newName = Dialogs.fileChooser(getStage(), "Select: " + beanPropertyWrapper.getBeanProperty(propertyName).getDescription(), oldName, desc, ext);
                                 if ((newName != null) && (!newName.equals(oldName))) {
                                     textField.setText(newName);
                                 }
@@ -78,6 +77,7 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
         }
     }
 
+
     @Override
     public void doLayout() {
         if (textField == null) {
@@ -86,13 +86,27 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
         super.doLayout();
         double fWidth = getFieldWidth();
         double lWidth = getLabelWidth();
-        fileButton.setPrefWidth(40);
         textField.setLayoutX(lWidth + 10);
         if (hasFileButton) {
-            textField.setPrefWidth(fWidth - 70);
-            fileButton.setLayoutX(lWidth + fWidth - 50);
+            setControlWidth(textField, fWidth - 130);
+            setControlWidth(fileButton, 40);
+            fileButton.setVisible(true);
+            fileButton.setLayoutX((lWidth + fWidth) - 110);
         } else {
-            textField.setPrefWidth(fWidth - 20);
+            if (fileButton!=null) {
+                fileButton.setVisible(false);
+            }
+            setControlWidth(textField, fWidth - 20);
+        }
+    }
+
+    @Override
+    protected void doRevert() {
+        Object initial = getBeanProperty().getInitialValue();
+        if (initial == null) {
+            textField.setText("");
+        } else {
+            textField.setText(initial.toString());
         }
     }
 
@@ -112,12 +126,12 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
                 try {
                     validateChange(oldValue, newValue);
                     setError(false);
-                    getBeanWrapper().setValue(getPropertyName(), newValue);
-                    notifyChange("Property '" + getBeanPropertyDescription().getDescription() + "' updated");
+                    getBeanPropertyWrapper().setUpdatedValue(getPropertyName(), newValue);
+                    notifyChange("Property '" + getBeanProperty().getDescription() + "' updated");
                 } catch (Exception e) {
                     setError(true);
                     textField.setText(oldValue);
-                    notifyChange("!ERROR '" + getBeanPropertyDescription().getDescription() + "' Reason: " + e.getMessage());
+                    notifyChange("!ERROR '" + getBeanProperty().getDescription() + "' Reason: " + e.getMessage());
                 }
             } finally {
                 textField.textProperty().addListener(this);

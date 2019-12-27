@@ -3,41 +3,55 @@ package main.fields;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BeanPropertyDescription {
+public class BeanProperty {
     private final String propertyName;
+    private final Object initialValue;
     private final String description;
-    private final String additional;
     private final Map<String, String> flags;
     private final Class parameterType;
+    private Object updatedValue;
 
-    public BeanPropertyDescription(String propertyName, String description, Class parameterType) {
+    /**
+     * <pre>
+     * A single property on a single bean instance.
+     *
+     * A property must have a:
+     * <code>
+     *     @BeanProperty(description = "Some text")
+     * </code>
+     * </pre>
+     *
+     * @param propertyName  The property name without the set or ger or is prefix
+     * @param intialValue   The initial value of the property.
+     * @param description   The description (from @BeanProperty)
+     * @param parameterType The property type
+     */
+    public BeanProperty(String propertyName, Object intialValue, String description, Class parameterType) {
         this.propertyName = propertyName;
+        this.initialValue = intialValue;
+        this.updatedValue = null;
         this.flags = new HashMap<>();
-        if (description!= null) {
+        if (description != null) {
             int pos = description.indexOf('|');
             if (pos > 0) {
                 this.description = description.substring(0, pos);
-                this.additional = description.substring(pos+1);
-                String[] csv = this.additional.split("\\,");
-                for (String v:csv) {
-                    int equals = v.indexOf('=');
-                    if (equals>0) {
-                        flags.put(v.substring(0,equals).trim().toLowerCase(), v.substring(equals+1));
+                String remainder = description.substring(pos + 1).trim();
+                if (remainder.length() > 0) {
+                    String[] csv = remainder.split("\\,");
+                    for (String v : csv) {
+                        int equals = v.indexOf('=');
+                        if (equals > 0) {
+                            flags.put(v.substring(0, equals).trim().toLowerCase(), v.substring(equals + 1));
+                        }
                     }
                 }
             } else {
                 this.description = description;
-                this.additional = null;
             }
         } else {
             this.description = null;
-            this.additional = null;
         }
         this.parameterType = parameterType;
-    }
-
-    public boolean isDefined() {
-        return description != null;
     }
 
     public Class getParameterType() {
@@ -52,23 +66,16 @@ public class BeanPropertyDescription {
         return flags;
     }
 
-    
+
     public String getType() {
         return getFlag("type", "");
-     }
-    
-    public String getId() {
-        return getFlag("id", "");
-     }
-    
+    }
+
+
     public String getValidationId() {
         return getFlag("validation", "");
     }
 
-    public boolean isId(String iid) {
-        return getId().equals(iid);
-    }
-    
     public boolean isValidationId(String iid) {
         return getValidationId().equals(iid);
     }
@@ -76,7 +83,7 @@ public class BeanPropertyDescription {
     public boolean isTypeId(String iid) {
         return getType().equals(iid);
     }
-    
+
     public int getIntFlag(String name, int defaultValue) {
         String v = getFlag(name, null);
         if (v == null) {
@@ -90,6 +97,30 @@ public class BeanPropertyDescription {
         }
     }
 
+    public Object getUpdatedValue() {
+         return updatedValue;
+    }
+
+    public boolean isUpdated() {
+        return (updatedValue != null);
+    }
+
+    public void setUpdatedValue(Object newValue) {
+        if (initialValue == newValue) {
+            updatedValue = null;
+        } else {
+            if ((initialValue!=null) && (newValue!=null) && (initialValue.toString().equals(newValue.toString()))) {
+                updatedValue = null;
+            } else {
+                this.updatedValue = newValue;
+            }
+        }
+    }
+
+    public Object getInitialValue() {
+        return initialValue;
+    }
+
     public String getFlag(String name, String defaultValue) {
         String v = getFlags().get(name);
         if (v == null) {
@@ -98,17 +129,11 @@ public class BeanPropertyDescription {
         return v;
     }
 
-    public String getAdditionalFlags() {
-        if (additional == null) {
-            return null;
-        }
-        return additional.trim();
-    }
-
     public String getDescription() {
         if (description == null) {
             return null;
         }
         return description.trim();
     }
+
 }

@@ -31,7 +31,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import main.dialogs.Dialogs;
-import main.fields.BeanPropertyDescription;
+import main.fields.BeanProperty;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
 import server.ServerExpectations;
@@ -170,7 +170,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
         if (newServerPort > 0) {
             currentSelectedServerPort = newServerPort;
             setServerChoiceBoxColour();
-         }
+        }
     }
 
     @Override
@@ -269,16 +269,52 @@ public class FXMLDocumentController implements Initializable, Notifier {
     }
 
     @FXML
-    public void handleSettingsButton() {
+    public void handleServersButton() {
         try {
-            ConfigSettingsDummy configSettingsDummy = new ConfigSettingsDummy(ConfigData.getInstance());
-            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), configSettingsDummy, new FXMLFieldChangeListener() {
+            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), ServerManager.serverConfigDataMap(), "Server %{id}:", new FXMLFieldChangeListener() {
                         @Override
-                        public void changed(BeanPropertyDescription propertyDescription, String id, String message) {
+                        public void changed(BeanProperty propertyDescription, String id, String message) {
                         }
 
                         @Override
-                        public void validate(BeanPropertyDescription propertyDescription, String id, Object oldValue, Object newvalue) {
+                        public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue) {
+                            if (propertyDescription.isValidationId("defport")) {
+                                if (ServerManager.hasPort(Util.parseInt((String) newvalue, "Should be s valid port number"))) {
+                                    return;
+                                }
+                                throw new DataValidationException("Must be an existing server port: " + ServerManager.portList().toString());
+                            } else {
+                                if (propertyDescription.isValidationId("pak")) {
+                                    new packaged.PackagedManager((String) newvalue);
+                                }
+                            }
+                            return;
+                        }
+                        @Override
+                        public void select(String id) {
+                        }
+                    }
+            );
+            boolean accept = settingsController.showAndWait();
+            if (accept) {
+                configDataHasChanged = (settingsController.updateAllValues() > 0);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void handleSettingsButton() {
+        try {
+            ConfigSettingsDummy configSettingsDummy = new ConfigSettingsDummy(ConfigData.getInstance());
+            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), configSettingsDummy, "Settings", new FXMLFieldChangeListener() {
+                        @Override
+                        public void changed(BeanProperty propertyDescription, String id, String message) {
+                        }
+
+                        @Override
+                        public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue) {
                             if (propertyDescription.isValidationId("defport")) {
                                 if (ServerManager.hasPort(Util.parseInt((String) newvalue, "Should be s valid port number"))) {
                                     return;
@@ -312,12 +348,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private void initializeExpectationsDataEditTab() {
         expectationsFieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxExpectations, ServerManager.getExpectationsMap(currentSelectedServerPort), false, "%{id}:", new FXMLFieldChangeListener() {
             @Override
-            public void changed(BeanPropertyDescription propertyDescription, String id, String message) {
+            public void changed(BeanProperty propertyDescription, String id, String message) {
 
             }
 
             @Override
-            public void validate(BeanPropertyDescription propertyDescription, String id, Object oldValue, Object newvalue) {
+            public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue) {
 
             }
 
@@ -338,7 +374,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
         buttonReloadConfigChanges.setDisable(!configDataHasChanged);
         serverFieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxServers, ServerManager.serverConfigDataMap(), false, "Server %{id}:", new FXMLFieldChangeListener() {
             @Override
-            public void changed(BeanPropertyDescription propertyDescription, String id, String message) {
+            public void changed(BeanProperty propertyDescription, String id, String message) {
                 if (serverFieldCollection.isError()) {
                     buttonSaveConfigChanges.setDisable(true);
                     buttonReloadConfigChanges.setDisable(false);
@@ -351,7 +387,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
             }
 
             @Override
-            public void validate(BeanPropertyDescription propertyDescription, String id, Object oldValue, Object newValue) {
+            public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newValue) {
                 if (propertyDescription.isValidationId("exp")) {
                     try {
                         new ServerExpectations(Util.parseInt(id, "Server port"), (String) newValue);

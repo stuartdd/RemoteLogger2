@@ -139,6 +139,7 @@
                   <Separator orientation="VERTICAL" prefHeight="34.0" prefWidth="13.0" visible="false" />
                   <Label fx:id="serverStateLabel" prefHeight="17.0" prefWidth="202.0" text="STATE" />
                   <Button mnemonicParsing="false" onAction="#handleSettingsButton" text="Settings" />
+                  <Button mnemonicParsing="false" onAction="#handleServersButton" text="Servers" />
                </children>
             </FlowPane>
          </top>

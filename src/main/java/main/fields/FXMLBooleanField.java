@@ -32,8 +32,8 @@ public class FXMLBooleanField extends FXMLField implements ChangeListener<Boolea
 
     private CheckBox checkBox;
 
-    public FXMLBooleanField(Stage stage, String id, BeanWrapper beanWrapper, String propertyName, Boolean state, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, id,"Boolean", beanWrapper, propertyName, readOnly,changeListener);
+    public FXMLBooleanField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, Boolean state, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, id,"Boolean", beanPropertyWrapper, propertyName, readOnly,changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof CheckBox) {
                 checkBox = (CheckBox) c;
@@ -53,6 +53,11 @@ public class FXMLBooleanField extends FXMLField implements ChangeListener<Boolea
     }
 
     @Override
+    protected void doRevert() {
+        checkBox.setSelected((Boolean)getBeanProperty().getInitialValue());
+    }
+
+    @Override
     public void destroy() {
         checkBox.selectedProperty().removeListener(this);
         removeCommonNodes();
@@ -62,7 +67,7 @@ public class FXMLBooleanField extends FXMLField implements ChangeListener<Boolea
     @Override
     public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldValue, Boolean newValue) {
         if (!newValue.equals(oldValue) && (!isReadOnly())) {
-            getBeanWrapper().setValue(getPropertyName(), newValue);
+            getBeanPropertyWrapper().setUpdatedValue(getPropertyName(),newValue);
             notifyChange("Property "+getPropertyName() + " updated");
         }
     }

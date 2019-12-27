@@ -17,7 +17,6 @@
  */
 package main.fields;
 
-import java.beans.BeanProperty;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -28,15 +27,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * @author Stuart
  */
-public class BeanWrapper {
+public class BeanPropertyWrapper {
 
     private final Object object;
-    private final Map<String, BeanPropertyDescription> properties = new HashMap<>();
+    private final Map<String, BeanProperty> properties = new HashMap<>();
 
-    public BeanWrapper(Object object) {
+    public BeanPropertyWrapper(Object object) {
         this.object = object;
         for (Method m1 : object.getClass().getMethods()) {
             String pName = null;
@@ -45,12 +43,15 @@ public class BeanWrapper {
                 pName = mName.substring(3);
             } else if (mName.startsWith("is")) {
                 pName = mName.substring(2);
-            } 
+            }
             if (pName != null) {
                 for (Method m2 : object.getClass().getMethods()) {
                     if (m2.getName().equals("set" + pName)) {
                         if (m2.getParameterTypes().length == 1) {
-                            properties.put(pName, new BeanPropertyDescription(pName, getDescription(pName), m2.getParameterTypes()[0]));
+                            String desc = getDescription(pName);
+                            if (desc != null) {
+                                properties.put(pName, new BeanProperty(pName, getDataViaGetter(pName), desc, m2.getParameterTypes()[0]));
+                            }
                             break;
                         }
                     }
@@ -59,7 +60,21 @@ public class BeanWrapper {
         }
     }
 
-    public List<String> getPropertyList() {
+
+    public int updateAllValues() {
+        int count = 0;
+        for (Map.Entry<String, BeanProperty> es : properties.entrySet()) {
+            System.out.println("updateAllValues:"+es.toString());
+            if (es.getValue().isUpdated()) {
+                setDataViaSetter(es.getKey(), es.getValue().getUpdatedValue());
+                count++;
+            }
+        }
+        return count;
+    }
+
+
+    public List<String> getPropertyNameList() {
         List<String> l = new ArrayList<>();
         for (String s : properties.keySet()) {
             l.add(s);
@@ -67,61 +82,71 @@ public class BeanWrapper {
         return l;
     }
 
-    public BeanPropertyDescription getBeanPropertyDescription(String name) {
+    public BeanProperty getBeanProperty(String name) {
         return properties.get(name);
     }
-    
-    public String getDescription(String name) {
+
+    public Object getInitialValue(String name) {
+        return getBeanProperty(name).getInitialValue();
+    }
+
+    public void setUpdatedValue(String name, Object newValue) {
+        getBeanProperty(name).setUpdatedValue(newValue);
+    }
+
+    private String getDescription(String name) {
         Method m = findGetter(name);
-        BeanProperty bp = m.getAnnotation(BeanProperty.class);
+        java.beans.BeanProperty bp = m.getAnnotation(java.beans.BeanProperty.class);
         if (bp == null) {
             m = findSetter(name);
-            bp = m.getAnnotation(BeanProperty.class);
+            bp = m.getAnnotation(java.beans.BeanProperty.class);
             if (bp == null) {
                 return null;
             }
         }
         return bp.description();
-    }   
-    
-    public void setValue(String name, Object o) {
-         try {
+    }
+
+
+    private void setDataViaSetter(String name, Object o) {
+        try {
             Method m = findSetter(name);
             m.invoke(object, new Object[]{o});
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(BeanWrapper.class.getName()).log(Level.SEVERE, null, ex);
-        }       
+            Logger.getLogger(BeanPropertyWrapper.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
-    public Object getValue(String name) {
+    private Object getDataViaGetter(String name) {
         try {
             Method m = findGetter(name);
             return m.invoke(object, new Object[]{});
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(BeanWrapper.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BeanPropertyWrapper.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
 
     private Method findGetter(String name) {
-        for (Method m:object.getClass().getMethods()) {
-            if (m.getName().equals("is"+name)) {
+        for (Method m : object.getClass().getMethods()) {
+            if (m.getName().equals("is" + name)) {
                 return m;
             }
-            if (m.getName().equals("get"+name)) {
+            if (m.getName().equals("get" + name)) {
                 return m;
             }
         }
         return null;
     }
-    
+
     private Method findSetter(String name) {
-        for (Method m:object.getClass().getMethods()) {
-            if (m.getName().equals("set"+name)) {
+        for (Method m : object.getClass().getMethods()) {
+            if (m.getName().equals("set" + name)) {
                 return m;
             }
-         }
+        }
         return null;
     }
-    
+
+
 }

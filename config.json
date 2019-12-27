@@ -3,7 +3,7 @@
     "5012" : {
       "expectationsFile" : "expectations5012.json",
       "autoStart" : true,
-      "showPort" : true,
+      "showPort" : false,
       "timeToClose" : 1,
       "verbose" : true,
       "logProperties" : false
@@ -11,7 +11,7 @@
     "5003" : {
       "expectationsFile" : "expectations.json",
       "autoStart" : false,
-      "showPort" : true,
+      "showPort" : false,
       "timeToClose" : 1,
       "verbose" : true,
       "logProperties" : false
@@ -23,11 +23,11 @@
   "defaultPort" : 5012,
   "includeHeaders" : false,
   "includeBody" : true,
-  "x" : 458.0,
-  "y" : 344.0,
+  "x" : 1188.0,
+  "y" : 216.0,
   "width" : 799.0,
   "height" : 878.0,
   "expDividerPos" : [ 0.2456703014753047, 0.6247594611930725 ],
   "packDividerPos" : [ 0.11802437459910199, 0.7434252726106478 ]
-}}0199, 0.7434252726106478 ]
+}99, 0.7434252726106478 ]
 }}

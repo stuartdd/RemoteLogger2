@@ -22,7 +22,7 @@ package main.fields;
  * @author Stuart
  */
 public interface FXMLFieldChangeListener {
-    void changed(BeanPropertyDescription propertyDescription ,String id, String message);
-    void validate(BeanPropertyDescription propertyDescription, String id, Object oldValue, Object newvalue);
+    void changed(BeanProperty propertyDescription , String id, String message);
+    void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue);
     void select(String id);
 }

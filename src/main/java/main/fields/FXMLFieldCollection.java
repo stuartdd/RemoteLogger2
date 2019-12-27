@@ -18,11 +18,6 @@
 package main.fields;
 
 import common.PropertyDataWithAnnotations;
-import java.io.IOException;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -30,14 +25,19 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
- *
  * @author Stuart
  */
 public class FXMLFieldCollection {
 
     private List<FXMLField> fields = new ArrayList<>();
     private Map<String, FXMLHeadingField> headings = new HashMap<>();
+    private Map<String, BeanPropertyWrapper> beanPropertyWrapperMap = new HashMap<>();
     private Stage mainStage;
 
     private final VBox container;
@@ -47,7 +47,7 @@ public class FXMLFieldCollection {
         this.container = container;
         try {
             List<String> sortedKeys = new ArrayList<>();
-            for (String key:data.keySet()) {
+            for (String key : data.keySet()) {
                 sortedKeys.add(key);
             }
             sortedKeys.sort(new Comparator<String>() {
@@ -57,26 +57,24 @@ public class FXMLFieldCollection {
                 }
             });
 
-            for (String key:sortedKeys) {
-                BeanWrapper beanWrapper = new BeanWrapper(data.get(key));
+            for (String key : sortedKeys) {
+                BeanPropertyWrapper beanPropertyWrapper = new BeanPropertyWrapper(data.get(key));
+                beanPropertyWrapperMap.put(key, beanPropertyWrapper);
                 String h = headingTemplate.replaceAll("%\\{id\\}", key.toString());
                 h = h.replaceAll("%\\{type\\}", key);
                 FXMLHeadingField heading = new FXMLHeadingField(stage, key, h, changeListener);
                 headings.put(key, heading);
                 fields.add(heading);
-                for (String prop : beanWrapper.getPropertyList()) {
-                    BeanPropertyDescription desc = beanWrapper.getBeanPropertyDescription(prop);
-                    if (desc.isDefined()) {
-                        Class parameterType = desc.getParameterType();
-                        if (parameterType.equals(int.class) || parameterType.equals(Integer.class)) {
-                            fields.add(new FXMLIntegerField(stage, key, beanWrapper, prop, (Integer) beanWrapper.getValue(prop), ro, changeListener));
-                        }
-                        if (parameterType.equals(boolean.class) || parameterType.equals(Boolean.class)) {
-                            fields.add(new FXMLBooleanField(stage, key, beanWrapper, prop, (Boolean) beanWrapper.getValue(prop), ro, changeListener));
-                        }
-                        if (parameterType.equals(String.class)) {
-                            fields.add(new FXMLStringField(stage, key, beanWrapper, prop, (String) beanWrapper.getValue(prop), ro, changeListener));
-                        }
+                for (String prop : beanPropertyWrapper.getPropertyNameList()) {
+                    Class parameterType = beanPropertyWrapper.getBeanProperty(prop).getParameterType();
+                    if (parameterType.equals(int.class) || parameterType.equals(Integer.class)) {
+                        fields.add(new FXMLIntegerField(stage, key, beanPropertyWrapper, prop, (Integer) beanPropertyWrapper.getInitialValue(prop), ro, changeListener));
+                    }
+                    if (parameterType.equals(boolean.class) || parameterType.equals(Boolean.class)) {
+                        fields.add(new FXMLBooleanField(stage, key, beanPropertyWrapper, prop, (Boolean) beanPropertyWrapper.getInitialValue(prop), ro, changeListener));
+                    }
+                    if (parameterType.equals(String.class)) {
+                        fields.add(new FXMLStringField(stage, key, beanPropertyWrapper, prop, (String) beanPropertyWrapper.getInitialValue(prop), ro, changeListener));
                     }
                 }
             }
@@ -99,16 +97,16 @@ public class FXMLFieldCollection {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                 for (FXMLField field : fields) {
+                for (FXMLField field : fields) {
                     field.doLayout();
                 }
                 container.layout();
             }
         });
-     }
+    }
 
     public boolean isError() {
-        for (FXMLField field:fields) {
+        for (FXMLField field : fields) {
             if (field.isError()) {
                 return true;
             }
@@ -124,9 +122,17 @@ public class FXMLFieldCollection {
         if (heading == null) {
             return;
         }
-        heading.setBackgroundColor(c);
+        heading.setControlBackgroundColor(null, c);
     }
-    
+
+    public int updateAllValues() {
+        int count = 0;
+        for (Map.Entry<String, BeanPropertyWrapper> bp : beanPropertyWrapperMap.entrySet()) {
+            count = count + bp.getValue().updateAllValues();
+        }
+        return count;
+    }
+
     public boolean destroy() {
         for (FXMLField field : fields) {
             field.destroy();
@@ -134,6 +140,7 @@ public class FXMLFieldCollection {
         }
         fields = new ArrayList<>();
         headings = new HashMap<>();
+        beanPropertyWrapperMap = new HashMap<>();
         return true;
     }
 }
