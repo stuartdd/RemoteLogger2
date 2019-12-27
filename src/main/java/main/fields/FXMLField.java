@@ -17,6 +17,7 @@
  */
 package main.fields;
 
+import java.io.InputStream;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -35,8 +36,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
-import java.io.InputStream;
-
 /**
  * @author Stuart
  */
@@ -49,13 +48,13 @@ public abstract class FXMLField implements Comparable {
     private final Stage stage;
     private final Pane pane;
     private final BeanPropertyWrapper beanPropertyWrapper;
+    private final BeanProperty beanProperty;
     private final boolean readOnly;
     private final FXMLFieldChangeListener changeListener;
     private final String propertyName;
     private final String id;
     private Label label = null;
     private Button buttonRevert;
-    private boolean error;
 
     private static Image imageView;
 
@@ -71,8 +70,14 @@ public abstract class FXMLField implements Comparable {
     public FXMLField(Stage stage, String id, String fieldType, BeanPropertyWrapper beanPropertyWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
         this.stage = stage;
         this.id = id;
-        this.beanPropertyWrapper = beanPropertyWrapper;
         this.propertyName = propertyName;
+        if (beanPropertyWrapper != null) {
+            this.beanPropertyWrapper = beanPropertyWrapper;
+            this.beanProperty = beanPropertyWrapper.getBeanProperty(this.propertyName);
+        } else {
+            this.beanProperty = null;
+            this.beanPropertyWrapper = null;
+        }
         this.readOnly = readOnly;
         this.changeListener = changeListener;
         String fileName = "/FXML" + fieldType + "Field.fxml";
@@ -85,40 +90,48 @@ public abstract class FXMLField implements Comparable {
         for (Node c : getPane().getChildren()) {
             if (c instanceof Label) {
                 label = (Label) c;
-                if (beanPropertyWrapper == null) {
-                    label.setText(propertyName);
+                if (beanProperty != null) {
+                    label.setText(beanProperty.getDescription());
                 } else {
-                    label.setText(getBeanProperty().getDescription());
+                    label.setText(propertyName);
                 }
                 label.setLayoutX(5);
+                setControlBackgroundColor(label, BG_COLOR);
             }
             if ((c instanceof Button) && (c.getId().equals("buttonRevert"))) {
                 buttonRevert = (Button) c;
                 buttonRevert.setDisable(true);
                 buttonRevert.setTooltip(new Tooltip("Revert to original value"));
+                setControlBackgroundColor(buttonRevert, BG_COLOR);
                 if (imageView != null) {
                     buttonRevert.setGraphic(new ImageView(imageView));
                 }
                 buttonRevert.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent event) {
-                        doRevert();
+                        revert();
                     }
                 });
             }
         }
-        setError(false);
+    }
+
+    private void revert() {
+        if (beanProperty != null) {
+            beanProperty.revert();
+        }
+        doRevert();
     }
 
     protected abstract void doRevert();
 
-    protected void setControlWidth(Control control, double w) {
+    public final void setControlWidth(Control control, double w) {
         control.setMinWidth(w);
         control.setPrefWidth(w);
         control.setMaxWidth(w);
     }
 
-    protected void setControlBackgroundColor(Control control, Color c) {
+    public final void setControlBackgroundColor(Control control, Color c) {
         if (control != null) {
             control.setBackground(new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY)));
         } else {
@@ -158,33 +171,18 @@ public abstract class FXMLField implements Comparable {
     }
 
     public boolean isError() {
-        return error;
-    }
-
-    public void setError(boolean error) {
-        this.error = error;
-        if (error) {
-            setControlBackgroundColor(label, ERROR_COLOR);
-            setControlBackgroundColor(buttonRevert, ERROR_COLOR);
-            if (buttonRevert != null) {
-                buttonRevert.setDisable(false);
-            }
-        } else {
-            setControlBackgroundColor(label, BG_COLOR);
-            setControlBackgroundColor(buttonRevert, BG_COLOR);
-            if (buttonRevert != null) {
-                buttonRevert.setDisable(!getBeanProperty().isUpdated());
-            }
+        if (beanProperty != null) {
+            return beanProperty.isError();
         }
+        return false;
     }
 
     public String getPropertyName() {
         return propertyName;
     }
 
-
     public BeanProperty getBeanProperty() {
-        return beanPropertyWrapper.getBeanProperty(getPropertyName());
+        return beanProperty;
     }
 
     public final Pane getPane() {
@@ -218,30 +216,36 @@ public abstract class FXMLField implements Comparable {
     }
 
     public void removeCommonNodes() {
-        removeNode(buttonRevert);
         removeNode(label);
-    }
-
-    public void notifyError(String message) {
-        if (changeListener != null) {
-            changeListener.changed(getBeanPropertyWrapper().getBeanProperty(getPropertyName()), getId(), message);
-        }
+        removeNode(buttonRevert);
     }
 
     public void notifyChange(String message) {
-        if (changeListener != null) {
-            changeListener.changed(getBeanPropertyWrapper().getBeanProperty(getPropertyName()), getId(), message);
-        }
-        if (buttonRevert != null) {
-            buttonRevert.setDisable(!getBeanProperty().isUpdated());
+        if (beanProperty != null) {
+            if (changeListener != null) {
+                changeListener.changed(beanProperty, getId(), message);
+            }
+            if (beanProperty.isError()) {
+                setControlBackgroundColor(label, ERROR_COLOR);
+                setControlBackgroundColor(buttonRevert, ERROR_COLOR);
+                if (buttonRevert != null) {
+                    buttonRevert.setDisable(false);
+                }
+            } else {
+                setControlBackgroundColor(label, BG_COLOR);
+                setControlBackgroundColor(buttonRevert, BG_COLOR);
+                if (buttonRevert != null) {
+                    buttonRevert.setDisable(!beanProperty.isUpdated());
+                }
+            }
         }
     }
 
     public void validateChange(Object oldValue, Object newValue) {
         if (changeListener != null) {
-            changeListener.validate(getBeanPropertyWrapper().getBeanProperty(getPropertyName()), getId(), oldValue, newValue);
+            changeListener.validate(beanProperty, getId(), oldValue, newValue);
         }
-     }
+    }
 
     public abstract void destroy();
 

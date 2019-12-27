@@ -35,16 +35,12 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
     private int lowerbound = Integer.MIN_VALUE;
     private int upperbound = Integer.MAX_VALUE;
 
-    public FXMLIntegerField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, Integer value, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+    public FXMLIntegerField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
         super(stage, id, "String", beanPropertyWrapper, propertyName, readOnly, changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
-                if (value != null) {
-                    textField.setText(value.toString());
-                } else {
-                    textField.setText("null");
-                }
+                textField.setText(getBeanProperty().getDisplayValue().toString());
                 textField.textProperty().addListener(this);
             } else {
                 if ((c instanceof Button) && (!c.getId().equals("buttonRevert"))) {
@@ -98,23 +94,21 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                     if ((i < lowerbound) || (i > upperbound)) {
                         throw new DataValidationException("must be between " + lowerbound + " and " + upperbound);
                     } else {
-                        setError(false);
-                        getBeanPropertyWrapper().setUpdatedValue(getPropertyName(),newValue);
+                        getBeanProperty().setUpdatedValue(i);
                         notifyChange("Property '" + getPropertyName() + "' updated to:" + newValue);
                     }
                 } catch (NumberFormatException e) {
-                    setError(true);
+                    getBeanProperty().setErrorValue(newValue);
                     notifyChange("!ERROR: Value [" + newValue + "] is not a valid integer");
                 } catch (Exception e) {
-                    setError(true);
-                    notifyError("!ERROR: Value [" + newValue + "] " + e.getMessage());
+                    getBeanProperty().setErrorValue(newValue);
+                    notifyChange("!ERROR: Value [" + newValue + "] " + e.getMessage());
                 }
+                textField.setText(getBeanProperty().getDisplayValue().toString());
             } finally {
                 textField.textProperty().addListener(this);
             }
         }
     }
-
-
 
 }

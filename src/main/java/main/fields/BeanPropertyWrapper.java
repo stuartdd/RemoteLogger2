@@ -64,7 +64,6 @@ public class BeanPropertyWrapper {
     public int updateAllValues() {
         int count = 0;
         for (Map.Entry<String, BeanProperty> es : properties.entrySet()) {
-            System.out.println("updateAllValues:"+es.toString());
             if (es.getValue().isUpdated()) {
                 setDataViaSetter(es.getKey(), es.getValue().getUpdatedValue());
                 count++;
@@ -73,6 +72,14 @@ public class BeanPropertyWrapper {
         return count;
     }
 
+    public boolean hasErrors() {
+        for (BeanProperty bp : properties.values()) {
+            if (bp.isError()) {
+                return true;
+            }
+        }        
+        return false;
+    }
 
     public List<String> getPropertyNameList() {
         List<String> l = new ArrayList<>();

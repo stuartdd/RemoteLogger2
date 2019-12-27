@@ -32,12 +32,12 @@ public class FXMLBooleanField extends FXMLField implements ChangeListener<Boolea
 
     private CheckBox checkBox;
 
-    public FXMLBooleanField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, Boolean state, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+    public FXMLBooleanField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
         super(stage, id,"Boolean", beanPropertyWrapper, propertyName, readOnly,changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof CheckBox) {
                 checkBox = (CheckBox) c;
-                checkBox.setSelected(state);
+                checkBox.setSelected((Boolean)getBeanProperty().getDisplayValue());
                 checkBox.selectedProperty().addListener(this);
             }
         }

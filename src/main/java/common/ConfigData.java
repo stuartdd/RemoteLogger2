@@ -18,7 +18,7 @@ package common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import config.Config;
-
+import java.beans.BeanProperty;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,7 +32,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import server.ServerConfig;
 
-public class ConfigData extends Config {
+public class ConfigData extends Config implements PropertyDataWithAnnotations {
 
     public static void store() throws IOException {
         File f = new File(writeFileName);
@@ -104,6 +104,7 @@ public class ConfigData extends Config {
         this.servers = servers;
     }
 
+    @BeanProperty(description = "Packaged Requests File | validation=pak,type=file,desc=Json Expectation File,ext=json")
     public String getPackagedRequestsFile() {
         return packagedRequestsFile;
     }
@@ -112,6 +113,7 @@ public class ConfigData extends Config {
         this.packagedRequestsFile = packagedRequestsFile;
     }
 
+    @BeanProperty(description = "Packaged Requests Name")
     public String getSelectedPackagedRequestName() {
         return selectedPackagedRequestName;
     }
@@ -129,6 +131,7 @@ public class ConfigData extends Config {
     }
 
 
+    @BeanProperty(description = "Default Port | validation=defport")
     public int getDefaultPort() {
         return defaultPort;
     }
@@ -185,6 +188,7 @@ public class ConfigData extends Config {
         this.packDividerPos = packDividerPos;
     }
 
+    @BeanProperty(description = "Include header data in logs")
     public boolean isIncludeHeaders() {
         return includeHeaders;
     }
@@ -193,6 +197,7 @@ public class ConfigData extends Config {
         this.includeHeaders = includeHeaders;
     }
 
+    @BeanProperty(description = "Include http body data in logs")
     public boolean isIncludeBody() {
         return includeBody;
     }
@@ -201,6 +206,7 @@ public class ConfigData extends Config {
         this.includeBody = includeBody;
     }
 
+    @BeanProperty(description = "Log Date Time format (eg HH:mm:ss.SSS)")
     public String getTimeFormat() {
         if (timeFormat == null) {
             return "HH:mm:ss.SSS";

@@ -53,23 +53,8 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private static final String LOGS_TAB_FX_ID = "logs";
     private static final String EXPECTATIONS_TAB_FX_ID = "expectations";
 
-
-    @FXML
-    private AnchorPane connectionsAnchorPane;
-
-    @FXML
-    private Canvas connectionCanvas;
-
     @FXML
     private TabPane mainTabbedPane;
-
-    @FXML
-    private VBox vBoxServers;
-    private FXMLFieldCollection serverFieldCollection;
-
-    @FXML
-    private VBox vBoxExpectations;
-    private FXMLFieldCollection expectationsFieldCollection;
 
     @FXML
     private VBox vBoxLogsControlList;
@@ -82,15 +67,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     private ScrollPane scrollPaneLogLines;
+    
     @FXML
     private TextArea textAreaLogLines;
 
     @FXML
     private Button buttonStartStopServer;
-    @FXML
-    private Button buttonSaveConfigChanges;
-    @FXML
-    private Button buttonReloadConfigChanges;
 
     @FXML
     private ChoiceBox serverChoiceBox;
@@ -112,7 +94,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
     public void handleCloseApplicationButton() {
         Main.closeApplication(0, configDataHasChanged);
     }
-
 
     @FXML
     public void handleButtonStartStopServer() {
@@ -138,25 +119,13 @@ public class FXMLDocumentController implements Initializable, Notifier {
             if (newTab == oldTab) {
                 return;
             }
-            if (oldTab.getId().equalsIgnoreCase(SERVER_TAB_FX_ID)) {
-                serverFieldCollection.destroy();
-            }
             if (oldTab.getId().equalsIgnoreCase(LOGS_TAB_FX_ID)) {
                 updateTheLogs(true);
             }
-            if (oldTab.getId().equalsIgnoreCase(EXPECTATIONS_TAB_FX_ID)) {
-                expectationsFieldCollection.destroy();
-            }
             currentTabId = null;
-        }
-        if (newTab.getId().equalsIgnoreCase(SERVER_TAB_FX_ID)) {
-            initializeServerDataEditTab();
         }
         if (newTab.getId().equalsIgnoreCase(LOGS_TAB_FX_ID)) {
             updateTheLogs(false);
-        }
-        if (newTab.getId().equalsIgnoreCase(EXPECTATIONS_TAB_FX_ID)) {
-            initializeExpectationsDataEditTab();
         }
         currentTabId = newTab.getId();
     }
@@ -197,8 +166,8 @@ public class FXMLDocumentController implements Initializable, Notifier {
     }
 
     /**
-     * Call each time we update the logs.
-     * initialiseLogPanelCheckBoxes ensures that the log check boxes are aligned with the config data and selected.
+     * Call each time we update the logs. initialiseLogPanelCheckBoxes ensures
+     * that the log check boxes are aligned with the config data and selected.
      * <p>
      * Set the text to the current log content
      *
@@ -248,9 +217,9 @@ public class FXMLDocumentController implements Initializable, Notifier {
         }
     }
 
-
     /**
-     * Call once to set up the TAB pane. Defined initial selection and change listeners.
+     * Call once to set up the TAB pane. Defined initial selection and change
+     * listeners.
      *
      * @param index
      * @return The current selection index.
@@ -272,28 +241,60 @@ public class FXMLDocumentController implements Initializable, Notifier {
     public void handleServersButton() {
         try {
             FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), ServerManager.serverConfigDataMap(), "Server %{id}:", new FXMLFieldChangeListener() {
-                        @Override
-                        public void changed(BeanProperty propertyDescription, String id, String message) {
-                        }
+                @Override
+                public void changed(BeanProperty propertyDescription, String id, String message) {
+                }
 
-                        @Override
-                        public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue) {
-                            if (propertyDescription.isValidationId("defport")) {
-                                if (ServerManager.hasPort(Util.parseInt((String) newvalue, "Should be s valid port number"))) {
-                                    return;
-                                }
-                                throw new DataValidationException("Must be an existing server port: " + ServerManager.portList().toString());
-                            } else {
-                                if (propertyDescription.isValidationId("pak")) {
-                                    new packaged.PackagedManager((String) newvalue);
-                                }
-                            }
+                @Override
+                public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newValue) {
+                    if (propertyDescription.isValidationId("exp")) {
+                        new ServerExpectations(Util.parseInt(id, "Server port"), (String) newValue);
+                    }
+                    return;
+                }
+
+                @Override
+                public void select(String id) {
+                }
+            }
+            );
+            boolean accept = settingsController.showAndWait();
+            if (accept) {
+                configDataHasChanged = (settingsController.updateAllValues() > 0);
+                initialiseLogPanelCheckBoxes(false);
+                updateTheLogs(false);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void handleSettingsButton() {
+        try {
+            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), ConfigData.getInstance(), "Settings", new FXMLFieldChangeListener() {
+                @Override
+                public void changed(BeanProperty propertyDescription, String id, String message) {
+                }
+
+                @Override
+                public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue) {
+                    if (propertyDescription.isValidationId("defport")) {
+                        if (ServerManager.hasPort(Util.parseInt((String) newvalue, "Should be s valid port number"))) {
                             return;
                         }
-                        @Override
-                        public void select(String id) {
-                        }
+                        throw new DataValidationException("Must be an existing server port: " + ServerManager.portList().toString());
                     }
+                    if (propertyDescription.isValidationId("pak")) {
+                        new packaged.PackagedManager((String) newvalue);
+                    }
+                    return;
+                }
+
+                @Override
+                public void select(String id) {
+                }
+            }
             );
             boolean accept = settingsController.showAndWait();
             if (accept) {
@@ -304,129 +305,10 @@ public class FXMLDocumentController implements Initializable, Notifier {
         }
     }
 
-    @FXML
-    public void handleSettingsButton() {
-        try {
-            ConfigSettingsDummy configSettingsDummy = new ConfigSettingsDummy(ConfigData.getInstance());
-            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), configSettingsDummy, "Settings", new FXMLFieldChangeListener() {
-                        @Override
-                        public void changed(BeanProperty propertyDescription, String id, String message) {
-                        }
-
-                        @Override
-                        public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue) {
-                            if (propertyDescription.isValidationId("defport")) {
-                                if (ServerManager.hasPort(Util.parseInt((String) newvalue, "Should be s valid port number"))) {
-                                    return;
-                                }
-                                throw new DataValidationException("Must be an existing server port: " + ServerManager.portList().toString());
-                            } else {
-                                if (propertyDescription.isValidationId("pak")) {
-                                    new packaged.PackagedManager((String) newvalue);
-                                }
-                            }
-                            return;
-                        }
-
-                        @Override
-                        public void select(String id) {
-                        }
-                    }
-            );
-            boolean accept = settingsController.showAndWait();
-            if (accept) {
-                if (settingsController.isUpdated()) {
-                    configSettingsDummy.commit();
-                    configDataHasChanged = true;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void initializeExpectationsDataEditTab() {
-        expectationsFieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxExpectations, ServerManager.getExpectationsMap(currentSelectedServerPort), false, "%{id}:", new FXMLFieldChangeListener() {
-            @Override
-            public void changed(BeanProperty propertyDescription, String id, String message) {
-
-            }
-
-            @Override
-            public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue) {
-
-            }
-
-            @Override
-            public void select(String id) {
-
-            }
-        });
-    }
-
-    /**
-     * Call to set up the server data edit
-     * <p>
-     * Should be done each time the tab is selected.
-     */
-    private void initializeServerDataEditTab() {
-        buttonSaveConfigChanges.setDisable(!configDataHasChanged);
-        buttonReloadConfigChanges.setDisable(!configDataHasChanged);
-        serverFieldCollection = new FXMLFieldCollection(Main.getStage(), vBoxServers, ServerManager.serverConfigDataMap(), false, "Server %{id}:", new FXMLFieldChangeListener() {
-            @Override
-            public void changed(BeanProperty propertyDescription, String id, String message) {
-                if (serverFieldCollection.isError()) {
-                    buttonSaveConfigChanges.setDisable(true);
-                    buttonReloadConfigChanges.setDisable(false);
-                } else {
-                    configDataHasChanged = true;
-                    buttonSaveConfigChanges.setDisable(false);
-                    buttonReloadConfigChanges.setDisable(false);
-                }
-                setStatus(message);
-            }
-
-            @Override
-            public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newValue) {
-                if (propertyDescription.isValidationId("exp")) {
-                    try {
-                        new ServerExpectations(Util.parseInt(id, "Server port"), (String) newValue);
-                    } catch (Exception e) {
-                        throw new DataValidationException(e.getMessage());
-                    }
-                }
-            }
-
-            @Override
-            public void select(String id) {
-                for (Object o : serverChoiceBox.getItems()) {
-                    if (o.toString().equals(id)) {
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                serverChoiceBox.getSelectionModel().select(o);
-                            }
-                        });
-                        break;
-                    }
-                }
-            }
-        });
-
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                for (Integer p : ServerManager.ports()) {
-                    serverFieldCollection.setHeadingColour(p.toString(), colorForServerState(ServerManager.getServerState(p)));
-                }
-            }
-        });
-    }
-
     /**
      * Call once to set up the server port drop down (ChoiceBox)
      *
-     * @return the current port (first in  th eserver list).
+     * @return the current port (first in the server list).
      */
     private int initializePortChoiceBox() {
         serverChoiceBox.setItems(FXCollections.observableArrayList(ServerManager.portList()));
@@ -452,13 +334,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
             @Override
             public void run() {
                 switch (notification.getAction()) {
-                    case CONFIG_RELOAD:
-                        configDataHasChanged = false;
-                        if (serverFieldCollection != null) {
-                            serverFieldCollection.destroy();
-                        }
-                        initializeServerDataEditTab();
-                        break;
                     case SERVER_SELECTED:
                         serverPortSelectionChanged((Integer) notification.getData("port"));
                         break;
@@ -497,9 +372,11 @@ public class FXMLDocumentController implements Initializable, Notifier {
     /**
      * Call whenever a server changes status.
      * <p>
-     * Updates the port drop down colour. The start stop button status and the status text
+     * Updates the port drop down colour. The start stop button status and the
+     * status text
      * <p>
-     * If the server data edit page is set up then sets the heading colour for that server
+     * If the server data edit page is set up then sets the heading colour for
+     * that server
      */
     private void setServerChoiceBoxColour() {
         serverStateLabel.setText(ServerManager.getServer(currentSelectedServerPort).getServerState().getInfo());
@@ -513,9 +390,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 break;
             default:
                 setServerDetail(currentSelectedServerPort, true, "Wait");
-        }
-        if (serverFieldCollection != null) {
-            serverFieldCollection.setHeadingColour(currentSelectedServerPort.toString(), colorForServerState(ServerManager.getServer(currentSelectedServerPort).getServerState()));
         }
     }
 
@@ -538,6 +412,5 @@ public class FXMLDocumentController implements Initializable, Notifier {
         }
         return Color.PINK;
     }
-
 
 }

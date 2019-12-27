@@ -33,16 +33,17 @@ public class PackagedManager {
     public PackagedManager(String filaName) {
         this.filaName = filaName;
         File file = new File(this.filaName);
+        PackagedRequests pr;
         if (file.exists()) {
             try {
-                PackagedRequests packagedRequests = (PackagedRequests) JsonUtils.beanFromJson(PackagedRequests.class, file);
+                pr = (PackagedRequests) JsonUtils.beanFromJson(PackagedRequests.class, file);
             } catch (Exception ex) {
                 throw new PackagedException("Package file '"+file.getAbsolutePath()+"' is not a valid PackagedRequests json file");
             }
-            if (packagedRequests.getPackagedRequests().size() == 0) {
+            if (pr.getPackagedRequests().size() == 0) {
                 throw new PackagedException("Package does not contain any packaged requests");
             }
-            this.packagedRequests = packagedRequests;
+            this.packagedRequests = pr;
         } else {
             throw new PackagedException("Package file '"+file.getAbsolutePath()+"' does not exist");
         }

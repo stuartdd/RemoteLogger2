@@ -18,17 +18,16 @@
 package main.fields;
 
 import common.PropertyDataWithAnnotations;
+import java.io.IOException;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Stuart
@@ -68,13 +67,13 @@ public class FXMLFieldCollection {
                 for (String prop : beanPropertyWrapper.getPropertyNameList()) {
                     Class parameterType = beanPropertyWrapper.getBeanProperty(prop).getParameterType();
                     if (parameterType.equals(int.class) || parameterType.equals(Integer.class)) {
-                        fields.add(new FXMLIntegerField(stage, key, beanPropertyWrapper, prop, (Integer) beanPropertyWrapper.getInitialValue(prop), ro, changeListener));
+                        fields.add(new FXMLIntegerField(stage, key, beanPropertyWrapper, prop, ro, changeListener));
                     }
                     if (parameterType.equals(boolean.class) || parameterType.equals(Boolean.class)) {
-                        fields.add(new FXMLBooleanField(stage, key, beanPropertyWrapper, prop, (Boolean) beanPropertyWrapper.getInitialValue(prop), ro, changeListener));
+                        fields.add(new FXMLBooleanField(stage, key, beanPropertyWrapper, prop, ro, changeListener));
                     }
                     if (parameterType.equals(String.class)) {
-                        fields.add(new FXMLStringField(stage, key, beanPropertyWrapper, prop, (String) beanPropertyWrapper.getInitialValue(prop), ro, changeListener));
+                        fields.add(new FXMLStringField(stage, key, beanPropertyWrapper, prop, ro, changeListener));
                     }
                 }
             }

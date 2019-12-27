@@ -34,7 +34,7 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
 
     private Stage modalStage;
     private FXMLFieldCollection fieldCollection;
-    private Map<String,PropertyDataWithAnnotations> beans;
+    private Map<String, PropertyDataWithAnnotations> beans;
     private boolean acceptChanges = false;
     private boolean updated;
     private FXMLFieldChangeListener listener;
@@ -63,7 +63,7 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
         close();
     }
 
-    public static FXMLSettingsController load(Stage parent, Map<String,PropertyDataWithAnnotations> beans, String headingTemplate, FXMLFieldChangeListener listener) throws IOException {
+    public static FXMLSettingsController load(Stage parent, Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, FXMLFieldChangeListener listener) throws IOException {
         FXMLSettingsController controller = createController("/FXMLSettingsDocument.fxml", parent);
         controller.init(beans, headingTemplate, listener);
         return controller;
@@ -90,7 +90,7 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
             controller.getModalStage().initModality(Modality.APPLICATION_MODAL);
             return controller;
         } catch (IOException e) {
-            throw new FXMLBeanFieldLoaderException("Failed to load '"+FXMLFileNmae+"' from resources", e);
+            throw new FXMLBeanFieldLoaderException("Failed to load '" + FXMLFileNmae + "' from resources", e);
         }
     }
 
@@ -125,7 +125,6 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
         modalStage.close();
     }
 
-
     public Stage getModalStage() {
         return modalStage;
     }
@@ -145,8 +144,15 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
     @Override
     public void changed(BeanProperty propertyDescription, String id, String message) {
         if (listener != null) {
-            listener.changed(propertyDescription, id, message);
-            setStatus(message);
+            try {
+                listener.changed(propertyDescription, id, message);
+                setStatus(message);
+            } catch (Exception e) {
+                setStatus(e.getMessage());
+                throw e;
+            } finally {
+                doneButton.setDisable(fieldCollection.isError());
+            }
         }
         updated = true;
     }
@@ -160,14 +166,7 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
                 setStatus(e.getMessage());
                 throw e;
             } finally {
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (int p : ServerManager.ports()) {
-                            doneButton.setDisable(fieldCollection.isError());
-                        }
-                    }
-                });
+                doneButton.setDisable(fieldCollection.isError());
             }
         }
     }
