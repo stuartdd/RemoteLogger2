@@ -37,6 +37,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import main.dialogs.Dialogs;
+import main.dialogs.FXMLYesNoCancelDialog;
 import server.ServerConfig;
 import server.ServerManager;
 
@@ -154,6 +155,7 @@ public class Main extends Application {
      */
     public static void closeApplication(int returnCode, boolean saveConfig) {
         if (saveConfig) {
+            FXMLYesNoCancelDialog.RESP resp = FXMLYesNoCancelDialog.load(null, mainStage, "Exit Application").showAndWait();
             if (!Dialogs.alertOkCancel(getPoint().x,getPoint().y,"Changes have been made!", "Save Configuration changes?", "Time to make a decision!")) {
                 loadConfig();
             }

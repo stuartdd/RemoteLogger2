@@ -19,6 +19,11 @@ package main;
 
 import common.*;
 import geom.Point;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -26,23 +31,15 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import main.dialogs.Dialogs;
 import main.fields.BeanProperty;
 import main.fields.FXMLFieldChangeListener;
-import main.fields.FXMLFieldCollection;
 import server.ServerExpectations;
 import server.ServerManager;
 import server.ServerState;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
 
 /**
  *
