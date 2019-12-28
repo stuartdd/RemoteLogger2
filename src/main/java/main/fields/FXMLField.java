@@ -56,15 +56,15 @@ public abstract class FXMLField implements Comparable {
     private Label label = null;
     private Button buttonRevert;
 
-    private static Image imageView;
+    private static Image revertImage = loadImage("/revert.png");
 
-    static {
-        InputStream input = FXMLField.class.getResourceAsStream("/revert.png");
+    public static Image loadImage(String name) {
+        InputStream input = FXMLField.class.getResourceAsStream(name);
         if (input != null) {
-            imageView = new Image(input);
+            return new Image(input);
         } else {
-            imageView = null;
-        }
+            return null;
+        }        
     }
 
     public FXMLField(Stage stage, String id, String fieldType, BeanPropertyWrapper beanPropertyWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
@@ -103,8 +103,8 @@ public abstract class FXMLField implements Comparable {
                 buttonRevert.setDisable(true);
                 buttonRevert.setTooltip(new Tooltip("Revert to original value"));
                 setControlBackgroundColor(buttonRevert, BG_COLOR);
-                if (imageView != null) {
-                    buttonRevert.setGraphic(new ImageView(imageView));
+                if (revertImage != null) {
+                    buttonRevert.setGraphic(new ImageView(revertImage));
                 }
                 buttonRevert.setOnAction(new EventHandler<ActionEvent>() {
                     @Override

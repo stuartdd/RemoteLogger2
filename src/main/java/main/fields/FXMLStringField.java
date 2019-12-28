@@ -23,6 +23,8 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -32,6 +34,8 @@ import main.dialogs.Dialogs;
  * @author Stuart
  */
 public class FXMLStringField extends FXMLField implements ChangeListener<String> {
+
+    private static Image fileImage = loadImage("/json-file.png");
 
     private TextField textField;
     private Button fileButton;
@@ -48,6 +52,9 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
             } else {
                 if ((c instanceof Button) && (c.getId().equals("buttonFile"))) {
                     fileButton = (Button) c;
+                    if (fileImage != null) {
+                        fileButton.setGraphic(new ImageView(fileImage));
+                    }
                     if (getBeanProperty().isTypeId("file")) {
                         hasFileButton = true;
                         String ext = getBeanProperty().getFlag("ext", "json");
@@ -72,7 +79,6 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
         }
     }
 
-
     @Override
     public void doLayout() {
         if (textField == null) {
@@ -83,12 +89,12 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
         double lWidth = getLabelWidth();
         textField.setLayoutX(lWidth + 10);
         if (hasFileButton) {
-            setControlWidth(textField, fWidth - 130);
+            setControlWidth(textField, fWidth - 145);
             setControlWidth(fileButton, 40);
             fileButton.setVisible(true);
-            fileButton.setLayoutX((lWidth + fWidth) - 110);
+            fileButton.setLayoutX((lWidth + fWidth) - 130);
         } else {
-            if (fileButton!=null) {
+            if (fileButton != null) {
                 fileButton.setVisible(false);
             }
             setControlWidth(textField, fWidth - 20);
@@ -99,7 +105,6 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
     protected void doRevert() {
         textField.setText(getBeanProperty().getDisplayValue().toString());
     }
-
 
     @Override
     public void destroy() {

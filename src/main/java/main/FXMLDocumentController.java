@@ -67,7 +67,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     private ScrollPane scrollPaneLogLines;
-    
+
     @FXML
     private TextArea textAreaLogLines;
 
@@ -108,6 +108,78 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     public void handleButtonReloadConfigChanges() {
         Main.controllerNotification(new Notification(currentSelectedServerPort, Action.RELOAD_RESTART_SERVERS, null, "Restarting Servers"));
+    }
+
+    @FXML
+    public void handleServersButton() {
+        try {
+            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), ServerManager.serverConfigDataMap(), "Server %{id}:", "Basic Server Settings", new FXMLFieldChangeListener() {
+                @Override
+                public void changed(BeanProperty propertyDescription, String id, String message) {
+                }
+                @Override
+                public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newValue) {
+                    if (propertyDescription.isValidationId("exp")) {
+                        new ServerExpectations(Util.parseInt(id, "Server port"), (String) newValue);
+                    }
+                    return;
+                }
+            });
+            boolean accept = settingsController.showAndWait();
+            if (accept) {
+                int count = settingsController.updateAllValues();
+                if (count > 0) {
+                    configDataHasChanged = true;
+                    initialiseLogPanelCheckBoxes(false);
+                    updateTheLogs(false);
+                    setStatus("[ " + count + " ] Change(s) have been applied");
+                } else {
+                    setStatus("No changes were made");
+                }
+            } else {
+                setStatus("Changes cancelled");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void handleSettingsButton() {
+        try {
+            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), ConfigData.getInstance(), "Settings", "Application Setting", new FXMLFieldChangeListener() {
+                @Override
+                public void changed(BeanProperty propertyDescription, String id, String message) {
+                }
+                @Override
+                public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue) {
+                    if (propertyDescription.isValidationId("defport")) {
+                        if (ServerManager.hasPort(Util.parseInt((String) newvalue, "Should be s valid port number"))) {
+                            return;
+                        }
+                        throw new DataValidationException("Must be an existing server port: " + ServerManager.portList().toString());
+                    }
+                    if (propertyDescription.isValidationId("pak")) {
+                        new packaged.PackagedManager((String) newvalue);
+                    }
+                    return;
+                }
+            });
+            boolean accept = settingsController.showAndWait();
+            if (accept) {
+                int count = settingsController.updateAllValues();
+                if (count > 0) {
+                    configDataHasChanged = true;
+                    setStatus("[ " + count + " ] Change(s) have been applied");
+                } else {
+                    setStatus("No changes were made");
+                }
+            } else {
+                setStatus("Changes cancelled");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean hasConfigDataHasChanged() {
@@ -235,74 +307,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
             }
         });
         return mainTabbedPane.getTabs().get(index);
-    }
-
-    @FXML
-    public void handleServersButton() {
-        try {
-            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), ServerManager.serverConfigDataMap(), "Server %{id}:", new FXMLFieldChangeListener() {
-                @Override
-                public void changed(BeanProperty propertyDescription, String id, String message) {
-                }
-
-                @Override
-                public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newValue) {
-                    if (propertyDescription.isValidationId("exp")) {
-                        new ServerExpectations(Util.parseInt(id, "Server port"), (String) newValue);
-                    }
-                    return;
-                }
-
-                @Override
-                public void select(String id) {
-                }
-            }
-            );
-            boolean accept = settingsController.showAndWait();
-            if (accept) {
-                configDataHasChanged = (settingsController.updateAllValues() > 0);
-                initialiseLogPanelCheckBoxes(false);
-                updateTheLogs(false);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    public void handleSettingsButton() {
-        try {
-            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), ConfigData.getInstance(), "Settings", new FXMLFieldChangeListener() {
-                @Override
-                public void changed(BeanProperty propertyDescription, String id, String message) {
-                }
-
-                @Override
-                public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue) {
-                    if (propertyDescription.isValidationId("defport")) {
-                        if (ServerManager.hasPort(Util.parseInt((String) newvalue, "Should be s valid port number"))) {
-                            return;
-                        }
-                        throw new DataValidationException("Must be an existing server port: " + ServerManager.portList().toString());
-                    }
-                    if (propertyDescription.isValidationId("pak")) {
-                        new packaged.PackagedManager((String) newvalue);
-                    }
-                    return;
-                }
-
-                @Override
-                public void select(String id) {
-                }
-            }
-            );
-            boolean accept = settingsController.showAndWait();
-            if (accept) {
-                configDataHasChanged = (settingsController.updateAllValues() > 0);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**

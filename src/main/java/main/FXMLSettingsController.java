@@ -4,8 +4,6 @@ import common.PropertyDataWithAnnotations;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -18,6 +16,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
@@ -28,7 +27,6 @@ import main.fields.BeanProperty;
 import main.fields.FXMLBeanFieldLoaderException;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
-import server.ServerManager;
 
 public class FXMLSettingsController implements FXMLFieldChangeListener {
 
@@ -52,6 +50,18 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
     public Button doneButton;
 
     @FXML
+    public Button removeButton;
+
+    @FXML
+    public FlowPane addFlowPane;
+
+    @FXML
+    public FlowPane removeFlowPane;
+
+    @FXML
+    public Button addButton;
+
+    @FXML
     public void handleDoneButton() {
         acceptChanges = true;
         close();
@@ -63,21 +73,29 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
         close();
     }
 
-    public static FXMLSettingsController load(Stage parent, Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, FXMLFieldChangeListener listener) throws IOException {
-        FXMLSettingsController controller = createController("/FXMLSettingsDocument.fxml", parent);
-        controller.init(beans, headingTemplate, listener);
+    @FXML
+    public void handleRemoveButton() {
+    }
+
+    @FXML
+    public void handleAddButton() {
+    }
+
+    public static FXMLSettingsController load(Stage parent, Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, String title, FXMLFieldChangeListener listener) throws IOException {
+        FXMLSettingsController controller = createController("/FXMLSettingsDocument.fxml", parent, title);
+        controller.init(beans, headingTemplate, listener, true);
         return controller;
     }
 
-    public static FXMLSettingsController load(Stage parent, PropertyDataWithAnnotations bean, String headingTemplate, FXMLFieldChangeListener listener) throws IOException {
-        FXMLSettingsController controller = createController("/FXMLSettingsDocument.fxml", parent);
+    public static FXMLSettingsController load(Stage parent, PropertyDataWithAnnotations bean, String headingTemplate, String title, FXMLFieldChangeListener listener) throws IOException {
+        FXMLSettingsController controller = createController("/FXMLSettingsDocument.fxml", parent, title);
         Map<String, PropertyDataWithAnnotations> beans = new HashMap<>();
         beans.put("data", bean);
-        controller.init(beans, headingTemplate, listener);
+        controller.init(beans, headingTemplate, listener, false);
         return controller;
     }
 
-    private static FXMLSettingsController createController(String FXMLFileNmae, Window parent) {
+    private static FXMLSettingsController createController(String FXMLFileNmae, Window parent, String title) {
         FXMLSettingsController controller = new FXMLSettingsController();
         FXMLLoader loader = new FXMLLoader(FXMLSettingsController.class.getResource(FXMLFileNmae));
         loader.setController(controller);
@@ -88,18 +106,21 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
             controller.getModalStage().setScene(scene);
             controller.getModalStage().initOwner(parent);
             controller.getModalStage().initModality(Modality.APPLICATION_MODAL);
+            controller.getModalStage().setTitle(title);
             return controller;
         } catch (IOException e) {
             throw new FXMLBeanFieldLoaderException("Failed to load '" + FXMLFileNmae + "' from resources", e);
         }
     }
 
-    private FXMLFieldCollection init(Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, FXMLFieldChangeListener listener) {
+    private FXMLFieldCollection init(Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, FXMLFieldChangeListener listener, boolean addRemove) {
         this.beans = beans;
         this.listener = listener;
         this.updated = false;
         scrollPaneSettings.setFitToHeight(true);
         scrollPaneSettings.setFitToWidth(true);
+        addFlowPane.setVisible(addRemove);
+        removeFlowPane.setVisible(addRemove);
         this.fieldCollection = new FXMLFieldCollection(modalStage, vBoxSettings, beans, false, headingTemplate, this);
         return this.fieldCollection;
     }
@@ -168,13 +189,6 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
             } finally {
                 doneButton.setDisable(fieldCollection.isError());
             }
-        }
-    }
-
-    @Override
-    public void select(String id) {
-        if (listener != null) {
-            listener.select(id);
         }
     }
 

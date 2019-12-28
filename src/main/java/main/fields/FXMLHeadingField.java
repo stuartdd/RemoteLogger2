@@ -32,12 +32,6 @@ public class FXMLHeadingField extends FXMLField {
     public FXMLHeadingField(Stage stage, String id, String text, FXMLFieldChangeListener changeListener) throws IOException {
         super(stage, id,"Heading", null, text, true, null);
         setControlBackgroundColor(null, HEADING_COLOR);
-        getPane().setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent arg0) {
-                changeListener.select(getIdString());
-            }
-        });
     }
 
     @Override

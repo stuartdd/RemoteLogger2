@@ -22,7 +22,6 @@ import common.ConfigData;
 import common.Notification;
 import common.Util;
 import geom.Point;
-import geom.Rect;
 import java.awt.AWTException;
 import java.io.IOException;
 import java.util.Map;

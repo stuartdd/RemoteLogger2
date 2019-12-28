@@ -5,7 +5,6 @@
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
@@ -27,7 +26,7 @@
                            <children>
                               <BorderPane prefHeight="551.0" prefWidth="562.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                  <left>
-                                    <VBox fx:id="vBoxLogsControlList" alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0" BorderPane.alignment="CENTER">
+                                    <VBox fx:id="vBoxLogsControlList" alignment="TOP_CENTER" prefHeight="461.0" prefWidth="122.0" spacing="5.0" BorderPane.alignment="CENTER">
                                        <children>
                                           <Button mnemonicParsing="false" onAction="#handleClearLogsButton" text="Clear Logs" />
                                        </children>
@@ -57,9 +56,9 @@
             </TabPane>
          </center>
          <bottom>
-            <AnchorPane prefHeight="29.0" prefWidth="493.0" BorderPane.alignment="CENTER">
+            <AnchorPane BorderPane.alignment="CENTER">
                <children>
-                  <Label fx:id="labelStatus" layoutY="-6.0" prefHeight="33.0" prefWidth="493.0" text="Status" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="-6.0">
+                  <Label fx:id="labelStatus" layoutY="-9.0" text="Status" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <font>
                         <Font size="14.0" />
                      </font>
@@ -67,28 +66,27 @@
                         <Insets left="10.0" />
                      </padding></Label>
                </children>
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </padding>
             </AnchorPane>
          </bottom>
          <top>
-            <FlowPane prefHeight="21.0" prefWidth="493.0" BorderPane.alignment="CENTER">
+            <FlowPane hgap="10.0" prefHeight="21.0" prefWidth="493.0" BorderPane.alignment="CENTER">
                <children>
-                  <Separator orientation="VERTICAL" prefHeight="14.0" prefWidth="0.0" />
                   <Button fx:id="buttonCloseApplication" onAction="#handleCloseApplicationButton" text="Finished" />
-                  <Separator orientation="VERTICAL" prefHeight="34.0" prefWidth="22.0" />
                   <Label text="PORT" />
-                  <Separator orientation="VERTICAL" prefHeight="26.0" prefWidth="0.0" visible="false" />
                   <ChoiceBox fx:id="serverChoiceBox" prefHeight="25.0" prefWidth="92.0" />
-                  <Separator orientation="VERTICAL" prefHeight="34.0" prefWidth="8.0" visible="false" />
                   <Button fx:id="buttonStartStopServer" mnemonicParsing="false" onAction="#handleButtonStartStopServer" text="Button" />
-                  <Separator orientation="VERTICAL" prefHeight="34.0" prefWidth="13.0" visible="false" />
                   <Label fx:id="serverStateLabel" prefHeight="17.0" prefWidth="202.0" text="STATE" />
                   <Button mnemonicParsing="false" onAction="#handleSettingsButton" text="Settings" />
                   <Button mnemonicParsing="false" onAction="#handleServersButton" text="Servers" />
                </children>
+               <BorderPane.margin>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </BorderPane.margin>
             </FlowPane>
          </top>
       </BorderPane>
-      <Separator orientation="VERTICAL" prefHeight="200.0" />
-      <Separator prefWidth="200.0" />
     </children>
 </AnchorPane>
