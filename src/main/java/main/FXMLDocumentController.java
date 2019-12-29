@@ -35,7 +35,8 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import main.dialogs.Dialogs;
+import main.dialogs.SimpleDialogs;
+import main.dialogs.FXMLSettingsDialog;
 import main.fields.BeanProperty;
 import main.fields.FXMLFieldChangeListener;
 import server.ServerExpectations;
@@ -84,7 +85,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     public void handleClearLogsButton() {
         Point r = Main.getPoint();
-        if (Dialogs.alertOkCancel(r.x, r.y, "Clear logs", "Erase all log data!", "Press OK to continue")) {
+        if (SimpleDialogs.alertOkCancel(r.x, r.y, "Clear logs", "Erase all log data!", "Press OK to continue")) {
             Main.getLogLines().clear();
         }
     }
@@ -112,7 +113,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     public void handleServersButton() {
         try {
-            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), ServerManager.serverConfigDataMap(), "Server %{id}:", "Basic Server Settings", new FXMLFieldChangeListener() {
+            FXMLSettingsDialog settingsController = FXMLSettingsDialog.load(Main.getStage(), ServerManager.serverConfigDataMap(), "Server %{id}:", "Basic Server Settings", new FXMLFieldChangeListener() {
                 @Override
                 public void changed(BeanProperty propertyDescription, String id, String message) {
                     if (!message.startsWith("!")) {
@@ -150,7 +151,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     public void handleSettingsButton() {
         try {
-            FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), ConfigData.getInstance(), "Settings", "Application Setting", new FXMLFieldChangeListener() {
+            FXMLSettingsDialog settingsController = FXMLSettingsDialog.load(Main.getStage(), ConfigData.getInstance(), "Settings", "Application Setting", new FXMLFieldChangeListener() {
                 @Override
                 public void changed(BeanProperty propertyDescription, String id, String message) {
                     if (!message.startsWith("!")) {

@@ -17,31 +17,20 @@
  */
 package main.dialogs;
 
-import common.PropertyDataWithAnnotations;
 import java.io.File;
-import java.io.IOException;
-import java.util.Map;
 import java.util.Optional;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
-import javafx.stage.FileChooser;
-import javafx.stage.Modality;
+import javafx.stage.FileChooser; 
 import javafx.stage.Stage;
-import javafx.stage.Window;
-import main.FXMLSettingsController;
-import main.fields.FXMLBeanFieldLoaderException;
-import main.fields.FXMLFieldChangeListener;
 
 /**
  *
  * @author Stuart
  */
-public class Dialogs {
+public class SimpleDialogs {
     
     
     public static boolean alertOkCancel(double x, double y, String ti, String txt, String ht) {

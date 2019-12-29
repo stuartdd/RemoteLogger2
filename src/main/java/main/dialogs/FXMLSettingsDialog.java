@@ -1,4 +1,4 @@
-package main;
+package main.dialogs;
 
 import common.PropertyDataWithAnnotations;
 import java.io.IOException;
@@ -28,7 +28,7 @@ import main.fields.FXMLBeanFieldLoaderException;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
 
-public class FXMLSettingsController implements FXMLFieldChangeListener {
+public class FXMLSettingsDialog implements FXMLFieldChangeListener {
 
     private Stage modalStage;
     private FXMLFieldCollection fieldCollection;
@@ -81,23 +81,23 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
     public void handleAddButton() {
     }
 
-    public static FXMLSettingsController load(Stage parent, Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, String title, FXMLFieldChangeListener listener) throws IOException {
-        FXMLSettingsController controller = createController("/FXMLSettingsDocument.fxml", parent, title);
+    public static FXMLSettingsDialog load(Stage parent, Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, String title, FXMLFieldChangeListener listener) throws IOException {
+        FXMLSettingsDialog controller = createController("/FXMLSettingsDocument.fxml", parent, title);
         controller.init(beans, headingTemplate, listener, true);
         return controller;
     }
 
-    public static FXMLSettingsController load(Stage parent, PropertyDataWithAnnotations bean, String headingTemplate, String title, FXMLFieldChangeListener listener) throws IOException {
-        FXMLSettingsController controller = createController("/FXMLSettingsDocument.fxml", parent, title);
+    public static FXMLSettingsDialog load(Stage parent, PropertyDataWithAnnotations bean, String headingTemplate, String title, FXMLFieldChangeListener listener) throws IOException {
+        FXMLSettingsDialog controller = createController("/FXMLSettingsDocument.fxml", parent, title);
         Map<String, PropertyDataWithAnnotations> beans = new HashMap<>();
         beans.put(bean.getClass().getSimpleName(), bean);
         controller.init(beans, headingTemplate, listener, false);
         return controller;
     }
 
-    private static FXMLSettingsController createController(String FXMLFileNmae, Window parent, String title) {
-        FXMLSettingsController controller = new FXMLSettingsController();
-        FXMLLoader loader = new FXMLLoader(FXMLSettingsController.class.getResource(FXMLFileNmae));
+    private static FXMLSettingsDialog createController(String FXMLFileNmae, Window parent, String title) {
+        FXMLSettingsDialog controller = new FXMLSettingsDialog();
+        FXMLLoader loader = new FXMLLoader(FXMLSettingsDialog.class.getResource(FXMLFileNmae));
         loader.setController(controller);
         try {
             Parent root = loader.load();

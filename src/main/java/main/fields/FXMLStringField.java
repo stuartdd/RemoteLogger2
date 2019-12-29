@@ -28,7 +28,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import main.dialogs.Dialogs;
+import main.dialogs.SimpleDialogs;
 
 /**
  * @author Stuart
@@ -64,7 +64,7 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
                             @Override
                             public void handle(ActionEvent actionEvent) {
                                 String oldName = textField.getText();
-                                String newName = Dialogs.fileChooser(getStage(), "Select: " + beanPropertyWrapper.getBeanProperty(propertyName).getDescription(), oldName, desc, ext);
+                                String newName = SimpleDialogs.fileChooser(getStage(), "Select: " + beanPropertyWrapper.getBeanProperty(propertyName).getDescription(), oldName, desc, ext);
                                 if ((newName != null) && (!newName.equals(oldName))) {
                                     textField.setText(newName);
                                 }

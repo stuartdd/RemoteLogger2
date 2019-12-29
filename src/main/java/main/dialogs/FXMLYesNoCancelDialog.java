@@ -31,7 +31,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
-import main.FXMLSettingsController;
 import main.fields.FXMLBeanFieldLoaderException;
 
 /**
@@ -85,7 +84,7 @@ public class FXMLYesNoCancelDialog {
 
     public static FXMLYesNoCancelDialog load(Map<String, Object> data, Window parent, String title, boolean askSaveChanges) {
         FXMLYesNoCancelDialog controller = new FXMLYesNoCancelDialog();
-        FXMLLoader loader = new FXMLLoader(FXMLSettingsController.class.getResource("/FXMLListOptionsDialog.fxml"));
+        FXMLLoader loader = new FXMLLoader(FXMLYesNoCancelDialog.class.getResource("/FXMLListOptionsDialog.fxml"));
         loader.setController(controller);
         try {
             Parent root = loader.load();
