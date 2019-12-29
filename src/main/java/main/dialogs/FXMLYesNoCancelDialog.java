@@ -24,7 +24,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -41,13 +43,34 @@ public class FXMLYesNoCancelDialog {
     public enum RESP {
         YES, NO, CANCEL
     }
-    
+
     @FXML
     public ScrollPane scrollPaneTextArea;
 
+    @FXML
+    public TextArea textAreaList;
+
+    @FXML
+    public Button noButton;
+
     private Stage modalStage;
     private RESP resp = RESP.CANCEL;
-    private Map<String, String> data;
+
+    @FXML
+    public void handleYesButton() {
+        resp = RESP.YES;
+        close();
+    }
+
+    public void handleNoButton() {
+        resp = RESP.NO;
+        close();
+    }
+
+    public void handleCancelButton() {
+        resp = RESP.CANCEL;
+        close();
+    }
 
     public RESP showAndWait() {
         modalStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
@@ -60,7 +83,7 @@ public class FXMLYesNoCancelDialog {
         return resp;
     }
 
-    public static FXMLYesNoCancelDialog load(Map<String, String> data, Window parent, String title) {
+    public static FXMLYesNoCancelDialog load(Map<String, Object> data, Window parent, String title, boolean askSaveChanges) {
         FXMLYesNoCancelDialog controller = new FXMLYesNoCancelDialog();
         FXMLLoader loader = new FXMLLoader(FXMLSettingsController.class.getResource("/FXMLListOptionsDialog.fxml"));
         loader.setController(controller);
@@ -72,7 +95,7 @@ public class FXMLYesNoCancelDialog {
             controller.getModalStage().initOwner(parent);
             controller.getModalStage().initModality(Modality.APPLICATION_MODAL);
             controller.getModalStage().setTitle(title);
-            controller.init(data);
+            controller.init(data, askSaveChanges);
             return controller;
         } catch (IOException e) {
             throw new FXMLBeanFieldLoaderException("Failed to load 'FXMLListOptionsDialog.fxml' from resources", e);
@@ -87,10 +110,19 @@ public class FXMLYesNoCancelDialog {
         return modalStage;
     }
 
-    private void init(Map<String, String> data) {
+    private void init(Map<String, Object> data, boolean askSaveChanges) {
         scrollPaneTextArea.setFitToHeight(true);
         scrollPaneTextArea.setFitToWidth(true);
-        this.data = data;
+        noButton.setVisible(askSaveChanges);
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Object> s : data.entrySet()) {
+            sb.append(s.getKey()).append(':').append(s.getValue().toString()).append("\n");
+        }
+        if (sb.length() == 0) {
+            textAreaList.setText("No changes have been made");
+        } else {
+            textAreaList.setText(sb.toString());
+        }
     }
 
     private void close() {

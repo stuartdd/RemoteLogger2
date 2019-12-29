@@ -122,7 +122,7 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
                 try {
                     validateChange(oldValue, newValue);
                     getBeanProperty().setUpdatedValue(newValue);
-                    notifyChange("Property '" + getBeanProperty().getDescription() + "' updated");
+                    notifyChange("Property '" + getBeanProperty().getDescription() + "' updated to: " + newValue);
                 } catch (Exception e) {
                     getBeanProperty().setErrorValue(newValue);
                     notifyChange("!ERROR '" + getBeanProperty().getDescription() + "' Reason: " + e.getMessage());

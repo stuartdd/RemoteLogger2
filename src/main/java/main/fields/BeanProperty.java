@@ -152,6 +152,12 @@ public class BeanProperty {
     public Object getInitialValue() {
         return initialValue;
     }
+    public Object getInitialValueNotNull() {
+        if (initialValue == null) {
+            return "null";
+        }
+        return initialValue;
+    }
 
     public String getFlag(String name, String defaultValue) {
         String v = getFlags().get(name);

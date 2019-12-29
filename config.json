@@ -20,8 +20,8 @@
   "packagedRequestsFile" : "packagedrequests.json",
   "selectedPackagedRequestName" : "PostOrders",
   "timeFormat" : "HH:mm:ss.SSS",
-  "defaultPort" : 5012,
-  "includeHeaders" : false,
+  "defaultPort" : 5003,
+  "includeHeaders" : true,
   "includeBody" : true,
   "x" : 541.0,
   "y" : 124.0,
@@ -29,4 +29,4 @@
   "height" : 878.0,
   "expDividerPos" : [ 0.2456703014753047, 0.6247594611930725 ],
   "packDividerPos" : [ 0.11802437459910199, 0.7434252726106478 ]
-}}}}
+}}}}}

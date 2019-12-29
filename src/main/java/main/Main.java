@@ -24,7 +24,9 @@ import common.Util;
 import geom.Point;
 import java.awt.AWTException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -51,7 +53,7 @@ public class Main extends Application {
     private static FXMLDocumentController controller;
     private final static LogLines LOG_LINES = new LogLines(100);
     private final static UiNotifier UI_NOTIFIER = new UiNotifier();
-    
+
     private static String configFileName;
 
     public static LogLines getLogLines() {
@@ -61,24 +63,24 @@ public class Main extends Application {
     static boolean controllerNotification(Notification notification) {
         if (waitForController(1000)) {
             switch (notification.getAction()) {
-            case RELOAD_RESTART_SERVERS:
-                ConfigData.load("config.json");
-                controller.notifyAction(new Notification(notification.getPort(), Action.CONFIG_RELOAD, null, "Reloaded Config Data"));
-            case RESTART_SERVERS:
+                case RELOAD_RESTART_SERVERS:
+                    ConfigData.load("config.json");
+                    controller.notifyAction(new Notification(notification.getPort(), Action.CONFIG_RELOAD, null, "Reloaded Config Data"));
+                case RESTART_SERVERS:
                     if (initServers(2000)) {
                         controller.notifyAction(notification);
                     } else {
                         controller.notifyAction(new Notification(notification.getPort(), Action.ERROR, null, "Failed to Re-Start servers!"));
                     }
-                break;
-            case START_STOP_SERVER:
-                if (ServerManager.isServerRunning(notification.getPort())) {
-                    ServerManager.stopServer(notification.getPort());
-                } else {                    
-                    ServerManager.startServer(notification.getPort());
-                }
-            default:
-                controller.notifyAction(notification);
+                    break;
+                case START_STOP_SERVER:
+                    if (ServerManager.isServerRunning(notification.getPort())) {
+                        ServerManager.stopServer(notification.getPort());
+                    } else {
+                        ServerManager.startServer(notification.getPort());
+                    }
+                default:
+                    controller.notifyAction(notification);
             }
         } else {
             return false;
@@ -115,7 +117,7 @@ public class Main extends Application {
                 /*
                 Clean up and exit the application
                  */
-                closeApplication(0, controller==null?false:controller.hasConfigDataHasChanged());
+                closeApplication(0);
             }
         });
         /*
@@ -146,32 +148,41 @@ public class Main extends Application {
     }
 
     /**
-     * Close the application.The serial port monitor should be closed properly.Then the Platform (JavaFX) must be told to exit
- 
- Then we terminate the Java VM
+     * Close the application.The serial port monitor should be closed
+     * properly.Then the Platform (JavaFX) must be told to exit
+     *
+     * Then we terminate the Java VM
      *
      * @param returnCode
-     * @param saveConfig
      */
-    public static void closeApplication(int returnCode, boolean saveConfig) {
-        if (saveConfig) {
-            FXMLYesNoCancelDialog.RESP resp = FXMLYesNoCancelDialog.load(null, mainStage, "Exit Application").showAndWait();
-            if (!Dialogs.alertOkCancel(getPoint().x,getPoint().y,"Changes have been made!", "Save Configuration changes?", "Time to make a decision!")) {
-                loadConfig();
+    public static void closeApplication(int returnCode) {
+        if (controller != null) {
+            FXMLYesNoCancelDialog.RESP resp = FXMLYesNoCancelDialog.load(controller.getConfigChanges(), mainStage, "Exit Application", controller.hasConfigDataHasChanged()).showAndWait();
+            switch (resp) {
+                case NO:
+                    loadConfig();
+                case YES:
+                    if (ConfigData.canWriteToFile()) {
+                        ConfigData.getInstance().setX(mainStage.getX());
+                        ConfigData.getInstance().setY(mainStage.getY());
+                        ConfigData.getInstance().setWidth(mainStage.getWidth());
+                        ConfigData.getInstance().setHeight(mainStage.getHeight());
+                        try {
+                            ConfigData.store();
+                        } catch (IOException ex) {
+                            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                            returnCode = 1;
+                        }
+                    }
+                    break;
+                case CANCEL:
+                    return;
             }
         }
-        if (ConfigData.canWriteToFile()) {
-            ConfigData.getInstance().setX(mainStage.getX());
-            ConfigData.getInstance().setY(mainStage.getY());
-            ConfigData.getInstance().setWidth(mainStage.getWidth());
-            ConfigData.getInstance().setHeight(mainStage.getHeight());
-            try {
-                ConfigData.store();
-            } catch (IOException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-                returnCode = 1;
-            }
-        }
+        stopAndExit(returnCode);
+    }
+
+    private static void stopAndExit(int returnCode) {
         if (!stopServers(5000)) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "Failed to stop servers. Time out!");
             returnCode = 1;
@@ -195,7 +206,7 @@ public class Main extends Application {
         }
         loadConfig();
         if (initServers(2000)) {
-            launch(args);            
+            launch(args);
         } else {
             System.err.println("ERROR Failed to start servers. Timed out!");
             Platform.exit();
@@ -212,8 +223,9 @@ public class Main extends Application {
      * @return a rectangle
      */
     public static Point getPoint() {
-        return new Point((int)mainStage.getX(),(int)mainStage.getY());
+        return new Point((int) mainStage.getX(), (int) mainStage.getY());
     }
+
     /**
      * Print an error message and exit the app with help.
      *
@@ -233,7 +245,7 @@ public class Main extends Application {
         }
         return (System.currentTimeMillis() < timeToGiveUp);
     }
-    
+
     private static boolean stopServers(long timeOut) {
         long timeToGiveUp = System.currentTimeMillis() + timeOut;
         ServerManager.stopAllServers();

@@ -24,6 +24,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.TreeMap;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -78,6 +79,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private String currentTabId = null;
     private boolean configDataHasChanged = false;
     private Map<Integer, CheckBox> logCheckBoxesByPort = new HashMap<>();
+    private Map<String, Object> configChanges = new TreeMap<>();
 
     @FXML
     public void handleClearLogsButton() {
@@ -89,7 +91,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     public void handleCloseApplicationButton() {
-        Main.closeApplication(0, configDataHasChanged);
+        Main.closeApplication(0);
     }
 
     @FXML
@@ -113,7 +115,11 @@ public class FXMLDocumentController implements Initializable, Notifier {
             FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), ServerManager.serverConfigDataMap(), "Server %{id}:", "Basic Server Settings", new FXMLFieldChangeListener() {
                 @Override
                 public void changed(BeanProperty propertyDescription, String id, String message) {
+                    if (!message.startsWith("!")) {
+                        configChanges.put("SERVER   [" + id + "] " + propertyDescription.getDescription(), message);
+                    }
                 }
+
                 @Override
                 public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newValue) {
                     if (propertyDescription.isValidationId("exp")) {
@@ -147,7 +153,11 @@ public class FXMLDocumentController implements Initializable, Notifier {
             FXMLSettingsController settingsController = FXMLSettingsController.load(Main.getStage(), ConfigData.getInstance(), "Settings", "Application Setting", new FXMLFieldChangeListener() {
                 @Override
                 public void changed(BeanProperty propertyDescription, String id, String message) {
+                    if (!message.startsWith("!")) {
+                        configChanges.put("SETTINGS [" + id + "] " + propertyDescription.getDescription(), message);
+                    }
                 }
+
                 @Override
                 public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue) {
                     if (propertyDescription.isValidationId("defport")) {
@@ -412,6 +422,10 @@ public class FXMLDocumentController implements Initializable, Notifier {
             }
         }
         return Color.PINK;
+    }
+
+    public Map<String, Object> getConfigChanges() {
+        return configChanges;
     }
 
 }

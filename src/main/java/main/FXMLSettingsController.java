@@ -90,7 +90,7 @@ public class FXMLSettingsController implements FXMLFieldChangeListener {
     public static FXMLSettingsController load(Stage parent, PropertyDataWithAnnotations bean, String headingTemplate, String title, FXMLFieldChangeListener listener) throws IOException {
         FXMLSettingsController controller = createController("/FXMLSettingsDocument.fxml", parent, title);
         Map<String, PropertyDataWithAnnotations> beans = new HashMap<>();
-        beans.put("data", bean);
+        beans.put(bean.getClass().getSimpleName(), bean);
         controller.init(beans, headingTemplate, listener, false);
         return controller;
     }

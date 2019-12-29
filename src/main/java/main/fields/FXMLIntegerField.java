@@ -95,7 +95,7 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                         throw new DataValidationException("must be between " + lowerbound + " and " + upperbound);
                     } else {
                         getBeanProperty().setUpdatedValue(i);
-                        notifyChange("Property '" + getPropertyName() + "' updated to:" + newValue);
+                        notifyChange("Property '" + getPropertyName() + "' updated from: " + getBeanProperty().getInitialValueNotNull() + " to: " + newValue);
                     }
                 } catch (NumberFormatException e) {
                     getBeanProperty().setErrorValue(newValue);
