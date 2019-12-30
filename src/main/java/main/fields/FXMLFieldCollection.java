@@ -37,12 +37,14 @@ public class FXMLFieldCollection {
     private List<FXMLField> fields = new ArrayList<>();
     private Map<String, FXMLHeadingField> headings = new HashMap<>();
     private Map<String, BeanPropertyWrapper> beanPropertyWrapperMap = new HashMap<>();
-    private Stage mainStage;
-
+    
+    private final String headingTemplate;
+    private final Stage mainStage;
     private final VBox container;
 
     public FXMLFieldCollection(Stage stage, VBox container, Map<String, PropertyDataWithAnnotations> data, boolean ro, String headingTemplate, FXMLFieldChangeListener changeListener) {
         this.mainStage = stage;
+        this.headingTemplate = headingTemplate;
         this.container = container;
         try {
             List<String> sortedKeys = new ArrayList<>();
@@ -59,9 +61,7 @@ public class FXMLFieldCollection {
             for (String key : sortedKeys) {
                 BeanPropertyWrapper beanPropertyWrapper = new BeanPropertyWrapper(data.get(key));
                 beanPropertyWrapperMap.put(key, beanPropertyWrapper);
-                String h = headingTemplate.replaceAll("%\\{id\\}", key.toString());
-                h = h.replaceAll("%\\{type\\}", key);
-                FXMLHeadingField heading = new FXMLHeadingField(stage, key, h, changeListener);
+                FXMLHeadingField heading = new FXMLHeadingField(stage, key, deriveHeading(key.toString()), changeListener);
                 headings.put(key, heading);
                 fields.add(heading);
                 for (String prop : beanPropertyWrapper.getPropertyNameList()) {
@@ -142,4 +142,14 @@ public class FXMLFieldCollection {
         beanPropertyWrapperMap = new HashMap<>();
         return true;
     }
+
+    public String deriveHeading(String id) {
+        return headingTemplate.replaceAll("%\\{id\\}", id);
+    }
+
+    public String getHeadingTemplate() {
+        return headingTemplate;
+    }
+    
+    
 }

@@ -126,7 +126,14 @@ public class FXMLDocumentController implements Initializable, Notifier {
                     if (propertyDescription.isValidationId("exp")) {
                         new ServerExpectations(Util.parseInt(id, "Server port"), (String) newValue);
                     }
-                    return;
+                }
+
+                @Override
+                public void remove(Object newValue) {
+                    int port = Integer.parseInt(newValue.toString());
+                    if (!ServerManager.getServerState(port).equals(ServerState.SERVER_STOPPED)) {
+                        throw new DataValidationException("!Cannot remove a Server that is running");
+                    }
                 }
             });
             boolean accept = settingsController.showAndWait();
@@ -171,6 +178,11 @@ public class FXMLDocumentController implements Initializable, Notifier {
                         new packaged.PackagedManager((String) newvalue);
                     }
                     return;
+                }
+
+                @Override
+                public void remove(Object newValue) {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                 }
             });
             boolean accept = settingsController.showAndWait();

@@ -2,8 +2,14 @@ package main.dialogs;
 
 import common.PropertyDataWithAnnotations;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -11,6 +17,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Background;
@@ -35,7 +42,10 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     private Map<String, PropertyDataWithAnnotations> beans;
     private boolean acceptChanges = false;
     private boolean updated;
+    private boolean addRemove;
+    private String headingTemplate;
     private FXMLFieldChangeListener listener;
+    private ChoiceBoxSelectionListener choiceBoxSelectionListener;
 
     @FXML
     public VBox vBoxSettings;
@@ -50,7 +60,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     public Button doneButton;
 
     @FXML
-    public Button removeButton;
+    public ChoiceBox removeIdDropdown;
 
     @FXML
     public FlowPane addFlowPane;
@@ -75,6 +85,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
 
     @FXML
     public void handleRemoveButton() {
+
     }
 
     @FXML
@@ -115,14 +126,40 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
 
     private FXMLFieldCollection init(Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, FXMLFieldChangeListener listener, boolean addRemove) {
         this.beans = beans;
+        this.headingTemplate = headingTemplate;
         this.listener = listener;
+        this.choiceBoxSelectionListener = new ChoiceBoxSelectionListener(beans);
         this.updated = false;
-        scrollPaneSettings.setFitToHeight(true);
-        scrollPaneSettings.setFitToWidth(true);
-        addFlowPane.setVisible(addRemove);
-        removeFlowPane.setVisible(addRemove);
-        this.fieldCollection = new FXMLFieldCollection(modalStage, vBoxSettings, beans, false, headingTemplate, this);
+        this.addRemove = addRemove;
+        this.scrollPaneSettings.setFitToHeight(true);
+        this.scrollPaneSettings.setFitToWidth(true);
+        this.addFlowPane.setVisible(addRemove);
+        this.removeFlowPane.setVisible(addRemove);
+        initFieldCollection(beans);
+        initRemoveIdDropdown(beans);
         return this.fieldCollection;
+    }
+
+    public void initFieldCollection(Map<String, PropertyDataWithAnnotations> beans) {
+        if (this.fieldCollection != null) {
+            this.fieldCollection.destroy();
+        }
+        this.fieldCollection = new FXMLFieldCollection(modalStage, vBoxSettings, beans, false, headingTemplate, this);
+    }
+
+    public void initRemoveIdDropdown(Map<String, PropertyDataWithAnnotations> beans) {
+        if (addRemove) {
+            List<String> l = new ArrayList<>();
+            l.add("Remove!");
+            for (String s : beans.keySet()) {
+                l.add(s);
+            }
+            removeIdDropdown.getSelectionModel().selectedItemProperty().removeListener(choiceBoxSelectionListener);
+            removeIdDropdown.setItems(FXCollections.observableArrayList(l));
+            removeIdDropdown.getSelectionModel().select(0);
+            removeIdDropdown.getSelectionModel().selectedItemProperty().addListener(this.choiceBoxSelectionListener);
+            removeIdDropdown.setDisable(beans.size() < 2);
+        }
     }
 
     public boolean showAndWait() {
@@ -148,6 +185,10 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
 
     public Stage getModalStage() {
         return modalStage;
+    }
+
+    public Map<String, PropertyDataWithAnnotations> getBeans() {
+        return beans;
     }
 
     public void setModalStage(Stage modalStage) {
@@ -179,11 +220,29 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     }
 
     @Override
-    public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newvalue) {
+    public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newValue) {
         if (listener != null) {
             try {
-                listener.validate(propertyDescription, id, oldValue, newvalue);
+                listener.validate(propertyDescription, id, oldValue, newValue);
             } catch (Exception e) {
+                setStatus(e.getMessage());
+                throw e;
+            } finally {
+                doneButton.setDisable(fieldCollection.isError());
+            }
+        }
+    }
+
+    @Override
+    public void remove(Object newValue) {
+        if (listener != null) {
+            try {
+                listener.remove(newValue);
+                beans.remove(newValue.toString());
+                initFieldCollection(beans);
+                initRemoveIdDropdown(beans);
+            } catch (Exception e) {
+                initRemoveIdDropdown(beans);
                 setStatus(e.getMessage());
                 throw e;
             } finally {
@@ -202,4 +261,24 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
         }
     }
 
+    private class ChoiceBoxSelectionListener implements ChangeListener<String> {
+
+        private final Map<String, PropertyDataWithAnnotations> beans;
+
+        public ChoiceBoxSelectionListener(Map<String, PropertyDataWithAnnotations> beans) {
+            this.beans = beans;
+        }
+
+        @Override
+        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+            if (SimpleDialogs.alertOkCancel(0, 0, "Remove Selected Item:", "Remove: " + newValue.toString(), "Press OK to REMOVE this item from the list")) {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        remove(newValue);
+                    }
+                });
+            }
+        }
+    }
 }
