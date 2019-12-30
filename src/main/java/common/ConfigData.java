@@ -37,7 +37,7 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
     public static void store() throws IOException {
         File f = new File(writeFileName);
         String s = JsonUtils.toJsonFormatted(ConfigData.instance);
-        Files.writeString(f.toPath(), s, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+        Files.write(f.toPath(), s.getBytes(StandardCharsets.UTF_8));
     }
 
     public static boolean wouldOverwrite() {
@@ -94,6 +94,12 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
         }
         readFileName = fd.getFileName();
         instance = (ConfigData) Config.configFromJson(ConfigData.class, fd.getContent());
+        if (!instance.getServers().containsKey(instance.getDefaultPort())) {
+            for (String port:instance.getServers().keySet()) {
+                instance.setDefaultPort(Integer.parseInt(port));
+                break;
+            }
+        }
     }
 
     public Map<String, ServerConfig> getServers() {

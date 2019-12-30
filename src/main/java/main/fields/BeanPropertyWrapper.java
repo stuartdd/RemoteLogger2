@@ -60,12 +60,22 @@ public class BeanPropertyWrapper {
         }
     }
 
+    int countUpdates() {
+        int count = 0;
+        for (Map.Entry<String, BeanProperty> es : properties.entrySet()) {
+            if (es.getValue().isUpdated()) {
+                count++;
+            }
+        }
+        return count;
+    }
 
-    public int updateAllValues() {
+    public int updateAllValues(Map<String, Object> configChanges, String id) {
         int count = 0;
         for (Map.Entry<String, BeanProperty> es : properties.entrySet()) {
             if (es.getValue().isUpdated()) {
                 setDataViaSetter(es.getKey(), es.getValue().getUpdatedValue());
+                configChanges.put(id + "[" + es.getKey() + "]", es.getValue().getDescription() + " --> " + es.getValue().getUpdatedValue());
                 count++;
             }
         }
@@ -77,7 +87,7 @@ public class BeanPropertyWrapper {
             if (bp.isError()) {
                 return true;
             }
-        }        
+        }
         return false;
     }
 
@@ -113,7 +123,6 @@ public class BeanPropertyWrapper {
         }
         return bp.description();
     }
-
 
     private void setDataViaSetter(String name, Object o) {
         try {
@@ -154,6 +163,5 @@ public class BeanPropertyWrapper {
         }
         return null;
     }
-
 
 }

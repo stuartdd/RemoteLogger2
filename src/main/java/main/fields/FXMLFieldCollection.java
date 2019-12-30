@@ -124,10 +124,18 @@ public class FXMLFieldCollection {
         heading.setControlBackgroundColor(null, c);
     }
 
-    public int updateAllValues() {
+    public int updateAllValues(Map<String, Object> configChanges, String id) {
         int count = 0;
         for (Map.Entry<String, BeanPropertyWrapper> bp : beanPropertyWrapperMap.entrySet()) {
-            count = count + bp.getValue().updateAllValues();
+            count = count + bp.getValue().updateAllValues(configChanges, id + "["+bp.getKey()+"]:");
+        }
+        return count;
+    }
+    
+    public int countUpdates() {
+        int count = 0;
+        for (Map.Entry<String, BeanPropertyWrapper> bp : beanPropertyWrapperMap.entrySet()) {
+            count = count + bp.getValue().countUpdates();
         }
         return count;
     }
@@ -149,7 +157,6 @@ public class FXMLFieldCollection {
 
     public String getHeadingTemplate() {
         return headingTemplate;
-    }
-    
+    }  
     
 }

@@ -24,9 +24,7 @@ import common.Util;
 import geom.Point;
 import java.awt.AWTException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -38,7 +36,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import main.dialogs.SimpleDialogs;
 import main.dialogs.FXMLYesNoCancelDialog;
 import server.ServerConfig;
 import server.ServerManager;
@@ -157,7 +154,7 @@ public class Main extends Application {
      */
     public static void closeApplication(int returnCode) {
         if (controller != null) {
-            FXMLYesNoCancelDialog.RESP resp = FXMLYesNoCancelDialog.load(controller.getConfigChanges(), mainStage, "Exit Application", controller.hasConfigDataHasChanged()).showAndWait();
+            FXMLYesNoCancelDialog.RESP resp = FXMLYesNoCancelDialog.load(controller.getConfigChangesLog(), mainStage, "Exit Application", controller.hasConfigDataHasChanged()).showAndWait();
             switch (resp) {
                 case NO:
                     loadConfig();

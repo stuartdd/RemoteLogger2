@@ -21,7 +21,6 @@ import common.ConfigDataException;
 import common.LogLine;
 import common.Notifier;
 import common.PropertyDataWithAnnotations;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,6 +38,10 @@ public class ServerManager {
  
     public static void clear() {
         servers = new ConcurrentHashMap<>();
+    }
+    
+    public static void removeServer(String id) {
+        servers.remove(Integer.parseInt(id));
     }
 
     public static void addServer(String portStr, ServerConfig config, Notifier serverNotifier, CommonLogger logger) {
@@ -204,5 +207,6 @@ public class ServerManager {
         }
         return server.getServerExpectations().getExpectationsDataMap();
     }
+
 
 }

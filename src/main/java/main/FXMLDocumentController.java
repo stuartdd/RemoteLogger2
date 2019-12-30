@@ -35,8 +35,8 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import main.dialogs.SimpleDialogs;
 import main.dialogs.FXMLSettingsDialog;
+import main.dialogs.SimpleDialogs;
 import main.fields.BeanProperty;
 import main.fields.FXMLFieldChangeListener;
 import server.ServerExpectations;
@@ -80,7 +80,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private String currentTabId = null;
     private boolean configDataHasChanged = false;
     private Map<Integer, CheckBox> logCheckBoxesByPort = new HashMap<>();
-    private Map<String, Object> configChanges = new TreeMap<>();
+    private Map<String, Object> configChangesLog = new TreeMap<>();
 
     @FXML
     public void handleClearLogsButton() {
@@ -116,9 +116,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
             FXMLSettingsDialog settingsController = FXMLSettingsDialog.load(Main.getStage(), ServerManager.serverConfigDataMap(), "Server %{id}:", "Basic Server Settings", new FXMLFieldChangeListener() {
                 @Override
                 public void changed(BeanProperty propertyDescription, String id, String message) {
-                    if (!message.startsWith("!")) {
-                        configChanges.put("SERVER   [" + id + "] " + propertyDescription.getDescription(), message);
-                    }
                 }
 
                 @Override
@@ -138,7 +135,13 @@ public class FXMLDocumentController implements Initializable, Notifier {
             });
             boolean accept = settingsController.showAndWait();
             if (accept) {
-                int count = settingsController.updateAllValues();
+                int count = settingsController.updateAllValues(configChangesLog, "SERVER:  ");
+                for (String id: settingsController.getRemovedIds()) {
+                    ServerManager.removeServer(id);
+                    ConfigData.getInstance().getServers().remove(id);
+                    configChangesLog.put("SERVER:  ["+id+"]:REMOVED", "Server with port ["+id+"]");
+                    configDataHasChanged = true;
+                }
                 if (count > 0) {
                     configDataHasChanged = true;
                     initialiseLogPanelCheckBoxes(false);
@@ -161,9 +164,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
             FXMLSettingsDialog settingsController = FXMLSettingsDialog.load(Main.getStage(), ConfigData.getInstance(), "Settings", "Application Setting", new FXMLFieldChangeListener() {
                 @Override
                 public void changed(BeanProperty propertyDescription, String id, String message) {
-                    if (!message.startsWith("!")) {
-                        configChanges.put("SETTINGS [" + id + "] " + propertyDescription.getDescription(), message);
-                    }
                 }
 
                 @Override
@@ -187,7 +187,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
             });
             boolean accept = settingsController.showAndWait();
             if (accept) {
-                int count = settingsController.updateAllValues();
+                int count = settingsController.updateAllValues(configChangesLog, "SETTINGS:");
                 if (count > 0) {
                     configDataHasChanged = true;
                     setStatus("[ " + count + " ] Change(s) have been applied");
@@ -437,8 +437,8 @@ public class FXMLDocumentController implements Initializable, Notifier {
         return Color.PINK;
     }
 
-    public Map<String, Object> getConfigChanges() {
-        return configChanges;
+    public Map<String, Object> getConfigChangesLog() {
+        return configChangesLog;
     }
 
 }

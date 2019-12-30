@@ -8,19 +8,19 @@
       "verbose" : true,
       "logProperties" : false
     },
-    "5013" : {
-      "expectationsFile" : "expectations5012.json",
-      "autoStart" : true,
-      "showPort" : true,
+    "5003" : {
+      "expectationsFile" : "expectations.json",
+      "autoStart" : false,
+      "showPort" : false,
       "timeToClose" : 1,
       "verbose" : true,
-      "logProperties" : false
+      "logProperties" : true
     }
   },
   "packagedRequestsFile" : "packagedrequests.json",
   "selectedPackagedRequestName" : "PostOrders",
   "timeFormat" : "HH:mm:ss.SSS",
-  "defaultPort" : 5012,
+  "defaultPort" : 5003,
   "includeHeaders" : true,
   "includeBody" : true,
   "x" : 541.0,

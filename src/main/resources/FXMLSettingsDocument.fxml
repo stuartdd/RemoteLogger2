@@ -47,15 +47,14 @@
                         <Button mnemonicParsing="false" onAction="#handleCancelButton" text="Cancel" />
                      </children>
                   </FlowPane>
-                  <FlowPane fx:id="addFlowPane" prefHeight="25.0" prefWidth="63.0">
+                  <FlowPane fx:id="addFlowPane" prefHeight="25.0" prefWidth="88.0">
                      <children>
                         <Label prefHeight="25.0" prefWidth="32.0" text="Add" />
                         <Button fx:id="addButton" mnemonicParsing="false" onAction="#handleAddButton" text="+" />
                      </children>
                   </FlowPane>
-                  <FlowPane fx:id="removeFlowPane" prefHeight="25.0" prefWidth="267.0">
+                  <FlowPane fx:id="removeFlowPane" prefHeight="25.0" prefWidth="196.0">
                      <children>
-                        <Label prefHeight="25.0" prefWidth="52.0" text="Remove" />
                         <ChoiceBox fx:id="removeIdDropdown" prefWidth="150.0" />
                      </children>
                   </FlowPane>

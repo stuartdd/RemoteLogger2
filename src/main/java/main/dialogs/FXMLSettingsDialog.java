@@ -1,6 +1,7 @@
 package main.dialogs;
 
 import common.PropertyDataWithAnnotations;
+import geom.Point;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +31,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
+import main.Main;
 import main.fields.BeanProperty;
 import main.fields.FXMLBeanFieldLoaderException;
 import main.fields.FXMLFieldChangeListener;
@@ -46,6 +48,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     private String headingTemplate;
     private FXMLFieldChangeListener listener;
     private ChoiceBoxSelectionListener choiceBoxSelectionListener;
+    private List<String> removedIds = new ArrayList<>();
 
     @FXML
     public VBox vBoxSettings;
@@ -173,8 +176,8 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
         return acceptChanges;
     }
 
-    public int updateAllValues() {
-        int updatedCount = this.fieldCollection.updateAllValues();
+    public int updateAllValues(Map<String, Object> configChanges, String id) {
+        int updatedCount = this.fieldCollection.updateAllValues(configChanges, id);
         close();
         return updatedCount;
     }
@@ -191,6 +194,10 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
         return beans;
     }
 
+    public List<String> getRemovedIds() {
+        return removedIds;
+    }
+
     public void setModalStage(Stage modalStage) {
         this.modalStage = modalStage;
     }
@@ -200,7 +207,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     }
 
     public boolean isUpdated() {
-        return updated;
+        return fieldCollection.countUpdates() != 0;
     }
 
     @Override
@@ -234,19 +241,26 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     }
 
     @Override
-    public void remove(Object newValue) {
-        if (listener != null) {
-            try {
-                listener.remove(newValue);
-                beans.remove(newValue.toString());
-                initFieldCollection(beans);
-                initRemoveIdDropdown(beans);
-            } catch (Exception e) {
-                initRemoveIdDropdown(beans);
-                setStatus(e.getMessage());
-                throw e;
-            } finally {
-                doneButton.setDisable(fieldCollection.isError());
+    public void remove(Object removeValue) {
+        if (removeValue != null) {
+            String removeValueString = removeValue.toString();
+            if (listener != null) {
+                try {
+                    listener.remove(removeValue);
+                    beans.remove(removeValueString);
+                    initRemoveIdDropdown(beans);
+                    initFieldCollection(beans);
+                    removedIds.add(removeValueString);
+                    listener.changed(new BeanProperty(removeValueString, null, "", Object.class), removeValueString, "REMOVED - " + headingTemplate.replaceAll("%\\{id\\}", removeValue.toString()));
+                    setStatus("Removed entity: " + removeValue);
+                } catch (Exception e) {
+                    initRemoveIdDropdown(beans);
+                    Point r = Main.getPoint();
+                    SimpleDialogs.errorDialog(r.x, r.y, "REMOVAL:", "Cannot remove entities:", e.getMessage().substring(1));
+                    setStatus(e.getMessage());
+                } finally {
+                    doneButton.setDisable(fieldCollection.isError());
+                }
             }
         }
     }
@@ -271,13 +285,25 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
 
         @Override
         public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-            if (SimpleDialogs.alertOkCancel(0, 0, "Remove Selected Item:", "Remove: " + newValue.toString(), "Press OK to REMOVE this item from the list")) {
+            Point r = Main.getPoint();
+            if (isUpdated()) {
+                SimpleDialogs.errorDialog(r.x, r.y, "REMOVAL:", "Cannot remove entities. Previous updates have been made", "Accept or Cancel the existing changes first");
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        remove(newValue);
+                        initRemoveIdDropdown(beans);
+                        setStatus("!Entities cannot be removed while existing changes are pending:");
                     }
                 });
+            } else {
+                if (SimpleDialogs.alertOkCancel(r.x, r.y, "Remove Selected Item:", "Remove: " + newValue.toString(), "Press OK to REMOVE this item from the list")) {
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            remove(newValue);
+                        }
+                    });
+                }
             }
         }
     }
