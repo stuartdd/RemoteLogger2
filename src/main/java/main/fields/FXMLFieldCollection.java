@@ -42,7 +42,7 @@ public class FXMLFieldCollection {
     private final Stage mainStage;
     private final VBox container;
 
-    public FXMLFieldCollection(Stage stage, VBox container, Map<String, PropertyDataWithAnnotations> data, boolean ro, String headingTemplate, FXMLFieldChangeListener changeListener) {
+    public FXMLFieldCollection(Stage stage, VBox container, Map<String, PropertyDataWithAnnotations> data, boolean ro, String headingTemplate, String entityName, FXMLFieldChangeListener changeListener) {
         this.mainStage = stage;
         this.headingTemplate = headingTemplate;
         this.container = container;
@@ -61,19 +61,19 @@ public class FXMLFieldCollection {
             for (String key : sortedKeys) {
                 BeanPropertyWrapper beanPropertyWrapper = new BeanPropertyWrapper(data.get(key));
                 beanPropertyWrapperMap.put(key, beanPropertyWrapper);
-                FXMLHeadingField heading = new FXMLHeadingField(stage, key, deriveHeading(key.toString()), changeListener);
+                FXMLHeadingField heading = new FXMLHeadingField(stage, key, deriveHeading(key.toString()), entityName, changeListener);
                 headings.put(key, heading);
                 fields.add(heading);
                 for (String prop : beanPropertyWrapper.getPropertyNameList()) {
                     Class parameterType = beanPropertyWrapper.getBeanProperty(prop).getParameterType();
                     if (parameterType.equals(int.class) || parameterType.equals(Integer.class)) {
-                        fields.add(new FXMLIntegerField(stage, key, beanPropertyWrapper, prop, ro, changeListener));
+                        fields.add(new FXMLIntegerField(stage, key, beanPropertyWrapper, prop, entityName, ro, changeListener));
                     }
                     if (parameterType.equals(boolean.class) || parameterType.equals(Boolean.class)) {
-                        fields.add(new FXMLBooleanField(stage, key, beanPropertyWrapper, prop, ro, changeListener));
+                        fields.add(new FXMLBooleanField(stage, key, beanPropertyWrapper, prop, entityName, ro, changeListener));
                     }
                     if (parameterType.equals(String.class)) {
-                        fields.add(new FXMLStringField(stage, key, beanPropertyWrapper, prop, ro, changeListener));
+                        fields.add(new FXMLStringField(stage, key, beanPropertyWrapper, prop, entityName, ro, changeListener));
                     }
                 }
             }

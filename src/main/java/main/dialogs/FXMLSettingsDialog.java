@@ -46,6 +46,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     private boolean updated;
     private boolean addRemove;
     private String headingTemplate;
+    private String entityName;
     private FXMLFieldChangeListener listener;
     private ChoiceBoxSelectionListener choiceBoxSelectionListener;
     private List<String> removedIds = new ArrayList<>();
@@ -87,25 +88,30 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     }
 
     @FXML
-    public void handleRemoveButton() {
-
-    }
-
-    @FXML
     public void handleAddButton() {
+        String toId = SimpleDialogs.textInputDialog(0, 0, "Add " + entityName, "Enter the unique id for the " + entityName, "ID:", "Port Number");
+        if ((toId != null) && (toId.trim().length()>0)) {
+            if (listener != null) {
+                try {
+                this.add(null, toId, entityName);
+                } catch (Exception e) {
+                    SimpleDialogs.errorDialog(0, 0, "Add "+entityName, "Error adding a "+entityName, e.getMessage().substring(1));
+                }
+            }
+        }
     }
 
-    public static FXMLSettingsDialog load(Stage parent, Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, String title, FXMLFieldChangeListener listener) throws IOException {
+    public static FXMLSettingsDialog load(Stage parent, Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, String title, String entityName, FXMLFieldChangeListener listener) {
         FXMLSettingsDialog controller = createController("/FXMLSettingsDocument.fxml", parent, title);
-        controller.init(beans, headingTemplate, listener, true);
+        controller.init(beans, headingTemplate, entityName, listener, true);
         return controller;
     }
 
-    public static FXMLSettingsDialog load(Stage parent, PropertyDataWithAnnotations bean, String headingTemplate, String title, FXMLFieldChangeListener listener) throws IOException {
+    public static FXMLSettingsDialog load(Stage parent, PropertyDataWithAnnotations bean, String headingTemplate, String title, String entityName, FXMLFieldChangeListener listener) {
         FXMLSettingsDialog controller = createController("/FXMLSettingsDocument.fxml", parent, title);
         Map<String, PropertyDataWithAnnotations> beans = new HashMap<>();
         beans.put(bean.getClass().getSimpleName(), bean);
-        controller.init(beans, headingTemplate, listener, false);
+        controller.init(beans, headingTemplate, entityName, listener, false);
         return controller;
     }
 
@@ -127,9 +133,10 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
         }
     }
 
-    private FXMLFieldCollection init(Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, FXMLFieldChangeListener listener, boolean addRemove) {
+    private FXMLFieldCollection init(Map<String, PropertyDataWithAnnotations> beans, String headingTemplate, String entityName, FXMLFieldChangeListener listener, boolean addRemove) {
         this.beans = beans;
         this.headingTemplate = headingTemplate;
+        this.entityName = entityName;
         this.listener = listener;
         this.choiceBoxSelectionListener = new ChoiceBoxSelectionListener(beans);
         this.updated = false;
@@ -147,7 +154,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
         if (this.fieldCollection != null) {
             this.fieldCollection.destroy();
         }
-        this.fieldCollection = new FXMLFieldCollection(modalStage, vBoxSettings, beans, false, headingTemplate, this);
+        this.fieldCollection = new FXMLFieldCollection(modalStage, vBoxSettings, beans, false, headingTemplate, entityName, this);
     }
 
     public void initRemoveIdDropdown(Map<String, PropertyDataWithAnnotations> beans) {
@@ -206,6 +213,10 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
         return acceptChanges;
     }
 
+    public String getEntityName() {
+        return entityName;
+    }
+
     public boolean isUpdated() {
         return fieldCollection.countUpdates() != 0;
     }
@@ -241,6 +252,21 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     }
 
     @Override
+    public Object add(String cloneId, String toId, String entityName) {
+        if (listener != null) {
+            try {
+                return listener.add(cloneId, toId, entityName);
+            } catch (Exception e) {
+                setStatus(e.getMessage());
+                throw e;
+            } finally {
+                doneButton.setDisable(fieldCollection.isError());
+            }
+        }
+        return null;
+    }
+
+    @Override
     public void remove(Object removeValue) {
         if (removeValue != null) {
             String removeValueString = removeValue.toString();
@@ -252,11 +278,11 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
                     initFieldCollection(beans);
                     removedIds.add(removeValueString);
                     listener.changed(new BeanProperty(removeValueString, null, "", Object.class), removeValueString, "REMOVED - " + headingTemplate.replaceAll("%\\{id\\}", removeValue.toString()));
-                    setStatus("Removed entity: " + removeValue);
+                    setStatus("Removed " + entityName + ": " + removeValue);
                 } catch (Exception e) {
                     initRemoveIdDropdown(beans);
                     Point r = Main.getPoint();
-                    SimpleDialogs.errorDialog(r.x, r.y, "REMOVAL:", "Cannot remove entities:", e.getMessage().substring(1));
+                    SimpleDialogs.errorDialog(r.x, r.y, "REMOVAL:", "Cannot remove " + entityName + " entities:", e.getMessage().substring(1));
                     setStatus(e.getMessage());
                 } finally {
                     doneButton.setDisable(fieldCollection.isError());
@@ -287,16 +313,16 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
         public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
             Point r = Main.getPoint();
             if (isUpdated()) {
-                SimpleDialogs.errorDialog(r.x, r.y, "REMOVAL:", "Cannot remove entities. Previous updates have been made", "Accept or Cancel the existing changes first");
+                SimpleDialogs.errorDialog(r.x, r.y, "REMOVAL:", "Cannot remove " + entityName + " entities. Previous updates have been made", "Accept or Cancel the existing changes first");
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
                         initRemoveIdDropdown(beans);
-                        setStatus("!Entities cannot be removed while existing changes are pending:");
+                        setStatus("!" + entityName + " entities cannot be removed while existing changes are pending:");
                     }
                 });
             } else {
-                if (SimpleDialogs.alertOkCancel(r.x, r.y, "Remove Selected Item:", "Remove: " + newValue.toString(), "Press OK to REMOVE this item from the list")) {
+                if (SimpleDialogs.alertOkCancel(r.x, r.y, "Remove Selected " + entityName + ":", "Remove: " + newValue.toString(), "Press OK to REMOVE this item from the list")) {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {

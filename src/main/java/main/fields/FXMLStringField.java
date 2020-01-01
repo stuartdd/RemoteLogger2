@@ -40,9 +40,10 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
     private TextField textField;
     private Button fileButton;
     private boolean hasFileButton;
+    private String entityName;
 
-    public FXMLStringField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, id, "String", beanPropertyWrapper, propertyName, readOnly, changeListener);
+    public FXMLStringField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, id, "String", beanPropertyWrapper, propertyName, entityName, readOnly, changeListener);
         hasFileButton = false;
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
@@ -122,10 +123,10 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
                 try {
                     validateChange(oldValue, newValue);
                     getBeanProperty().setUpdatedValue(newValue);
-                    notifyChange("Property '" + getBeanProperty().getDescription() + "' updated to: " + newValue);
+                    notifyChange(getEntityName() + " '" + getPropertyName() + "' " + getBeanProperty().getDescription() + "' updated to: " + newValue);
                 } catch (Exception e) {
                     getBeanProperty().setErrorValue(newValue);
-                    notifyChange("!ERROR '" + getBeanProperty().getDescription() + "' Reason: " + e.getMessage());
+                    notifyChange("!ERROR " + getEntityName() + " '" + getPropertyName() + "' " + getBeanProperty().getDescription() + "'. " + e.getMessage());
                 }
                 textField.setText(getBeanProperty().getDisplayValue().toString());
             } finally {

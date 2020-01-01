@@ -52,6 +52,7 @@ public abstract class FXMLField implements Comparable {
     private final boolean readOnly;
     private final FXMLFieldChangeListener changeListener;
     private final String propertyName;
+    private final String entityName;
     private final String id;
     private Label label = null;
     private Button buttonRevert;
@@ -67,10 +68,11 @@ public abstract class FXMLField implements Comparable {
         }        
     }
 
-    public FXMLField(Stage stage, String id, String fieldType, BeanPropertyWrapper beanPropertyWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) {
+    public FXMLField(Stage stage, String id, String fieldType, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) {
         this.stage = stage;
         this.id = id;
         this.propertyName = propertyName;
+        this.entityName = entityName;
         if (beanPropertyWrapper != null) {
             this.beanPropertyWrapper = beanPropertyWrapper;
             this.beanProperty = beanPropertyWrapper.getBeanProperty(this.propertyName);
@@ -185,6 +187,10 @@ public abstract class FXMLField implements Comparable {
         return beanProperty;
     }
 
+    public String getEntityName() {
+        return entityName;
+    }
+    
     public final Pane getPane() {
         return pane;
     }

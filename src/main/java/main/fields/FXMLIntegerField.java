@@ -35,8 +35,8 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
     private int lowerbound = Integer.MIN_VALUE;
     private int upperbound = Integer.MAX_VALUE;
 
-    public FXMLIntegerField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, id, "String", beanPropertyWrapper, propertyName, readOnly, changeListener);
+    public FXMLIntegerField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, id, "String", beanPropertyWrapper, propertyName, entityName, readOnly, changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
@@ -86,23 +86,23 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
                 try {
                     Integer i;
                     if (newValue.trim().length() == 0) {
-                        throw new DataValidationException("A value between " + lowerbound + " and " + upperbound + " is required. Value is " + oldValue);
+                        throw new DataValidationException(getEntityName() + " '" + getPropertyName() + "' requires a value between " + lowerbound + " and " + upperbound + ". Value is " + oldValue);
                     } else {
                         validateChange(oldValue, newValue);
                         i = Integer.parseInt(newValue);
                     }
                     if ((i < lowerbound) || (i > upperbound)) {
-                        throw new DataValidationException("must be between " + lowerbound + " and " + upperbound);
+                        throw new DataValidationException(getEntityName() + " '" + getPropertyName() + "' must be between " + lowerbound + " and " + upperbound);
                     } else {
                         getBeanProperty().setUpdatedValue(i);
-                        notifyChange("Property '" + getPropertyName() + "' updated from: " + getBeanProperty().getInitialValueNotNull() + " to: " + newValue);
+                        notifyChange(getEntityName() + " '" + getPropertyName() + "' updated from: " + getBeanProperty().getInitialValueNotNull() + " to: " + newValue);
                     }
                 } catch (NumberFormatException e) {
                     getBeanProperty().setErrorValue(newValue);
-                    notifyChange("!ERROR: Value [" + newValue + "] is not a valid integer");
+                    notifyChange("!ERROR: " + getEntityName() + " '" + getPropertyName() + "' value [" + newValue + "] is not a valid integer");
                 } catch (Exception e) {
                     getBeanProperty().setErrorValue(newValue);
-                    notifyChange("!ERROR: Value [" + newValue + "] " + e.getMessage());
+                    notifyChange("!ERROR: " + getEntityName() + " '" + getPropertyName() + "' value [" + newValue + "] " + e.getMessage());
                 }
                 textField.setText(getBeanProperty().getDisplayValue().toString());
             } finally {

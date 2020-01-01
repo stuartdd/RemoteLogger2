@@ -18,8 +18,6 @@
 package main.fields;
 
 import java.io.IOException;
-import javafx.event.EventHandler;
-import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
 /**
@@ -29,8 +27,8 @@ import javafx.stage.Stage;
 public class FXMLHeadingField extends FXMLField {
 
     
-    public FXMLHeadingField(Stage stage, String id, String text, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, id,"Heading", null, text, true, null);
+    public FXMLHeadingField(Stage stage, String id, String text, String entityName, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, id,"Heading", null, text, entityName, true, null);
         setControlBackgroundColor(null, HEADING_COLOR);
     }
 
