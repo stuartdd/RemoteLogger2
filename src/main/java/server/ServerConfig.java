@@ -16,9 +16,8 @@
  */
 package server;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import common.PropertyDataWithAnnotations;
-import expectations.Expectations;
+
 import java.beans.BeanProperty;
 
 public class ServerConfig implements PropertyDataWithAnnotations {
@@ -30,18 +29,6 @@ public class ServerConfig implements PropertyDataWithAnnotations {
     private boolean verbose = true;
     private boolean logProperties = false;
 
-    @JsonIgnore
-    private Expectations expectations;
-
-
-    public ServerConfig(Expectations expectations, int timeToClose, boolean verbose, boolean logProperties) {
-        this.expectationsFile = null;
-        this.expectations = expectations;
-        this.timeToClose = timeToClose;
-        this.verbose = verbose;
-        this.logProperties = logProperties;
-    }
-
     public ServerConfig() {
     }
 
@@ -49,7 +36,6 @@ public class ServerConfig implements PropertyDataWithAnnotations {
     public String getExpectationsFile() {
         return expectationsFile;
     }
-
     public void setExpectationsFile(String expectationsFile) {
         this.expectationsFile = expectationsFile;
     }
@@ -89,10 +75,6 @@ public class ServerConfig implements PropertyDataWithAnnotations {
         this.verbose = verbose;
     }
 
-    public Expectations expectations() {
-        return expectations;
-    }
-
     @BeanProperty(description = "Write properties to the log")
     public boolean isLogProperties() {
         return logProperties;
@@ -101,7 +83,5 @@ public class ServerConfig implements PropertyDataWithAnnotations {
     public void setLogProperties(boolean logProperties) {
         this.logProperties = logProperties;
     }
-    
-    
-    
+
 }

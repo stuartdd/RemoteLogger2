@@ -33,17 +33,6 @@ import server.ServerConfig;
 
 public class ConfigData extends Config implements PropertyDataWithAnnotations {
 
-    public static void store() throws IOException {
-        File f = new File(writeFileName);
-        String s = JsonUtils.toJsonFormatted(ConfigData.instance);
-        Files.write(f.toPath(), s.getBytes(StandardCharsets.UTF_8));
-    }
-
-    public static boolean wouldOverwrite() {
-        File f = new File(writeFileName);
-        return f.exists();        
-    }
-    
     private Map<String, ServerConfig> servers = new HashMap<>();
     private String packagedRequestsFile;
     private String selectedPackagedRequestName;
@@ -55,14 +44,11 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
     private double y;
     private double width;
     private double height;
-    private double[] expDividerPos;
-    private double[] packDividerPos;
 
     @JsonIgnore
     private DateTimeFormatter ts;
 
-    private static String writeFileName;
-    private static String readFileName;
+    private static FileData fileData;
     private static ConfigData instance;
 
 
@@ -78,47 +64,10 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
         return instance;
     }
 
-    public static boolean isLoadedFromFile() {
-        return (readFileName != null);
-    }
-
-    public static boolean canWriteToFile() {
-        return (writeFileName != null);
-    }
-
-    public static void load(String fileName) {
-        FileData fd = Util.readFile(fileName);
-        if (fd.isReadFromFile()) {
-            writeFileName = fd.getFileName();
-        }
-        readFileName = fd.getFileName();
-        instance = (ConfigData) Config.configFromJson(ConfigData.class, fd.getContent());
-        if (!instance.getServers().containsKey(instance.getDefaultPort().toString())) {
-            for (String port:instance.getServers().keySet()) {
-                instance.setDefaultPort(Integer.parseInt(port));
-                break;
-            }
-        }
-    }
-
-    public int serverCount() {
-        return servers.size();
-    }
-    
     public Map<String, ServerConfig> getServers() {
         return servers;
     }
 
-    @JsonIgnore
-    public ServerConfig[] getServersList() {
-        ServerConfig[] list = new ServerConfig[serverCount()];
-        int i = 0;
-        for (ServerConfig sc:getServers().values()) {
-            list[i] = sc;
-            i++;
-        }
-        return list;
-    }
 
     public void setServers(Map<String, ServerConfig> servers) {
         this.servers = servers;
@@ -141,15 +90,6 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
     public void setSelectedPackagedRequestName(String selectedPackagedRequestName) {
         this.selectedPackagedRequestName = selectedPackagedRequestName;
     }
-
-    public String timeStamp(long time) {
-        DateTime dt = new DateTime(time);
-        if (ts == null) {
-            ts = DateTimeFormat.forPattern(getTimeFormat());
-        }
-        return dt.toString(ts);
-    }
-
 
     @BeanProperty(description = "Default Port | validation=defport")
     public Integer getDefaultPort() {
@@ -192,22 +132,6 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
         this.height = height;
     }
 
-    public double[] getExpDividerPos() {
-        return expDividerPos;
-    }
-
-    public void setExpDividerPos(double[] expDividerPos) {
-        this.expDividerPos = expDividerPos;
-    }
-
-    public double[] getPackDividerPos() {
-        return packDividerPos;
-    }
-
-    public void setPackDividerPos(double[] packDividerPos) {
-        this.packDividerPos = packDividerPos;
-    }
-
     @BeanProperty(description = "Include header data in logs")
     public boolean isIncludeHeaders() {
         return includeHeaders;
@@ -238,17 +162,17 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
         this.timeFormat = timeFormat;
     }
 
-    public static String writeFileName() {
-        return writeFileName;
+    public String timeStamp(long time) {
+        DateTime dt = new DateTime(time);
+        if (ts == null) {
+            ts = DateTimeFormat.forPattern(getTimeFormat());
+        }
+        return dt.toString(ts);
     }
 
-    public static String readFileName() {
-        return readFileName;
-    }
-
-    public ServerConfig getServerWithDefaultConfig() {
+    public ServerConfig serverWithDefaultConfig() {
         ServerConfig sc = new ServerConfig();
-        ServerConfig scClone = getServersList()[0];
+        ServerConfig scClone = serversList()[0];
         sc.setExpectationsFile(scClone.getExpectationsFile());
         sc.setTimeToClose(scClone.getTimeToClose());
         sc.setAutoStart(false);
@@ -258,5 +182,35 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
         return sc;
     }
 
+    public ServerConfig[] serversList() {
+        ServerConfig[] list = new ServerConfig[serverCount()];
+        int i = 0;
+        for (ServerConfig sc:getServers().values()) {
+            list[i] = sc;
+            i++;
+        }
+        return list;
+    }
+
+    public static void store() throws IOException {
+        File f = new File(fileData.getFileName());
+        String s = JsonUtils.toJsonFormatted(ConfigData.instance);
+        Files.write(f.toPath(), s.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void load(String fileName) {
+        fileData = Util.readFile(fileName);
+        instance = (ConfigData) Config.configFromJson(ConfigData.class, fileData.getContent());
+        if (!instance.getServers().containsKey(instance.getDefaultPort().toString())) {
+            for (String port:instance.getServers().keySet()) {
+                instance.setDefaultPort(Integer.parseInt(port));
+                break;
+            }
+        }
+    }
+
+    public int serverCount() {
+        return servers.size();
+    }
 
 }
