@@ -2,6 +2,11 @@ package main.dialogs;
 
 import common.PropertyDataWithAnnotations;
 import geom.Point;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -27,12 +32,6 @@ import main.fields.BeanProperty;
 import main.fields.FXMLBeanFieldLoaderException;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class FXMLSettingsDialog implements FXMLFieldChangeListener {
 
@@ -87,7 +86,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
 
     @FXML
     public void handleAddButton() {
-        String toId = SimpleDialogs.textInputDialog(0, 0, "Add " + entityName, "Enter the unique id for the " + entityName, "ID:", "Port Number");
+        String toId = SimpleDialogs.textInputDialog(Main.getPoint(), "Add " + entityName, "Enter the unique id for the " + entityName + "\n(Just the <id> in the input field below)", "Unique ID:", getHeadingTemplate("<id>"));
         if ((toId != null) && (toId.trim().length() > 0)) {
             if (listener != null) {
                 try {
@@ -98,7 +97,8 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
                         initFieldCollection(beans);
                     }
                 } catch (Exception e) {
-                    SimpleDialogs.errorDialog(0, 0, "Add " + entityName, "Error adding a " + entityName, e.getMessage().substring(1));
+                    
+                    SimpleDialogs.errorDialog(Main.getPoint(), "Add " + entityName, "Error adding a " + entityName, e.getMessage().substring(1));
                 }
             }
         }
@@ -148,6 +148,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
         this.scrollPaneSettings.setFitToWidth(true);
         this.addFlowPane.setVisible(addRemove);
         this.removeFlowPane.setVisible(addRemove);
+        this.addButton.setText("Add: "+entityName);
         initFieldCollection(beans);
         return this.fieldCollection;
     }
@@ -163,7 +164,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     public void initRemoveIdDropdown(Map<String, PropertyDataWithAnnotations> beans) {
         if (addRemove) {
             List<String> l = new ArrayList<>();
-            l.add("Remove!");
+            l.add("Remove: "+entityName);
             for (String s : beans.keySet()) {
                 l.add(s);
             }
@@ -284,12 +285,11 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
                     initRemoveIdDropdown(beans);
                     initFieldCollection(beans);
                     removedIds.add(removeValueString);
-                    listener.changed(new BeanProperty(removeValueString, null, "", Object.class), removeValueString, "REMOVED - " + headingTemplate.replaceAll("%\\{id\\}", removeValue.toString()));
+                    listener.changed(new BeanProperty(removeValueString, null, "", Object.class), removeValueString, "REMOVED - " + getHeadingTemplate(removeValue.toString()));
                     setStatus("Removed " + entityName + ": " + removeValue);
                 } catch (Exception e) {
                     initRemoveIdDropdown(beans);
-                    Point r = Main.getPoint();
-                    SimpleDialogs.errorDialog(r.x, r.y, "REMOVAL:", "Cannot remove " + entityName + " entities:", e.getMessage().substring(1));
+                    SimpleDialogs.errorDialog(Main.getPoint(), "REMOVAL:", "Cannot remove " + entityName + " entities:", e.getMessage().substring(1));
                     setStatus(e.getMessage());
                 } finally {
                     doneButton.setDisable(fieldCollection.isError());
@@ -298,6 +298,10 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
         }
     }
 
+    private String getHeadingTemplate(String id) {
+        return headingTemplate.replaceAll("%\\{id\\}", id);
+    }
+    
     private void setStatus(String message) {
         if (message.startsWith("!")) {
             labelStatus.setBackground(new Background(new BackgroundFill(Color.PINK, CornerRadii.EMPTY, Insets.EMPTY)));
@@ -318,9 +322,8 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
 
         @Override
         public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-            Point r = Main.getPoint();
             if (isUpdated()) {
-                SimpleDialogs.errorDialog(r.x, r.y, "REMOVAL:", "Cannot remove " + entityName + " entities. Previous updates have been made", "Accept or Cancel the existing changes first");
+                SimpleDialogs.errorDialog(Main.getPoint(), "REMOVAL:", "Cannot remove " + entityName + " entities. Previous updates have been made", "Accept or Cancel the existing changes first");
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
@@ -329,7 +332,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
                     }
                 });
             } else {
-                if (SimpleDialogs.alertOkCancel(r.x, r.y, "Remove Selected " + entityName + ":", "Remove: " + newValue.toString(), "Press OK to REMOVE this item from the list")) {
+                if (SimpleDialogs.alertOkCancel(Main.getPoint(), "Remove Selected " + entityName + ":", "Remove: " + newValue.toString(), "Press OK to REMOVE this item from the list")) {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {

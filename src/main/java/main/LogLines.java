@@ -103,17 +103,14 @@ public class LogLines implements CommonLogger {
     }
     
     public void clearFilter() {
-        System.out.println("CLEAR");
         filters = new ArrayList<>();
         filters.add(-1);
     }
     
     public void filter(int port, Boolean add) {
         if (add) {
-            System.out.println("ADD:"+port);
             filters.add(port);
         } else {
-            System.out.println("REM:"+port);
             for (Integer i : filters) {
                 if (i == port) {
                     filters.remove(i);

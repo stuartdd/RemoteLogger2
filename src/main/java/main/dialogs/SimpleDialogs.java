@@ -17,6 +17,7 @@
  */
 package main.dialogs;
 
+import geom.Point;
 import java.io.File;
 import java.util.Optional;
 import javafx.scene.control.Alert;
@@ -33,24 +34,24 @@ import javafx.stage.Stage;
 public class SimpleDialogs {
     
     
-    public static boolean alertOkCancel(double x, double y, String ti, String txt, String ht) {
+    public static boolean alertOkCancel(Point origin, String ti, String txt, String ht) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Alert:" + ti);
         alert.setHeaderText(txt);
         alert.setContentText(ht);
-        alert.setX(x+50);
-        alert.setY(y+50);
+        alert.setX(origin.x+50);
+        alert.setY(origin.y+50);
         Optional<ButtonType> result = alert.showAndWait();
         return result.get() == ButtonType.OK;
     }
 
-    public static void errorDialog(double x, double y, String ti, String txt, String ht) {
+    public static void errorDialog(Point origin, String ti, String txt, String ht) {
         Alert alert = new Alert(AlertType.ERROR);
         alert.setTitle(ti);
         alert.setHeaderText(txt);
         alert.setContentText(ht);
-        alert.setX(x + 50);
-        alert.setY(y + 50);
+        alert.setX(origin.x + 50);
+        alert.setY(origin.y + 50);
         alert.showAndWait();
     }
 
@@ -83,13 +84,13 @@ public class SimpleDialogs {
         return name;
     }
 
-    public static String textInputDialog(double x, double y, String ti, String ht, String prompt, String txt) {
+    public static String textInputDialog(Point origin, String ti, String ht, String prompt, String txt) {
         TextInputDialog textDialog = new TextInputDialog(txt);
         textDialog.setTitle(ti);
         textDialog.setHeaderText(ht);
         textDialog.setContentText(prompt);
-        textDialog.setX(x + 50);
-        textDialog.setY(y + 50);
+        textDialog.setX(origin.x + 50);
+        textDialog.setY(origin.y + 50);
         Optional<String> result = textDialog.showAndWait();
         if (result.isPresent()) {
             String res = result.get();

@@ -19,6 +19,11 @@ package main;
 
 import common.*;
 import geom.Point;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.TreeMap;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -40,12 +45,6 @@ import server.ServerConfig;
 import server.ServerExpectations;
 import server.ServerManager;
 import server.ServerState;
-
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.TreeMap;
 
 /**
  *
@@ -89,8 +88,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     public void handleClearLogsButton() {
-        Point r = Main.getPoint();
-        if (SimpleDialogs.alertOkCancel(r.x, r.y, "Clear logs", "Erase all log data!", "Press OK to continue")) {
+        if (SimpleDialogs.alertOkCancel(Main.getPoint(), "Clear logs", "Erase all log data!", "Press OK to continue")) {
             Main.getLogLines().clear();
         }
     }
@@ -465,8 +463,11 @@ public class FXMLDocumentController implements Initializable, Notifier {
         return Color.PINK;
     }
 
-    public Map<String, Object> getConfigChangesLog() {
-        return configChangesLog;
+    public Map<String, Object> getConfigChangesLog(Map<String, Object> prefix) {
+        for (Map.Entry<String, Object> s:configChangesLog.entrySet()) {
+            prefix.put(s.getKey(), s.getValue());
+        }
+        return prefix;
     }
 
     private class ChoiceBoxPortSelectionListener implements ChangeListener<Number> {

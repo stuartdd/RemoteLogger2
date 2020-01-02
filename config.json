@@ -15,14 +15,6 @@
       "timeToClose" : 1,
       "verbose" : true,
       "logProperties" : false
-    },
-    "99" : {
-      "expectationsFile" : "expectations5012.json",
-      "autoStart" : false,
-      "showPort" : true,
-      "timeToClose" : 1,
-      "verbose" : true,
-      "logProperties" : true
     }
   },
   "packagedRequestsFile" : "packagedrequests.json",
@@ -31,8 +23,8 @@
   "defaultPort" : 5012,
   "includeHeaders" : true,
   "includeBody" : true,
-  "x" : 2022.0,
-  "y" : 178.0,
+  "x" : 410.0,
+  "y" : 108.0,
   "width" : 994.0,
   "height" : 878.0
 }

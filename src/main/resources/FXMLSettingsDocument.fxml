@@ -41,16 +41,15 @@
          <top>
             <FlowPane hgap="10.0" BorderPane.alignment="CENTER">
                <children>
-                  <FlowPane hgap="10.0" prefHeight="25.0" prefWidth="125.0">
+                  <FlowPane hgap="10.0" prefHeight="25.0" prefWidth="111.0">
                      <children>
                         <Button fx:id="doneButton" mnemonicParsing="false" onAction="#handleDoneButton" text="OK" />
                         <Button mnemonicParsing="false" onAction="#handleCancelButton" text="Cancel" />
                      </children>
                   </FlowPane>
-                  <FlowPane fx:id="addFlowPane" prefHeight="25.0" prefWidth="88.0">
+                  <FlowPane fx:id="addFlowPane" prefHeight="25.0" prefWidth="119.0">
                      <children>
-                        <Label prefHeight="25.0" prefWidth="32.0" text="Add" />
-                        <Button fx:id="addButton" mnemonicParsing="false" onAction="#handleAddButton" text="+" />
+                        <Button fx:id="addButton" mnemonicParsing="false" onAction="#handleAddButton" text="Add" />
                      </children>
                   </FlowPane>
                   <FlowPane fx:id="removeFlowPane" prefHeight="25.0" prefWidth="196.0">

@@ -36,6 +36,7 @@ import server.ServerManager;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -153,7 +154,13 @@ public class Main extends Application {
      */
     public static void closeApplication(int returnCode) {
         if (controller != null) {
-            FXMLYesNoCancelDialog.RESP resp = FXMLYesNoCancelDialog.load(controller.getConfigChangesLog(), mainStage, "Exit Application", controller.hasConfigDataHasChanged()).showAndWait();
+            Map<String, Object> servers = new HashMap<>();
+            for (Integer port:ServerManager.portListSorted()) {
+                if (ServerManager.isServerRunning(port)) {
+                    servers.put("SERVER   ["+port+"]","Is currently running");
+                }
+            }
+            FXMLYesNoCancelDialog.RESP resp = FXMLYesNoCancelDialog.load(controller.getConfigChangesLog(servers), mainStage, "Exit Application", controller.hasConfigDataHasChanged()).showAndWait();
             switch (resp) {
                 case NO:
                     loadConfig();

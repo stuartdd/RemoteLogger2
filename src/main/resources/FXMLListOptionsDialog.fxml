@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="440.0" prefWidth="596.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane id="AnchorPane" prefHeight="258.0" prefWidth="596.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <BorderPane prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <center>
@@ -29,12 +29,15 @@
             <FlowPane hgap="10.0" BorderPane.alignment="CENTER">
                <children>
                   <Button fx:id="yesButton" mnemonicParsing="false" onAction="#handleYesButton" text="EXIT" />
-                  <Button fx:id="noButton" mnemonicParsing="false" onAction="#handleNoButton" text="Dont Save Changes. Just EXIT" />
                   <Button mnemonicParsing="false" onAction="#handleCancelButton" text="DO NOT EXIT">
                      <FlowPane.margin>
-                        <Insets left="30.0" />
+                        <Insets left="20.0" />
                      </FlowPane.margin>
                   </Button>
+                  <Button fx:id="noButton" mnemonicParsing="false" onAction="#handleNoButton" text="Exit Without Saving Changes">
+                     <FlowPane.margin>
+                        <Insets left="20.0" />
+                     </FlowPane.margin></Button>
                </children>
                <padding>
                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
