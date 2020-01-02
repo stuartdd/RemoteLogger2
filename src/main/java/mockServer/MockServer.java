@@ -24,27 +24,18 @@ import expectations.Expectations;
 import json.JsonUtils;
 import server.Server;
 import server.ServerCallbackHandler;
-import server.ServerConfig;
 import server.ServerStatistics;
 
 /**
- *
  * @author stuart
  */
 public class MockServer {
 
     private Server server;
 
-    public MockServer(int port, ServerCallbackHandler responseHandler, CommonLogger logger, String expectationFile, boolean verbose) {
-        server = new Server(port, new ServerConfig(Expectations.fromFile(expectationFile), 0, verbose, verbose), responseHandler, new MockServerNotifier(), logger);
-    }
-
     public MockServer(int port, ServerCallbackHandler responseHandler, CommonLogger logger, Expectations expectations, boolean verbose) {
-        server = new Server(port, new ServerConfig(expectations, 0, verbose, verbose), responseHandler, new MockServerNotifier(), logger);
-    }
-
-    public MockServer(int port, ServerCallbackHandler responseHandler, CommonLogger logger, boolean verbose) {
-        server = new Server(port, new ServerConfig(new Expectations(), 0, verbose, verbose), responseHandler, new MockServerNotifier(), logger);
+        System.err.println("Mock Server craeted for port " + port);
+        server = new Server(port, responseHandler, new MockServerNotifier(), logger);
     }
 
     public void setCallBackClass(ServerCallbackHandler responseHandler) {
@@ -94,20 +85,20 @@ public class MockServer {
     public ServerStatistics getServerStatistics() {
         return server.getServerStatistics();
     }
-         
+
     public static MockServerBuilder add(ExpChain exp) {
         return new MockServerBuilder().add(exp);
     }
-    
+
     public static MockServerBuilder addAll(String json) {
         Expectations list = (Expectations) JsonUtils.beanFromJson(Expectations.class, json);
         return new MockServerBuilder(list);
     }
-    
+
     public static MockServerBuilder addAll(Expectations expectations) {
         return new MockServerBuilder(expectations);
     }
-    
+
     public static MockServerBuilder add(Expectation expectation) {
         return new MockServerBuilder(expectation);
     }
@@ -116,7 +107,7 @@ public class MockServer {
         Expectation exp = (Expectation) JsonUtils.beanFromJson(Expectation.class, json);
         return new MockServerBuilder(exp);
     }
-    
+
     public static MockServerBuilder fromfile(String jsonFile) {
         Expectations exp = Expectations.fromFile(jsonFile);
         return new MockServerBuilder(exp);

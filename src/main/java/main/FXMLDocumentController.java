@@ -19,12 +19,6 @@ package main;
 
 import common.*;
 import geom.Point;
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.TreeMap;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -33,7 +27,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import main.dialogs.FXMLSettingsDialog;
 import main.dialogs.SimpleDialogs;
@@ -43,6 +40,12 @@ import server.ServerConfig;
 import server.ServerExpectations;
 import server.ServerManager;
 import server.ServerState;
+
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.TreeMap;
 
 /**
  *
@@ -76,6 +79,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     private ChoiceBox serverChoiceBox;
+    private ChoiceBoxPortSelectionListener serverChoiceBoxListener;
 
     private Integer currentSelectedServerPort = -1;
     private String currentTabId = null;
@@ -121,7 +125,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
             @Override
             public void validate(BeanProperty propertyDescription, String id, Object oldValue, Object newValue) {
                 if (propertyDescription.isValidationId("exp")) {
-                    new ServerExpectations(Util.parseInt(id, "Server port"), (String) newValue);
+                    new ServerExpectations((String) newValue, null);
                 }
             }
 
@@ -144,11 +148,9 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 if (ServerManager.hasPort(portNumber)) {
                     throw new DataValidationException("!" + EntityName + " 'id' must be a 'Unique' port number");
                 }
-                ServerConfig sc = ConfigData.getInstance().getServerWithDefaultConfig(portNumber);
-                FXMLSettingsDialog newController = FXMLSettingsDialog.load(Main.getStage(), sc, "Server "+portNumber+":", "New Server Settings", "Server", this);
+                ServerConfig sc = ConfigData.getInstance().getServerWithDefaultConfig();
+                FXMLSettingsDialog newController = FXMLSettingsDialog.load(Main.getStage(), sc, "Server " + portNumber + ":", "New Server Settings", "Server", this);
                 if (newController.showAndWait()) {
-                    ConfigData.getInstance().getServers().put(toId, sc);
-                    Main.addServers(portNumber, sc);
                     return sc;
                 }
                 return null;
@@ -161,7 +163,15 @@ public class FXMLDocumentController implements Initializable, Notifier {
             for (String id : settingsController.getRemovedIds()) {
                 ServerManager.removeServer(id);
                 ConfigData.getInstance().getServers().remove(id);
+                initializePortChoiceBox();
                 configChangesLog.put("SERVER:  [" + id + "]:REMOVED", "Server with port [" + id + "]");
+                configDataHasChanged = true;
+            }
+            for (Map.Entry<String, PropertyDataWithAnnotations> e : settingsController.getAddedIds().entrySet()) {
+                ConfigData.getInstance().getServers().put(e.getKey(), (ServerConfig) e.getValue());
+                Main.addServers(Integer.parseInt(e.getKey()), (ServerConfig) e.getValue());
+                initializePortChoiceBox();
+                configChangesLog.put("SERVER:  [" + e.getKey() + "]:ADDED", "Server with port [" + e.getKey() + "]");
                 configDataHasChanged = true;
             }
             if (count > 0) {
@@ -355,21 +365,19 @@ public class FXMLDocumentController implements Initializable, Notifier {
      * @return the current port (first in the server list).
      */
     private int initializePortChoiceBox() {
+        if (serverChoiceBoxListener != null) {
+            serverChoiceBox.getSelectionModel().selectedIndexProperty().removeListener(serverChoiceBoxListener);
+        } else {
+            serverChoiceBoxListener = new ChoiceBoxPortSelectionListener();
+        }
+
         serverChoiceBox.setItems(FXCollections.observableArrayList(ServerManager.portList()));
         for (Object s : serverChoiceBox.getItems()) {
             if (s.equals(ConfigData.getInstance().getDefaultPort())) {
                 serverChoiceBox.getSelectionModel().select(s);
             }
         }
-        serverChoiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                if (oldValue != newValue) {
-                    Integer port = (Integer) serverChoiceBox.getItems().get(newValue.intValue());
-                    Main.controllerNotification(new Notification(port, Action.SERVER_SELECTED, null, "Selected server port [" + port + "]").withData("port", port));
-                }
-            }
-        });
+        serverChoiceBox.getSelectionModel().selectedIndexProperty().addListener(serverChoiceBoxListener);
         return ServerManager.portList().get(serverChoiceBox.getSelectionModel().getSelectedIndex());
     }
 
@@ -461,4 +469,13 @@ public class FXMLDocumentController implements Initializable, Notifier {
         return configChangesLog;
     }
 
+    private class ChoiceBoxPortSelectionListener implements ChangeListener<Number> {
+        @Override
+        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+            if (oldValue != newValue) {
+                Integer port = (Integer) serverChoiceBox.getItems().get(newValue.intValue());
+                Main.controllerNotification(new Notification(port, Action.SERVER_SELECTED, null, "Selected server port [" + port + "]").withData("port", port));
+            }
+        }
+    }
 }

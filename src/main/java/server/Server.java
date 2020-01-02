@@ -17,41 +17,34 @@
 package server;
 
 import common.CommonLogger;
-import common.LogLine;
+import common.ConfigData;
 import common.Notifier;
 import common.Util;
 
 /**
- *
  * @author stuart
  */
 public class Server {
 
-    private final int port;
+    private final Integer port;
     private final CommonLogger logger;
     private final Notifier serverNotifier;
-    private final ServerConfig serverConfig;
     private final ServerCallbackHandler callbackHandler;
-    private final ServerExpectations serverExpectations;
     private final ServerStatistics serverStatistics;
-
     private ServerThread serverThread;
 
-    public Server(int port, ServerConfig serverConfig, ServerCallbackHandler callbackHandler, Notifier serverNotifier, CommonLogger logger) {
+    public Server(Integer port, ServerCallbackHandler callbackHandler, Notifier serverNotifier, CommonLogger logger) {
+        ServerConfig serverConfig = ConfigData.getInstance().getServers().get(port.toString());
         if (serverConfig == null) {
             throw new ServerConfigException("Server serverConfig is null");
         }
+        this.serverThread = null;
         this.port = port;
         this.logger = logger;
         this.serverNotifier = serverNotifier;
-        this.serverConfig = serverConfig;
         this.callbackHandler = callbackHandler;
-        this.serverThread = null;
         this.serverStatistics = new ServerStatistics();
-        this.serverExpectations = new ServerExpectations(port, serverConfig.getExpectationsFile(), logger, serverStatistics, serverConfig.isLogProperties(), serverConfig.isLogProperties());
-        if ((logger != null) && serverExpectations.hasNoExpectations()) {
-            logger.log(new LogLine(port, "Server on " + port + " does not have any expectations defined. 404 will be returned"));
-        }
+        ServerExpectationManager.loadExpectation(port, serverConfig.getExpectationsFile(), logger);
     }
 
     public CommonLogger getLogger() {
@@ -67,12 +60,16 @@ public class Server {
     }
 
     public int getTimeToClose() {
-        return serverConfig.getTimeToClose();
+        return getServerConfig().getTimeToClose();
     }
 
     public ServerConfig getServerConfig() {
-        return serverConfig;
-    }
+        ServerConfig sc = ConfigData.getInstance().getServers().get(port.toString());
+        if (sc == null) {
+            throw new ServerConfigException("Enable to find server configuration (ServerConfig) data for port "+port);
+        }
+        return sc;
+     }
 
     public ServerCallbackHandler getCallbackHandler() {
         if (serverThread != null) {
@@ -80,7 +77,7 @@ public class Server {
         }
         return null;
     }
-    
+
     public void setCallBackHandler(ServerCallbackHandler responseHandler) {
         if (serverThread != null) {
             serverThread.setCallBackClass(responseHandler);
@@ -88,7 +85,7 @@ public class Server {
     }
 
     public ServerExpectations getServerExpectations() {
-        return serverExpectations;
+        return ServerExpectationManager.getExpectations(getServerConfig().getExpectationsFile());
     }
 
     public ServerStatistics getServerStatistics() {
@@ -98,7 +95,7 @@ public class Server {
     public boolean start() {
         serverThread = new ServerThread(this);
         serverThread.start();
-        for (int i = 0; i< 10; i++) {
+        for (int i = 0; i < 10; i++) {
             if (serverThread.isRunning()) {
                 return true;
             }
@@ -128,27 +125,27 @@ public class Server {
     }
 
     public void setAutoStart(boolean selected) {
-        serverConfig.setAutoStart(selected);
+        getServerConfig().setAutoStart(selected);
     }
 
     public boolean isAutoStart() {
-        return serverConfig.isAutoStart();
+        return getServerConfig().isAutoStart();
     }
 
     public void setShowPort(boolean selected) {
-        serverConfig.setShowPort(selected);
+        getServerConfig().setShowPort(selected);
     }
 
     public void setLogProperties(boolean selected) {
-        serverConfig.setLogProperties(selected);
+        getServerConfig().setLogProperties(selected);
     }
 
     public boolean isShowPort() {
-        return serverConfig.isShowPort();
+        return getServerConfig().isShowPort();
     }
 
     public boolean isLogProperties() {
-        return serverConfig.isLogProperties();
+        return getServerConfig().isLogProperties();
     }
 
 

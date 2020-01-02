@@ -17,16 +17,11 @@
  */
 package main;
 
-import common.CommonLogger;
-import common.LogLine;
-import common.ConfigData;
-import common.Loggable;
-import common.Notification;
-import common.Notifier;
-import common.Util;
-import java.util.Map;
+import common.*;
 import server.ServerConfig;
 import server.ServerManager;
+
+import java.util.Map;
 
 /**
  *
@@ -40,27 +35,16 @@ public class MainHeadless implements Notifier, CommonLogger {
      *
      * Currently just the config file name
      */
-    public static void main(String[] args) {
-        /*
-        Check we have a config file name. Abort if not.
-         */
-//        if (args.length == 0) {
-//            Main.exitWithHelp("Requires a properties (configuration) file");
-//        }
-
-        ConfigData.load("config.json");
+   public static void main(String[] args) {
         Object notifier = new MainHeadless();
+        ConfigData.load("config.json");
         for (Map.Entry<String, ServerConfig> sc : ConfigData.getInstance().getServers().entrySet()) {
-            ServerManager.addServer(sc.getKey(), sc.getValue(), (Notifier)notifier, (CommonLogger)notifier);
+            ServerManager.addServer(sc.getKey(), (Notifier)notifier, (CommonLogger)notifier);
         }
         ServerManager.autoStartServers();
         while (ServerManager.countServersRunning() > 0) {
             Util.sleep(100);
         }
-        /*
-        Load it and abort is an error occurs
-         */
-
     }
 
     @Override

@@ -42,9 +42,7 @@ public class ServerExpectationHandler implements HttpHandler {
 
     private final int port;
     private final Server server;
-    private final ServerExpectations serverExpectations;
     private ServerCallbackHandler responseHandler;
-    private final CommonLogger logger;
     private final Notifier serverNotifier;
     private final boolean verbose;
 
@@ -52,9 +50,7 @@ public class ServerExpectationHandler implements HttpHandler {
         this.server = server;
         this.verbose = server.getServerConfig().isVerbose();
         this.port = server.getPort();
-        this.serverExpectations = server.getServerExpectations();
         this.responseHandler = server.getCallbackHandler();
-        this.logger = server.getLogger();
         this.serverNotifier = server.getServerNotifier();
     }
 
@@ -63,7 +59,8 @@ public class ServerExpectationHandler implements HttpHandler {
     }
 
     @Override
-    public void handle(HttpExchange he) throws IOException {
+    public void handle(HttpExchange he) {
+        ServerExpectations serverExpectations = server.getServerExpectations();
         this.server.getServerStatistics().inc(ServerStatistics.STAT.REQUEST, true);
         Map<String, Object> map = new TreeMap<>();
         Map<String, String> headers = new HashMap<>();
@@ -111,7 +108,7 @@ public class ServerExpectationHandler implements HttpHandler {
             }
         }
 
-        Expectation foundExpectation = serverExpectations.findMatchingExpectation(map);
+        Expectation foundExpectation = serverExpectations.findMatchingExpectation(port, map);
 
         if (responseHandler != null) {
             MockRequest mockRequest = null;
@@ -134,7 +131,7 @@ public class ServerExpectationHandler implements HttpHandler {
         if (serverExpectations.hasNoExpectations()) {
             MockResponse.respond(he, 404, "No Expectation defined", null, null);
         } else {
-            serverExpectations.getResponse(he, map, headers, queries, foundExpectation);
+            serverExpectations.getResponse(port, he, map, headers, queries, foundExpectation);
         }
         this.server.getServerStatistics().inc(ServerStatistics.STAT.RESPONSE, true);
     }

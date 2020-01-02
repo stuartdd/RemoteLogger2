@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ServerManager {
 
     private static Map<Integer, Server> servers = new ConcurrentHashMap<>();
- 
+
     public static void clear() {
         servers = new ConcurrentHashMap<>();
     }
@@ -44,14 +44,14 @@ public class ServerManager {
         servers.remove(Integer.parseInt(id));
     }
 
-    public static void addServer(String portStr, ServerConfig config, Notifier serverNotifier, CommonLogger logger) {
+    public static void addServer(String portStr, Notifier serverNotifier, CommonLogger logger) {
         int port;
         try {
             port = Integer.parseInt(portStr);
         } catch (NumberFormatException ex) {
             throw new ConfigDataException("Port number [" + portStr + "] is invalid");
         }
-        servers.put(port, new Server(port, config, null, serverNotifier, logger));
+        servers.put(port, new Server(port, null, serverNotifier, logger));
     }
 
     public static boolean isServerRunning(int port) {
@@ -187,25 +187,6 @@ public class ServerManager {
 
     public static Server getServer(int port) {
         return servers.get(port);
-    }
-
-    public static ServerExpectations getExpectationManager(int port) {
-        Server server = getServer(port);
-        if (server == null) {
-            return null;
-        }
-        return server.getServerExpectations();
-    }
-
-    public static Map<String, PropertyDataWithAnnotations> getExpectationsMap(int port) {
-        Server server = getServer(port);
-        if (server == null) {
-            return null;
-        }
-        if (server.getServerExpectations() == null) {
-            return null;
-        }
-        return server.getServerExpectations().getExpectationsDataMap();
     }
 
 

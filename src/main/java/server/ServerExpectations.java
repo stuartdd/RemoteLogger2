@@ -46,30 +46,14 @@ public class ServerExpectations {
     private static final String NL = System.getProperty("line.separator");
     private static final String LS = "-----------------------------------------" + NL;
     private Expectations expectations;
-    private final int port;
     private final CommonLogger logger;
-    private final ServerStatistics serverStatistics;
     private File expectationsFile;
     private long expectationsLoadTime;
-    private boolean logProperties;
-    private boolean verbose;
 
 
-    public ServerExpectations(int port, String fileName, CommonLogger logger, ServerStatistics serverStatistics, boolean verbose, boolean logProperties) {
-        this.port = port;
+
+    public ServerExpectations(String fileName, CommonLogger logger) {
         this.logger = logger;
-        this.serverStatistics = serverStatistics;
-        this.logProperties = logProperties;
-        this.verbose = verbose;
-        loadExpectations(fileName);
-    }
-
-    public ServerExpectations(int port, String fileName) {
-        this.port = port;
-        this.logger = null;
-        this.serverStatistics = null;
-        this.logProperties = false;
-        this.verbose = false;
         loadExpectations(fileName);
     }
 
@@ -81,41 +65,35 @@ public class ServerExpectations {
         return expectations;
     }
 
-    public int getPort() {
-        return port;
+    public void getResponse( int port, HttpExchange he, Map<String, Object> map, Map<String, String> headers, Map<String, String> queries, Expectation foundExpectation) {
+        getResponseData(port, map, foundExpectation).respond(he, map);
     }
 
-    public void getResponse(HttpExchange he, Map<String, Object> map, Map<String, String> headers, Map<String, String> queries, Expectation foundExpectation) {
-        getResponseData(map, foundExpectation).respond(he, map);
-    }
-
-    public MockResponse getResponseData(Map<String, Object> map, Expectation foundExpectation) {
+    public MockResponse getResponseData(int port, Map<String, Object> map, Expectation foundExpectation) {
         MockResponse mockResponse = MockResponse.notFound();
 
-        if ((expectations.isLogProperies() || logProperties) && (logger != null)) {
-            logMap(System.currentTimeMillis(), map, "REQUEST PROPERTIES");
+        if ((expectations.isLogProperies()) && (logger != null)) {
+            logMap(port, System.currentTimeMillis(), map, "REQUEST PROPERTIES");
         }
 
         if (foundExpectation != null) {
             try {
-                serverStatistics.inc(ServerStatistics.STAT.MATCH, true);
                 if (logger != null) {
-                    logger.log(new LogLine(getPort(), "MATCHED " + foundExpectation));
+                    logger.log(new LogLine(port, "MATCHED " + foundExpectation));
                 }
                 if (foundExpectation.getForward() == null) {
                     mockResponse = createMockResponse(foundExpectation, map);
                 } else {
-                    mockResponse = createMockResponseViaForward(foundExpectation, map);
+                    mockResponse = createMockResponseViaForward(port, foundExpectation, map);
                 }
             } catch (ExpectationException | FileException ee) {
                 if (logger != null) {
-                    logger.log(new LogLine(getPort(), new IOException("Read file failed for expectation: " + foundExpectation.getName() + ". " + ee.getMessage(), ee)));
+                    logger.log(new LogLine(port, new IOException("Read file failed for expectation: " + foundExpectation.getName() + ". " + ee.getMessage(), ee)));
                 }
             }
         } else {
-            serverStatistics.inc(ServerStatistics.STAT.MISSMATCH, true);
             if (logger != null) {
-                logger.log(new LogLine(getPort(), "Expectation not met. Returning Not Found (404)"));
+                logger.log(new LogLine(port, "Expectation not met. Returning Not Found (404)"));
             }
         }
         map.put("STATUS", "" + mockResponse.getStatus());
@@ -124,9 +102,9 @@ public class ServerExpectations {
     }
 
 
-    private MockResponse createMockResponseViaForward(Expectation foundExpectation, Map<String, Object> map) {
+    private MockResponse createMockResponseViaForward(int port, Expectation foundExpectation, Map<String, Object> map) {
         ForwardContent forward = foundExpectation.getForward();
-        String body = "";
+        String body;
         if (Util.isEmpty(forward.getBodyTemplate())) {
             if (Util.isEmpty(forward.getBody())) {
                 body = "";
@@ -152,7 +130,7 @@ public class ServerExpectations {
         }
         ClientConfig clientConfig = new ClientConfig(Template.parse(forward.getHost(), map, true), forward.getPort(), headers);
         if (logger != null) {
-            logger.log(new LogLine(getPort(), "FORWARDING TO: " + forward.toString()));
+            logger.log(new LogLine(port, "FORWARDING TO: " + forward.toString()));
         }
         Client client = new Client(clientConfig, logger);
         try {
@@ -160,7 +138,7 @@ public class ServerExpectations {
             return new MockResponse(resp.getBody(), resp.getStatus(), resp.getHeaders());
         } catch (Exception e) {
             if (logger != null) {
-                logger.log(new LogLine(getPort(), e));
+                logger.log(new LogLine(port, e));
             }
             return new MockResponse("Forward failed:" + e.getMessage(), 500, null);
         }
@@ -190,17 +168,17 @@ public class ServerExpectations {
         return new MockResponse(response, statusCode, responseHeaders);
     }
 
-    public Expectation findMatchingExpectation(Map<String, Object> map) {
+    public Expectation findMatchingExpectation(int port, Map<String, Object> map) {
         if (expectations == null) {
             if (logger != null) {
-                logger.log(new LogLine(getPort(), "No Expectation have been set!"));
+                logger.log(new LogLine(port, "No Expectation have been set!"));
             }
             return null;
         }
         reloadExpectations(false);
         Expectation found;
         for (Expectation exp : expectations.getExpectations()) {
-            found = testExpectationMatches(exp, map);
+            found = testExpectationMatches(port, exp, map);
             if (found != null) {
                 return found;
             }
@@ -208,45 +186,45 @@ public class ServerExpectations {
         return null;
     }
 
-    private Expectation testExpectationMatches(Expectation exp, Map<String, Object> map1) {
+    private Expectation testExpectationMatches(int port, Expectation exp, Map<String, Object> map1) {
         if (doesNotMatchStringOrNullExp(exp.getMethod(), map1.get("METHOD"))) {
             if (logger != null) {
-                logger.log(new LogLine(getPort(), "MIS-MATCH:'" + exp.getName() + "' METHOD:'" + exp.getMethod() + "' != '" + map1.get("METHOD") + "'"));
+                logger.log(new LogLine(port, "MIS-MATCH:'" + exp.getName() + "' METHOD:'" + exp.getMethod() + "' != '" + map1.get("METHOD") + "'"));
             }
             return null;
         }
         if (doesNotMatchStringOrNullExp(exp.getBodyType(), map1.get("BODY-TYPE"))) {
             if (logger != null) {
-                logger.log(new LogLine(getPort(), "MIS-MATCH:'" + exp.getName() + "' BODY-TYPE:'" + exp.getBodyType() + "' != '" + map1.get("BODY-TYPE") + "'"));
+                logger.log(new LogLine(port, "MIS-MATCH:'" + exp.getName() + "' BODY-TYPE:'" + exp.getBodyType() + "' != '" + map1.get("BODY-TYPE") + "'"));
             }
             return null;
         }
         if (!exp.multiPathMatch(map1.get("PATH"))) {
             if (logger != null) {
-                logger.log(new LogLine(getPort(), "MIS-MATCH:'" + exp.getName() + "' PATH:'" + exp.getPath() + "' != '" + map1.get("PATH") + "'"));
+                logger.log(new LogLine(port, "MIS-MATCH:'" + exp.getName() + "' PATH:'" + exp.getPath() + "' != '" + map1.get("PATH") + "'"));
             }
             return null;
         }
         if ((exp.getAsserts() != null) && (!exp.getAsserts().isEmpty())) {
-            if (doesNotMatchAllAssertions(exp, map1)) {
+            if (doesNotMatchAllAssertions(port, exp, map1)) {
                 return null;
             }
         }
         return exp;
     }
 
-    private boolean doesNotMatchAllAssertions(Expectation exp, Map<String, Object> map) {
+    private boolean doesNotMatchAllAssertions(int port, Expectation exp, Map<String, Object> map) {
         for (Map.Entry<String, String> ass : exp.getAsserts().entrySet()) {
             Object actual = map.get(ass.getKey());
             if (actual == null) {
                 if (logger != null) {
-                    logger.log(new LogLine(getPort(), "MIS-MATCH:'" + exp.getName() + "': ASSERT:'" + ass.getKey() + "' Not Found"));
+                    logger.log(new LogLine(port, "MIS-MATCH:'" + exp.getName() + "': ASSERT:'" + ass.getKey() + "' Not Found"));
                 }
                 return true;
             }
             if (!exp.assertMatch(ass.getKey(), actual.toString())) {
                 if (logger != null) {
-                    logger.log(new LogLine(getPort(), "MIS-MATCH:'" + exp.getName() + "': ASSERT:' " + ass.getKey() + "'='" + ass.getValue() + "'. Does not match '" + actual + "'"));
+                    logger.log(new LogLine(port, "MIS-MATCH:'" + exp.getName() + "': ASSERT:' " + ass.getKey() + "'='" + ass.getValue() + "'. Does not match '" + actual + "'"));
                 }
                 return true;
             }
@@ -265,7 +243,7 @@ public class ServerExpectations {
         return (!exp.equalsIgnoreCase(subject.toString()));
     }
 
-    private void logMap(long time, Map<String, Object> map, String id) {
+    private void logMap(int port, long time, Map<String, Object> map, String id) {
         StringBuilder sb = new StringBuilder();
         sb.append("START: ------ " + id).append(": ").append(LS);
         for (Map.Entry<String, Object> e : map.entrySet()) {
@@ -277,7 +255,7 @@ public class ServerExpectations {
         }
         sb.append("END: -------- " + id).append(": ").append(LS);
         if (logger != null) {
-            logger.log(new LogLine(getPort(), NL + sb.toString().trim()));
+            logger.log(new LogLine(port, NL + sb.toString().trim()));
         }
     }
 
@@ -288,7 +266,7 @@ public class ServerExpectations {
         sb.append(resp).append(NL);
         sb.append("-    ").append(id).append(' ').append(LS);
         if (logger != null) {
-            logger.log(new LogLine(getPort(), NL + sb.toString().trim()));
+            logger.log(new LogLine(port, NL + sb.toString().trim()));
         }
     }
 
@@ -321,8 +299,9 @@ public class ServerExpectations {
             expectationsFile = file;
             expectations = exp;
             expectationsLoadTime = file.lastModified();
+        } else {
+            throw new ServerConfigException("Expectations file '"+expectationsFileName+"' does not exist");
         }
-
     }
 
     public void reloadExpectations(boolean force) {
@@ -334,7 +313,7 @@ public class ServerExpectations {
                 expectationsLoadTime = expectationsFile.lastModified();
             } catch (ExpectationException ex) {
                 if (logger != null) {
-                    logger.log(new LogLine(getPort(), "Reload of expectation failed " + expectationsFile.getAbsolutePath(), ex));
+                    logger.log(new LogLine(-1, "Reload of expectation failed " + expectationsFile.getAbsolutePath(), ex));
                 } else {
                     ex.printStackTrace();
                 }

@@ -258,7 +258,7 @@ public class Main extends Application {
         }
         ServerManager.clear();
         for (Map.Entry<String, ServerConfig> sc : ConfigData.getInstance().getServers().entrySet()) {
-            ServerManager.addServer(sc.getKey(), sc.getValue(), UI_NOTIFIER, LOG_LINES);
+            ServerManager.addServer(sc.getKey(), UI_NOTIFIER, LOG_LINES);
         }
         ServerManager.autoStartServers();
         return true;
@@ -268,7 +268,7 @@ public class Main extends Application {
         if (sc == null) {
             return;
         }
-        ServerManager.addServer("" + port, sc, UI_NOTIFIER, LOG_LINES);
+        ServerManager.addServer("" + port, UI_NOTIFIER, LOG_LINES);
     }
 
     private static void loadConfig() {

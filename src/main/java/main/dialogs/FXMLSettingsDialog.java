@@ -2,11 +2,6 @@ package main.dialogs;
 
 import common.PropertyDataWithAnnotations;
 import geom.Point;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -21,11 +16,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -36,6 +27,12 @@ import main.fields.BeanProperty;
 import main.fields.FXMLBeanFieldLoaderException;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FXMLSettingsDialog implements FXMLFieldChangeListener {
 
@@ -50,6 +47,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     private FXMLFieldChangeListener listener;
     private ChoiceBoxSelectionListener choiceBoxSelectionListener;
     private List<String> removedIds = new ArrayList<>();
+    private Map<String, PropertyDataWithAnnotations> addedIds = new HashMap<>();
 
     @FXML
     public VBox vBoxSettings;
@@ -90,12 +88,17 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
     @FXML
     public void handleAddButton() {
         String toId = SimpleDialogs.textInputDialog(0, 0, "Add " + entityName, "Enter the unique id for the " + entityName, "ID:", "Port Number");
-        if ((toId != null) && (toId.trim().length()>0)) {
+        if ((toId != null) && (toId.trim().length() > 0)) {
             if (listener != null) {
                 try {
-                this.add(null, toId, entityName);
+                    Object o = this.add(null, toId, entityName);
+                    if (o != null) {
+                        beans.put(toId, (PropertyDataWithAnnotations) o);
+                        addedIds.put(toId, (PropertyDataWithAnnotations)o);
+                        initFieldCollection(beans);
+                    }
                 } catch (Exception e) {
-                    SimpleDialogs.errorDialog(0, 0, "Add "+entityName, "Error adding a "+entityName, e.getMessage().substring(1));
+                    SimpleDialogs.errorDialog(0, 0, "Add " + entityName, "Error adding a " + entityName, e.getMessage().substring(1));
                 }
             }
         }
@@ -146,7 +149,6 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
         this.addFlowPane.setVisible(addRemove);
         this.removeFlowPane.setVisible(addRemove);
         initFieldCollection(beans);
-        initRemoveIdDropdown(beans);
         return this.fieldCollection;
     }
 
@@ -155,6 +157,7 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
             this.fieldCollection.destroy();
         }
         this.fieldCollection = new FXMLFieldCollection(modalStage, vBoxSettings, beans, false, headingTemplate, entityName, this);
+        initRemoveIdDropdown(beans);
     }
 
     public void initRemoveIdDropdown(Map<String, PropertyDataWithAnnotations> beans) {
@@ -203,6 +206,10 @@ public class FXMLSettingsDialog implements FXMLFieldChangeListener {
 
     public List<String> getRemovedIds() {
         return removedIds;
+    }
+
+    public Map<String, PropertyDataWithAnnotations> getAddedIds() {
+        return addedIds;
     }
 
     public void setModalStage(Stage modalStage) {

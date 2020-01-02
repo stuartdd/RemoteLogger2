@@ -17,7 +17,6 @@
 package common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sun.jna.Structure;
 import config.Config;
 import java.beans.BeanProperty;
 import java.io.File;
@@ -49,7 +48,7 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
     private String packagedRequestsFile;
     private String selectedPackagedRequestName;
     private String timeFormat;
-    private int defaultPort;
+    private Integer defaultPort;
     private boolean includeHeaders = true;
     private boolean includeBody = true;
     private double x;
@@ -94,7 +93,7 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
         }
         readFileName = fd.getFileName();
         instance = (ConfigData) Config.configFromJson(ConfigData.class, fd.getContent());
-        if (!instance.getServers().containsKey(instance.getDefaultPort())) {
+        if (!instance.getServers().containsKey(instance.getDefaultPort().toString())) {
             for (String port:instance.getServers().keySet()) {
                 instance.setDefaultPort(Integer.parseInt(port));
                 break;
@@ -110,6 +109,7 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
         return servers;
     }
 
+    @JsonIgnore
     public ServerConfig[] getServersList() {
         ServerConfig[] list = new ServerConfig[serverCount()];
         int i = 0;
@@ -152,11 +152,11 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
 
 
     @BeanProperty(description = "Default Port | validation=defport")
-    public int getDefaultPort() {
+    public Integer getDefaultPort() {
         return defaultPort;
     }
 
-    public void setDefaultPort(int defaultPort) {
+    public void setDefaultPort(Integer defaultPort) {
         this.defaultPort = defaultPort;
     }
 
@@ -246,7 +246,7 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
         return readFileName;
     }
 
-    public ServerConfig getServerWithDefaultConfig(int portNumber) {
+    public ServerConfig getServerWithDefaultConfig() {
         ServerConfig sc = new ServerConfig();
         ServerConfig scClone = getServersList()[0];
         sc.setExpectationsFile(scClone.getExpectationsFile());

@@ -89,7 +89,7 @@ public class MockRequest {
     }
 
     public MockResponse createResponse(Map<String, Object> map) {
-        return serverExpectations.getResponseData(map, expectation);
+        return serverExpectations.getResponseData(getPort(), map, expectation);
     }
 
 }
