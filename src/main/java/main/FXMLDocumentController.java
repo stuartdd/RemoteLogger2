@@ -144,9 +144,11 @@ public class FXMLDocumentController implements Initializable, Notifier {
                 if (ServerManager.hasPort(portNumber)) {
                     throw new DataValidationException("!" + EntityName + " 'id' must be a 'Unique' port number");
                 }
-                ServerConfig sc = new ServerConfig();
-                FXMLSettingsDialog newController = FXMLSettingsDialog.load(Main.getStage(), sc, "Server", "New Server Settings", "Server", this);
+                ServerConfig sc = ConfigData.getInstance().getServerWithDefaultConfig(portNumber);
+                FXMLSettingsDialog newController = FXMLSettingsDialog.load(Main.getStage(), sc, "Server "+portNumber+":", "New Server Settings", "Server", this);
                 if (newController.showAndWait()) {
+                    ConfigData.getInstance().getServers().put(toId, sc);
+                    Main.addServers(portNumber, sc);
                     return sc;
                 }
                 return null;

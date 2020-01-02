@@ -17,13 +17,13 @@
 package common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sun.jna.Structure;
 import config.Config;
 import java.beans.BeanProperty;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 import json.JsonUtils;
@@ -102,8 +102,22 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
         }
     }
 
+    public int serverCount() {
+        return servers.size();
+    }
+    
     public Map<String, ServerConfig> getServers() {
         return servers;
+    }
+
+    public ServerConfig[] getServersList() {
+        ServerConfig[] list = new ServerConfig[serverCount()];
+        int i = 0;
+        for (ServerConfig sc:getServers().values()) {
+            list[i] = sc;
+            i++;
+        }
+        return list;
     }
 
     public void setServers(Map<String, ServerConfig> servers) {
@@ -230,6 +244,18 @@ public class ConfigData extends Config implements PropertyDataWithAnnotations {
 
     public static String readFileName() {
         return readFileName;
+    }
+
+    public ServerConfig getServerWithDefaultConfig(int portNumber) {
+        ServerConfig sc = new ServerConfig();
+        ServerConfig scClone = getServersList()[0];
+        sc.setExpectationsFile(scClone.getExpectationsFile());
+        sc.setTimeToClose(scClone.getTimeToClose());
+        sc.setAutoStart(false);
+        sc.setLogProperties(true);
+        sc.setShowPort(true);
+        sc.setVerbose(true);
+        return sc;
     }
 
 

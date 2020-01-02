@@ -264,6 +264,13 @@ public class Main extends Application {
         return true;
     }
 
+    public static void addServers(int port, ServerConfig sc) {
+        if (sc == null) {
+            return;
+        }
+        ServerManager.addServer("" + port, sc, UI_NOTIFIER, LOG_LINES);
+    }
+
     private static void loadConfig() {
         ConfigData.load(configFileName);
     }
