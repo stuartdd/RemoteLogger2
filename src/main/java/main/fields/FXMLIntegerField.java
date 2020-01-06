@@ -72,6 +72,8 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
             return;
         }
         super.doLayout();
+        double fWidth = getFieldWidth() / 4;
+        setControlWidth(textField, fWidth);
         if (isReadOnly()) {
             textField.setLayoutX(getLabelWidth() - 20);
         } else {

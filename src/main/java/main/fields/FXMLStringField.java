@@ -17,7 +17,6 @@
  */
 package main.fields;
 
-import java.io.IOException;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -30,6 +29,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import main.dialogs.SimpleDialogs;
+
+import java.io.IOException;
 
 /**
  * @author Stuart
@@ -94,19 +95,23 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
         double lWidth = getLabelWidth();
 
         if (isReadOnly()) {
-            textField.setLayoutX(getLabelWidth() - 20);
-            setControlWidth(textField, fWidth - 40);
+            textField.setLayoutX(lWidth - 20);
+            setControlWidth(textField, fWidth - 35);
         } else {
+            textField.setLayoutX(lWidth + 10);
             if (hasFileButton) {
-                setControlWidth(textField, fWidth - 145);
+                if (fileButton != null) {
+                    fileButton.setVisible(true);
+                    fileButton.setLayoutX((lWidth + fWidth) - 95);
+                    fileButton.setLayoutY(0);
+                }
+                setControlWidth(textField, fWidth - 110);
                 setControlWidth(fileButton, 40);
-                fileButton.setVisible(true);
-                fileButton.setLayoutX((lWidth + fWidth) - 130);
             } else {
                 if (fileButton != null) {
                     fileButton.setVisible(false);
                 }
-                setControlWidth(textField, fWidth - 20);
+                setControlWidth(textField, fWidth - 65);
             }
         }
 
