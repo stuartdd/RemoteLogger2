@@ -65,7 +65,7 @@ public class PackagedRequest implements Model, PropertyDataWithAnnotations {
         this.name = name;
     }
 
-    @BeanProperty(description = "Host Url | validation=packName")
+    @BeanProperty(description = "Host URL | validation=url")
     public String getHost() {
         return host;
     }
@@ -83,7 +83,7 @@ public class PackagedRequest implements Model, PropertyDataWithAnnotations {
         this.port = port;
     }
 
-   @BeanProperty(description = "Request Path (Matcher)")
+   @BeanProperty(description = "Request Path (appended to URL)")
      public String getPath() {
         return path;
     }
@@ -101,7 +101,7 @@ public class PackagedRequest implements Model, PropertyDataWithAnnotations {
         this.method = method;
     }
 
-    @BeanProperty(description = "Request Body")
+    @BeanProperty(description = "Request Body (If NO file defined)")
     public String getBody() {
         return body;
     }
@@ -110,7 +110,7 @@ public class PackagedRequest implements Model, PropertyDataWithAnnotations {
         this.body = body;
     }
 
-   @BeanProperty(description = "Request Body Template (File)")
+    @BeanProperty(description = "Request Body Template (File) | type=file,desc=Request Body Template,ext=json ")
     public String getBodyTemplate() {
         return bodyTemplate;
     }

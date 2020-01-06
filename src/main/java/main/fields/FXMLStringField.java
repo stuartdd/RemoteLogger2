@@ -41,12 +41,12 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
 
     private TextField textField;
     private Button fileButton;
-    private boolean hasFileButton;
+    private boolean requiresFileButton;
     private String entityName;
 
     public FXMLStringField(Stage stage, VBox vbox, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
         super(stage, vbox, id, "String", beanPropertyWrapper, propertyName, entityName, readOnly, changeListener);
-        hasFileButton = false;
+        requiresFileButton = false;
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
@@ -62,7 +62,7 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
                         fileButton.setGraphic(new ImageView(fileImage));
                     }
                     if (getBeanProperty().isTypeId("file")) {
-                        hasFileButton = true;
+                        requiresFileButton = true;
                         String ext = getBeanProperty().getFlag("ext", "json");
                         String desc = getBeanProperty().getFlag("desc", "File type *." + ext);
                         textField.setEditable(false);
@@ -97,16 +97,19 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
         if (isReadOnly()) {
             textField.setLayoutX(lWidth - 20);
             setControlWidth(textField, fWidth - 35);
+            if (fileButton != null) {
+                fileButton.setVisible(false);
+            }
         } else {
             textField.setLayoutX(lWidth + 10);
-            if (hasFileButton) {
+            if (requiresFileButton) {
                 if (fileButton != null) {
                     fileButton.setVisible(true);
                     fileButton.setLayoutX((lWidth + fWidth) - 95);
-                    fileButton.setLayoutY(0);
+                    fileButton.setLayoutY(1);
+                    setControlWidth(fileButton, 40);
                 }
                 setControlWidth(textField, fWidth - 110);
-                setControlWidth(fileButton, 40);
             } else {
                 if (fileButton != null) {
                     fileButton.setVisible(false);
