@@ -17,12 +17,9 @@
  */
 package main;
 
+import client.Client;
+import client.ClientConfig;
 import common.*;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.TreeMap;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -42,10 +39,17 @@ import main.fields.BeanProperty;
 import main.fields.FXMLFieldChangeListener;
 import main.fields.FXMLFieldCollection;
 import packaged.PackagedManager;
+import packaged.PackagedRequest;
 import server.ServerConfig;
 import server.ServerExpectations;
 import server.ServerManager;
 import server.ServerState;
+
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.TreeMap;
 
 /**
  *
@@ -77,11 +81,11 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     @FXML
     private ScrollPane clientSplitPaneScrollLeft;
-    
+
     @FXML
     private ScrollPane clientSplitPaneScrollRight;
     FXMLFieldCollection packageRequestFieldCollection;
-    
+
     @FXML
     private VBox clientSplitPaneVBoxRight;
 
@@ -96,6 +100,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private ChoiceBoxPortSelectionListener serverChoiceBoxListener;
 
     private Integer currentSelectedServerPort = -1;
+    private PackagedRequest currentPackagedRequest;
     private String currentTabId = null;
     private boolean configDataHasChanged = false;
     private Map<Integer, CheckBox> logCheckBoxesByPort = new HashMap<>();
@@ -111,6 +116,20 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     public void handleCloseApplicationButton() {
         Main.closeApplication(0);
+    }
+
+    @FXML
+    public void handleClientRequestEditButton() {
+        System.out.println("EDIT");
+    }
+
+    @FXML
+    public void handleClientRequestSendButton() {
+        if (currentPackagedRequest != null) {
+            Client c = new Client(new ClientConfig(currentPackagedRequest.getHost(), currentPackagedRequest.getPort(), currentPackagedRequest.getHeaders()), Main.getLogLines());
+            c.send(currentPackagedRequest.getPath(), currentPackagedRequest.getBodyFinal(null), currentPackagedRequest.getMethod());
+            mainTabbedPane.getSelectionModel().select(getTabIndexForId(LOGS_TAB_FX_ID));
+        }
     }
 
     @FXML
@@ -310,21 +329,30 @@ public class FXMLDocumentController implements Initializable, Notifier {
      * Calls updateTheLogs to refresh the log content
      */
     private void initialiseClientTabPanel() {
+        clientSplitPaneNamesList.getSelectionModel().selectedItemProperty().removeListener(clientSplitPaneNamesListListener);
         clientSplitPaneScrollLeft.setFitToHeight(true);
         clientSplitPaneScrollLeft.setFitToWidth(true);
         clientSplitPaneScrollRight.setFitToHeight(true);
         clientSplitPaneScrollRight.setFitToWidth(true);
         clientSplitPaneNamesList.setItems(FXCollections.observableArrayList(PackagedManager.getRequestNamesList()));
+        if (currentPackagedRequest != null) {
+            clientSplitPaneNamesList.getSelectionModel().select(currentPackagedRequest.getName());
+            initialiseClientDetailDisplay(currentPackagedRequest.getName());
+        } else {
+            clientSplitPaneNamesList.getSelectionModel().select(0);
+            initialiseClientDetailDisplay(clientSplitPaneNamesList.getSelectionModel().getSelectedItem().toString());
+        }
         clientSplitPaneNamesList.getSelectionModel().selectedItemProperty().addListener(clientSplitPaneNamesListListener);
     }
-    
+
     public void initialiseClientDetailDisplay(String name) {
-       if (packageRequestFieldCollection != null) {
-           packageRequestFieldCollection.destroy();
-       }
-       Map<String, PropertyDataWithAnnotations> m = new HashMap<>();
-       m.put(name, PackagedManager.getPackagedRequest(name));
-       packageRequestFieldCollection = new FXMLFieldCollection(Main.getStage(), clientSplitPaneVBoxRight, m , true, name, "Packaged Request", null);
+        if (packageRequestFieldCollection != null) {
+            packageRequestFieldCollection.destroy();
+        }
+        currentPackagedRequest = PackagedManager.getPackagedRequest(name);
+        Map<String, PropertyDataWithAnnotations> m = new HashMap<>();
+        m.put(name, currentPackagedRequest);
+        packageRequestFieldCollection = new FXMLFieldCollection(Main.getStage(), clientSplitPaneVBoxRight, m, true, name, "Packaged Request", null);
     }
 
     /**
@@ -508,6 +536,17 @@ public class FXMLDocumentController implements Initializable, Notifier {
         return Color.PINK;
     }
 
+    private int getTabIndexForId(String id) {
+        int index = 0;
+        for (Tab t : mainTabbedPane.getTabs()) {
+            if (t.getId().equals(id)) {
+                return index;
+            }
+            index++;
+        }
+        return 0;
+    }
+
     public Map<String, Object> getConfigChangesLog(Map<String, Object> prefix) {
         for (Map.Entry<String, Object> s : configChangesLog.entrySet()) {
             prefix.put(s.getKey(), s.getValue());
@@ -527,7 +566,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
     }
 
     private class ClientSplitPaneNamesListListener implements ChangeListener<String> {
-
         @Override
         public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
             Main.controllerNotification(new Notification(-1, Action.PACKAGE_REQUEST_SELECTED, null, "Selected server port [" + newValue + "]").withData("name", newValue));

@@ -11,7 +11,7 @@
     "5013" : {
       "expectationsFile" : "expectations5012.json",
       "autoStart" : false,
-      "showPort" : true,
+      "showPort" : false,
       "timeToClose" : 1,
       "verbose" : true,
       "logProperties" : false
@@ -23,8 +23,8 @@
   "defaultPort" : 5012,
   "includeHeaders" : true,
   "includeBody" : true,
-  "x" : 198.0,
-  "y" : 59.0,
-  "width" : 901.0,
+  "x" : 0.0,
+  "y" : 0.0,
+  "width" : 1209.0,
   "height" : 878.0
 }

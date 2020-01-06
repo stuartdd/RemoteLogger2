@@ -16,12 +16,16 @@
  */
 package packaged;
 
+import common.FileData;
 import common.PropertyDataWithAnnotations;
+import common.Util;
+import json.JsonUtils;
+import model.Model;
+import template.Template;
+
 import java.beans.BeanProperty;
 import java.util.HashMap;
 import java.util.Map;
-import json.JsonUtils;
-import model.Model;
 
 public class PackagedRequest implements Model, PropertyDataWithAnnotations {
 
@@ -83,8 +87,8 @@ public class PackagedRequest implements Model, PropertyDataWithAnnotations {
         this.port = port;
     }
 
-   @BeanProperty(description = "Request Path (appended to URL)")
-     public String getPath() {
+    @BeanProperty(description = "Request Path (appended to URL)")
+    public String getPath() {
         return path;
     }
 
@@ -92,7 +96,7 @@ public class PackagedRequest implements Model, PropertyDataWithAnnotations {
         this.path = path;
     }
 
-   @BeanProperty(description = "Request Method")
+    @BeanProperty(description = "Request Method")
     public String getMethod() {
         return method;
     }
@@ -131,9 +135,30 @@ public class PackagedRequest implements Model, PropertyDataWithAnnotations {
         return JsonUtils.toJsonFormatted(this);
     }
 
+    public String getBodyFinal(HashMap<String, Object> properties) {
+        String bodyText = getBody();
+        if ((bodyText == null) || (bodyText.trim().length() == 0)) {
+            String fileName = getBodyTemplate();
+            if ((fileName == null) || (fileName.trim().length() == 0)) {
+                FileData fd = Util.readFile(getBodyTemplate());
+                if (fd != null) {
+                    bodyText = fd.getContent();
+                }
+            }
+        }
+        bodyText = bodyText.trim();
+        if (bodyText.length() > 1) {
+            if (properties != null) {
+                bodyText = Template.parse(bodyText, properties, true);
+            }
+            bodyText = Template.parse(bodyText, System.getProperties(), true);
+        }
+        return bodyText;
+    }
+
     @Override
     public String toString() {
-        return "PackagedRequest{" + "name=" + name + ", host=" + host + ", port=" + port + ", path=" + path + ", method=" + method + '}';
+        return name;
     }
 
 }

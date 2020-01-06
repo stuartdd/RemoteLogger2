@@ -23,7 +23,7 @@
   }, {
     "name" : "Get Offers (New to NowTV)",
     "host" : "http://localhost",
-    "port" : 8080,
+    "port" : 5012,
     "path" : "public/v1/promotion/S0317891/productfamily/SPORT/offers/account/emailid/ER-CrHCM16DnvAUVXdSJcKqRAl8",
     "method" : "PUT",
     "body" : "{\"bac\" : \"AB12341234\",\"conk\" : \"ssd@bt.com\",\"ntvIdToken\" : \"8EJBVXKma37FwvF6vH6_YanuVzZMu6Z2LEGNVt7-OjioO2eGs4MiiXI4rNps2G1kMZDlTeYicj-va-XsjMk7rHbMgbUuDacHPHTi9650ZykbkgUj3eZduwNd92llXcEryBm3DC0WZnrcHDDfj5nzCbiA-P0DIBixsf6snuLUBBNot81WlQTk0h2VRmZiKhlHHVnSYTFi7wuUxcsZWtQ4tW3rM4MtS3YAvy6TdTwBS8kkYnHN\",\"vsid\" : \"V3000452153\",\"isLinkedNTV\" : false,\"assetImpact\" : \"mng\",\"regSourcePromo\" : \"Reg source\"}",
@@ -35,7 +35,7 @@
   }, {
     "name" : "NowTv Email Challenge",
     "host" : "http://localhost",
-    "port" : 8080,
+    "port" : 5012,
     "path" : "public/v1/account/authorise/emailid/{emailid}/challenge",
     "method" : "POST",
     "body" : "{\"oneTimePassword\":\"MyOneTimePassword\", \"challengeToken\":\"abc.passnowtv.com\"}",
@@ -47,7 +47,7 @@
   }, {
     "name" : "NowTv Validate Invalid Email",
     "host" : "http://localhost",
-    "port" : 8080,
+    "port" : 5012,
     "path" : "public/v1/account/authorise/email",
     "method" : "POST",
     "body" : "{\"email\":\"abc.passnowtv.com\"}",

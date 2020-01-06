@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
@@ -16,7 +21,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="553.0" prefWidth="886.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.FXMLDocumentController">
+<AnchorPane id="AnchorPane" prefHeight="553.0" prefWidth="886.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.FXMLDocumentController">
     <children>
       <BorderPane prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <center>
@@ -39,11 +44,26 @@
                                     </AnchorPane>
                                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                                        <children>
-                                          <ScrollPane fx:id="clientSplitPaneScrollRight" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                             <content>
-                                                <VBox fx:id="clientSplitPaneVBoxRight" prefHeight="200.0" prefWidth="100.0" />
-                                             </content>
-                                          </ScrollPane>
+                                          <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                             <center>
+                                                <ScrollPane fx:id="clientSplitPaneScrollRight" BorderPane.alignment="CENTER">
+                                                   <content>
+                                                      <VBox fx:id="clientSplitPaneVBoxRight" prefHeight="200.0" prefWidth="100.0" />
+                                                   </content>
+                                                </ScrollPane>
+                                             </center>
+                                             <top>
+                                                <FlowPane hgap="10.0" BorderPane.alignment="CENTER">
+                                                   <children>
+                                                      <Button fx:id="clientRequestEditButton" mnemonicParsing="false" onAction="#handleClientRequestEditButton" text="Edit" />
+                                                      <Button fx:id="clientRequestSendButton" mnemonicParsing="false" onAction="#handleClientRequestSendButton" text="Send" />
+                                                   </children>
+                                                   <BorderPane.margin>
+                                                      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                   </BorderPane.margin>
+                                                </FlowPane>
+                                             </top>
+                                          </BorderPane>
                                        </children></AnchorPane>
                                 </items>
                               </SplitPane>
