@@ -18,6 +18,7 @@
 package main.fields;
 
 import java.io.IOException;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
@@ -27,8 +28,8 @@ import javafx.stage.Stage;
 public class FXMLHeadingField extends FXMLField {
 
     
-    public FXMLHeadingField(Stage stage, String id, String text, String entityName, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, id,"Heading", null, text, entityName, true, null);
+    public FXMLHeadingField(Stage stage, VBox vbox, String id, String text, String entityName, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, vbox, id,"Heading", null, text, entityName, true, null);
         setControlBackgroundColor(null, HEADING_COLOR);
     }
 

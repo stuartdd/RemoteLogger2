@@ -61,19 +61,19 @@ public class FXMLFieldCollection {
             for (String key : sortedKeys) {
                 BeanPropertyWrapper beanPropertyWrapper = new BeanPropertyWrapper(data.get(key));
                 beanPropertyWrapperMap.put(key, beanPropertyWrapper);
-                FXMLHeadingField heading = new FXMLHeadingField(stage, key, deriveHeading(key.toString()), entityName, changeListener);
+                FXMLHeadingField heading = new FXMLHeadingField(stage, container, key, deriveHeading(key.toString()), entityName, changeListener);
                 headings.put(key, heading);
                 fields.add(heading);
-                for (String prop : beanPropertyWrapper.getPropertyNameList()) {
-                    Class parameterType = beanPropertyWrapper.getBeanProperty(prop).getParameterType();
+                for (BeanProperty prop : beanPropertyWrapper.getOrderedList()) {
+                    Class parameterType = beanPropertyWrapper.getBeanProperty(prop.getPropertyName()).getParameterType();
                     if (parameterType.equals(int.class) || parameterType.equals(Integer.class)) {
-                        fields.add(new FXMLIntegerField(stage, key, beanPropertyWrapper, prop, entityName, ro, changeListener));
+                        fields.add(new FXMLIntegerField(stage, container, key, beanPropertyWrapper, prop.getPropertyName(), entityName, ro, changeListener));
                     }
                     if (parameterType.equals(boolean.class) || parameterType.equals(Boolean.class)) {
-                        fields.add(new FXMLBooleanField(stage, key, beanPropertyWrapper, prop, entityName, ro, changeListener));
+                        fields.add(new FXMLBooleanField(stage, container, key, beanPropertyWrapper, prop.getPropertyName(), entityName, ro, changeListener));
                     }
                     if (parameterType.equals(String.class)) {
-                        fields.add(new FXMLStringField(stage, key, beanPropertyWrapper, prop, entityName, ro, changeListener));
+                        fields.add(new FXMLStringField(stage, container, key, beanPropertyWrapper, prop.getPropertyName(), entityName, ro, changeListener));
                     }
                 }
             }
@@ -83,7 +83,7 @@ public class FXMLFieldCollection {
         } catch (IOException ex) {
             Logger.getLogger(FXMLFieldCollection.class.getName()).log(Level.SEVERE, null, ex);
         }
-        stage.widthProperty().addListener(new ChangeListener<Number>() {
+        container.widthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 doLayout();

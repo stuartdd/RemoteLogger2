@@ -22,6 +22,12 @@ import common.ConfigData;
 import common.Notification;
 import common.Util;
 import geom.Point;
+import java.awt.*;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -31,15 +37,9 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import main.dialogs.FXMLYesNoCancelDialog;
+import packaged.PackagedManager;
 import server.ServerConfig;
 import server.ServerManager;
-
-import java.awt.*;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -277,5 +277,6 @@ public class Main extends Application {
 
     private static void loadConfig() {
         ConfigData.load(configFileName);
+        PackagedManager.setInstanceFileName(ConfigData.getInstance().getPackagedRequestsFile());
     }
 }

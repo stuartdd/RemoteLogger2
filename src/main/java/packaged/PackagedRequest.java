@@ -16,12 +16,14 @@
  */
 package packaged;
 
+import common.PropertyDataWithAnnotations;
+import java.beans.BeanProperty;
 import java.util.HashMap;
 import java.util.Map;
 import json.JsonUtils;
 import model.Model;
 
-public class PackagedRequest implements Model {
+public class PackagedRequest implements Model, PropertyDataWithAnnotations {
 
     private String name;
     private String host;
@@ -63,6 +65,7 @@ public class PackagedRequest implements Model {
         this.name = name;
     }
 
+    @BeanProperty(description = "Host Url | validation=packName")
     public String getHost() {
         return host;
     }
@@ -71,6 +74,7 @@ public class PackagedRequest implements Model {
         this.host = host;
     }
 
+    @BeanProperty(description = "Host Port number | min=10")
     public Integer getPort() {
         return port;
     }
@@ -79,7 +83,8 @@ public class PackagedRequest implements Model {
         this.port = port;
     }
 
-    public String getPath() {
+   @BeanProperty(description = "Request Path (Matcher)")
+     public String getPath() {
         return path;
     }
 
@@ -87,6 +92,7 @@ public class PackagedRequest implements Model {
         this.path = path;
     }
 
+   @BeanProperty(description = "Request Method")
     public String getMethod() {
         return method;
     }
@@ -95,6 +101,7 @@ public class PackagedRequest implements Model {
         this.method = method;
     }
 
+    @BeanProperty(description = "Request Body")
     public String getBody() {
         return body;
     }
@@ -103,6 +110,7 @@ public class PackagedRequest implements Model {
         this.body = body;
     }
 
+   @BeanProperty(description = "Request Body Template (File)")
     public String getBodyTemplate() {
         return bodyTemplate;
     }

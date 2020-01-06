@@ -18,7 +18,6 @@
 package main;
 
 import common.*;
-import geom.Point;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +40,8 @@ import main.dialogs.FXMLSettingsDialog;
 import main.dialogs.SimpleDialogs;
 import main.fields.BeanProperty;
 import main.fields.FXMLFieldChangeListener;
+import main.fields.FXMLFieldCollection;
+import packaged.PackagedManager;
 import server.ServerConfig;
 import server.ServerExpectations;
 import server.ServerManager;
@@ -53,6 +54,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     private static final String SERVER_TAB_FX_ID = "servers";
     private static final String LOGS_TAB_FX_ID = "logs";
+    private static final String HTTP_CLIENT_TAB_FX_ID = "httpClient";
     private static final String EXPECTATIONS_TAB_FX_ID = "expectations";
 
     @FXML
@@ -68,7 +70,20 @@ public class FXMLDocumentController implements Initializable, Notifier {
     private Label serverStateLabel;
 
     @FXML
+    private ListView clientSplitPaneNamesList;
+    private ClientSplitPaneNamesListListener clientSplitPaneNamesListListener = new ClientSplitPaneNamesListListener();
+    @FXML
     private ScrollPane scrollPaneLogLines;
+
+    @FXML
+    private ScrollPane clientSplitPaneScrollLeft;
+    
+    @FXML
+    private ScrollPane clientSplitPaneScrollRight;
+    FXMLFieldCollection packageRequestFieldCollection;
+    
+    @FXML
+    private VBox clientSplitPaneVBoxRight;
 
     @FXML
     private TextArea textAreaLogLines;
@@ -201,7 +216,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
                     throw new DataValidationException("Must be an existing server port: " + ServerManager.portList().toString());
                 }
                 if (propertyDescription.isValidationId("pak")) {
-                    new packaged.PackagedManager((String) newvalue);
+                    PackagedManager.packagedManagerLoad((String) newvalue);
                 }
                 return;
             }
@@ -247,8 +262,12 @@ public class FXMLDocumentController implements Initializable, Notifier {
         if (newTab.getId().equalsIgnoreCase(LOGS_TAB_FX_ID)) {
             updateTheLogs(false);
         }
+        if (newTab.getId().equalsIgnoreCase(HTTP_CLIENT_TAB_FX_ID)) {
+            initialiseClientTabPanel();
+        }
         currentTabId = newTab.getId();
     }
+
 
     public void serverPortSelectionChanged(int newServerPort) {
         if (currentSelectedServerPort > 0) {
@@ -283,6 +302,29 @@ public class FXMLDocumentController implements Initializable, Notifier {
         scrollPaneLogLines.setFitToWidth(true);
         logCheckBoxesByPort = new HashMap<>();
         updateTheLogs(true);
+    }
+
+    /**
+     * Call once to set up the logs tab.
+     * <p>
+     * Calls updateTheLogs to refresh the log content
+     */
+    private void initialiseClientTabPanel() {
+        clientSplitPaneScrollLeft.setFitToHeight(true);
+        clientSplitPaneScrollLeft.setFitToWidth(true);
+        clientSplitPaneScrollRight.setFitToHeight(true);
+        clientSplitPaneScrollRight.setFitToWidth(true);
+        clientSplitPaneNamesList.setItems(FXCollections.observableArrayList(PackagedManager.getRequestNamesList()));
+        clientSplitPaneNamesList.getSelectionModel().selectedItemProperty().addListener(clientSplitPaneNamesListListener);
+    }
+    
+    public void initialiseClientDetailDisplay(String name) {
+       if (packageRequestFieldCollection != null) {
+           packageRequestFieldCollection.destroy();
+       }
+       Map<String, PropertyDataWithAnnotations> m = new HashMap<>();
+       m.put(name, PackagedManager.getPackagedRequest(name));
+       packageRequestFieldCollection = new FXMLFieldCollection(Main.getStage(), clientSplitPaneVBoxRight, m , true, name, "Packaged Request", null);
     }
 
     /**
@@ -384,6 +426,9 @@ public class FXMLDocumentController implements Initializable, Notifier {
             @Override
             public void run() {
                 switch (notification.getAction()) {
+                    case PACKAGE_REQUEST_SELECTED:
+                        initialiseClientDetailDisplay((String) notification.getData("name"));
+                        break;
                     case SERVER_SELECTED:
                         serverPortSelectionChanged((Integer) notification.getData("port"));
                         break;
@@ -464,19 +509,28 @@ public class FXMLDocumentController implements Initializable, Notifier {
     }
 
     public Map<String, Object> getConfigChangesLog(Map<String, Object> prefix) {
-        for (Map.Entry<String, Object> s:configChangesLog.entrySet()) {
+        for (Map.Entry<String, Object> s : configChangesLog.entrySet()) {
             prefix.put(s.getKey(), s.getValue());
         }
         return prefix;
     }
 
     private class ChoiceBoxPortSelectionListener implements ChangeListener<Number> {
+
         @Override
         public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
             if (oldValue != newValue) {
                 Integer port = (Integer) serverChoiceBox.getItems().get(newValue.intValue());
                 Main.controllerNotification(new Notification(port, Action.SERVER_SELECTED, null, "Selected server port [" + port + "]").withData("port", port));
             }
+        }
+    }
+
+    private class ClientSplitPaneNamesListListener implements ChangeListener<String> {
+
+        @Override
+        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+            Main.controllerNotification(new Notification(-1, Action.PACKAGE_REQUEST_SELECTED, null, "Selected server port [" + newValue + "]").withData("name", newValue));
         }
     }
 }

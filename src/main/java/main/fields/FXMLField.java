@@ -35,7 +35,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
+import javafx.scene.layout.VBox;
 /**
  * @author Stuart
  */
@@ -44,8 +44,10 @@ public abstract class FXMLField implements Comparable {
     static final Color ERROR_COLOR = Color.PINK;
     static final Color BG_COLOR = Color.LIGHTGREEN;
     static final Color HEADING_COLOR = Color.LIGHTGREEN;
+    static final Color READ_ONLY_COLOR = Color.LIGHTCYAN;
 
     private final Stage stage;
+    private final VBox vbox;
     private final Pane pane;
     private final BeanPropertyWrapper beanPropertyWrapper;
     private final BeanProperty beanProperty;
@@ -65,11 +67,12 @@ public abstract class FXMLField implements Comparable {
             return new Image(input);
         } else {
             return null;
-        }        
+        }
     }
 
-    public FXMLField(Stage stage, String id, String fieldType, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) {
+    public FXMLField(Stage stage, VBox vbox, String id, String fieldType, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) {
         this.stage = stage;
+        this.vbox = vbox;
         this.id = id;
         this.propertyName = propertyName;
         this.entityName = entityName;
@@ -102,18 +105,23 @@ public abstract class FXMLField implements Comparable {
             }
             if ((c instanceof Button) && (c.getId().equals("buttonRevert"))) {
                 buttonRevert = (Button) c;
-                buttonRevert.setDisable(true);
-                buttonRevert.setTooltip(new Tooltip("Revert to original value"));
-                setControlBackgroundColor(buttonRevert, BG_COLOR);
-                if (revertImage != null) {
-                    buttonRevert.setGraphic(new ImageView(revertImage));
-                }
-                buttonRevert.setOnAction(new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent event) {
-                        revert();
+                if (readOnly) {
+                    buttonRevert.setVisible(false);
+                } else {
+                    buttonRevert.setVisible(true);
+                    buttonRevert.setDisable(true);
+                    buttonRevert.setTooltip(new Tooltip("Revert to original value"));
+                    setControlBackgroundColor(buttonRevert, BG_COLOR);
+                    if (revertImage != null) {
+                        buttonRevert.setGraphic(new ImageView(revertImage));
                     }
-                });
+                    buttonRevert.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent event) {
+                            revert();
+                        }
+                    });
+                }
             }
         }
     }
@@ -134,6 +142,9 @@ public abstract class FXMLField implements Comparable {
     }
 
     public final void setControlBackgroundColor(Control control, Color c) {
+        if (readOnly) {
+            c = READ_ONLY_COLOR;
+        }
         if (control != null) {
             control.setBackground(new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY)));
         } else {
@@ -152,11 +163,19 @@ public abstract class FXMLField implements Comparable {
     }
 
     public double getFieldWidth() {
-        return (stage.getWidth() / 6) * 4;
+        return (vbox.getWidth() / 6) * 4;
     }
 
     public double getLabelWidth() {
-        return ((stage.getWidth() / 6) * 2) + 50;
+        return ((vbox.getWidth() / 6) * 2) + 50;
+    }
+
+    public Stage getStage() {
+        return stage;
+    }
+
+    public VBox getVbox() {
+        return vbox;
     }
 
     public void doLayout() {
@@ -190,13 +209,9 @@ public abstract class FXMLField implements Comparable {
     public String getEntityName() {
         return entityName;
     }
-    
+
     public final Pane getPane() {
         return pane;
-    }
-
-    public Stage getStage() {
-        return stage;
     }
 
     public String getId() {

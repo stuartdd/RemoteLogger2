@@ -18,8 +18,8 @@
 package packaged;
 
 import java.io.File;
-import java.util.Calendar;
-
+import java.util.ArrayList;
+import java.util.List;
 import json.JsonUtils;
 
 /**
@@ -27,26 +27,58 @@ import json.JsonUtils;
  * @author Stuart
  */
 public class PackagedManager {
-    private final String filaName;
-    private PackagedRequests packagedRequests;
 
-    public PackagedManager(String filaName) {
-        this.filaName = filaName;
-        File file = new File(this.filaName);
-        PackagedRequests pr;
-        if (file.exists()) {
-            try {
-                pr = (PackagedRequests) JsonUtils.beanFromJson(PackagedRequests.class, file);
-            } catch (Exception ex) {
-                throw new PackagedException("Package file '"+file.getAbsolutePath()+"' is not a valid PackagedRequests json file");
+    private static String instanceFileName;
+
+    private static PackagedRequests packagedRequests;
+
+    public static PackagedRequests getPackagedRequests() {
+        if ((instanceFileName == null) || (packagedRequests == null)) {
+            throw new PackagedException("Package manager is not defined!");
+        }
+        return packagedRequests;
+    }
+    
+    public static PackagedRequest getPackagedRequest(String name) {
+        for (PackagedRequest pr:getPackagedRequests().getPackagedRequests()) {
+            if (pr.getName().equals(name)) {
+                return pr;
             }
+        }
+        return null;
+    }
+
+    public static List<String> getRequestNamesList(){
+        List<String> list = new ArrayList<>();
+        for (PackagedRequest pr : getPackagedRequests().getPackagedRequests()) {
+            list.add(pr.getName());
+        }
+        return list;
+    }
+    
+    public static String getInstanceFileName() {
+        return instanceFileName;
+    }
+
+    public static void setInstanceFileName(String fileName) {
+        packagedRequests = packagedManagerLoad(fileName);
+        instanceFileName = fileName;
+    }
+
+    public static PackagedRequests packagedManagerLoad(String fileName) {
+        File file = new File(fileName);
+        if (!file.exists()) {
+            throw new PackagedException("Package file '" + file.getAbsolutePath() + "' does not exist");            
+        }
+        try {
+            PackagedRequests pr = (PackagedRequests) JsonUtils.beanFromJson(PackagedRequests.class, file);
             if (pr.getPackagedRequests().size() == 0) {
                 throw new PackagedException("Package does not contain any packaged requests");
             }
-            this.packagedRequests = pr;
-        } else {
-            throw new PackagedException("Package file '"+file.getAbsolutePath()+"' does not exist");
+            return pr;
+        } catch (Exception ex) {
+            throw new PackagedException("Package file '" + file.getAbsolutePath() + "' is not a valid PackagedRequests json file");
         }
     }
-    
+
 }

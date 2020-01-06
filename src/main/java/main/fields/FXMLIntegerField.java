@@ -24,6 +24,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
@@ -35,13 +36,16 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
     private int lowerbound = Integer.MIN_VALUE;
     private int upperbound = Integer.MAX_VALUE;
 
-    public FXMLIntegerField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, id, "String", beanPropertyWrapper, propertyName, entityName, readOnly, changeListener);
+    public FXMLIntegerField(Stage stage, VBox vbox, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, vbox, id, "String", beanPropertyWrapper, propertyName, entityName, readOnly, changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
                 textField.setText(getBeanProperty().getDisplayValue().toString());
-                textField.textProperty().addListener(this);
+                if (!readOnly) {
+                    textField.textProperty().addListener(this);
+                }
+                textField.setEditable(!readOnly);
             } else {
                 if ((c instanceof Button) && (!c.getId().equals("buttonRevert"))) {
                     ((Button) c).setVisible(false);
@@ -68,7 +72,11 @@ public class FXMLIntegerField extends FXMLField implements ChangeListener<String
             return;
         }
         super.doLayout();
-        textField.setLayoutX(getLabelWidth() + 10);
+        if (isReadOnly()) {
+            textField.setLayoutX(getLabelWidth() - 20);
+        } else {
+            textField.setLayoutX(getLabelWidth() + 10);
+        }
     }
 
     @Override

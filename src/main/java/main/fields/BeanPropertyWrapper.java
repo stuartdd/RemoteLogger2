@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,6 +92,18 @@ public class BeanPropertyWrapper {
         return false;
     }
 
+    public List<BeanProperty> getOrderedList() {
+        Map<String, BeanProperty> orderedMap = new TreeMap<>();
+        for (BeanProperty bp:properties.values()) {
+            orderedMap.put(bp.getDescription(), bp);
+        }
+        List<BeanProperty> list = new ArrayList<>();
+        for (BeanProperty bp:orderedMap.values()) {
+            list.add(bp);
+        }
+        return list;
+    }
+    
     public List<String> getPropertyNameList() {
         List<String> l = new ArrayList<>();
         for (String s : properties.keySet()) {

@@ -17,7 +17,6 @@
 package server;
 
 import common.PropertyDataWithAnnotations;
-
 import java.beans.BeanProperty;
 
 public class ServerConfig implements PropertyDataWithAnnotations {

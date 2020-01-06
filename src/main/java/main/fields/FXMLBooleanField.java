@@ -22,6 +22,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
@@ -32,13 +33,14 @@ public class FXMLBooleanField extends FXMLField implements ChangeListener<Boolea
 
     private CheckBox checkBox;
 
-    public FXMLBooleanField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, id,"Boolean", beanPropertyWrapper, propertyName, entityName, readOnly,changeListener);
+    public FXMLBooleanField(Stage stage, VBox vbox, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, vbox, id, "Boolean", beanPropertyWrapper, propertyName, entityName, readOnly, changeListener);
         for (Node c : getPane().getChildren()) {
             if (c instanceof CheckBox) {
                 checkBox = (CheckBox) c;
-                checkBox.setSelected((Boolean)getBeanProperty().getDisplayValue());
+                checkBox.setSelected((Boolean) getBeanProperty().getDisplayValue());
                 checkBox.selectedProperty().addListener(this);
+                checkBox.setDisable(readOnly);
             }
         }
     }
@@ -49,12 +51,16 @@ public class FXMLBooleanField extends FXMLField implements ChangeListener<Boolea
             return;
         }
         super.doLayout();
-        checkBox.setLayoutX(getLabelWidth() + 10);
+        if (isReadOnly()) {
+            checkBox.setLayoutX(getLabelWidth() - 20);
+        } else {
+            checkBox.setLayoutX(getLabelWidth() + 10);
+        }
     }
 
     @Override
     protected void doRevert() {
-        checkBox.setSelected((Boolean)getBeanProperty().getInitialValue());
+        checkBox.setSelected((Boolean) getBeanProperty().getInitialValue());
     }
 
     @Override
@@ -67,8 +73,8 @@ public class FXMLBooleanField extends FXMLField implements ChangeListener<Boolea
     @Override
     public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldValue, Boolean newValue) {
         if (!newValue.equals(oldValue) && (!isReadOnly())) {
-            getBeanPropertyWrapper().setUpdatedValue(getPropertyName(),newValue);
-            notifyChange(getEntityName() + " " +getPropertyName() + " updated to: "+newValue.toString());
+            getBeanPropertyWrapper().setUpdatedValue(getPropertyName(), newValue);
+            notifyChange(getEntityName() + " " + getPropertyName() + " updated to: " + newValue.toString());
         }
     }
 

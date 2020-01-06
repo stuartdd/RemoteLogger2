@@ -23,10 +23,11 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import main.dialogs.SimpleDialogs;
 
@@ -42,14 +43,17 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
     private boolean hasFileButton;
     private String entityName;
 
-    public FXMLStringField(Stage stage, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
-        super(stage, id, "String", beanPropertyWrapper, propertyName, entityName, readOnly, changeListener);
+    public FXMLStringField(Stage stage, VBox vbox, String id, BeanPropertyWrapper beanPropertyWrapper, String propertyName, String entityName, boolean readOnly, FXMLFieldChangeListener changeListener) throws IOException {
+        super(stage, vbox, id, "String", beanPropertyWrapper, propertyName, entityName, readOnly, changeListener);
         hasFileButton = false;
         for (Node c : getPane().getChildren()) {
             if (c instanceof TextField) {
                 textField = (TextField) c;
                 textField.setText(getBeanProperty().getDisplayValue().toString());
-                textField.textProperty().addListener(this);
+                if (!readOnly) {
+                    textField.textProperty().addListener(this);
+                }
+                textField.setEditable(!readOnly);
             } else {
                 if ((c instanceof Button) && (c.getId().equals("buttonFile"))) {
                     fileButton = (Button) c;
@@ -72,7 +76,7 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
                             }
                         });
                     } else {
-                        textField.setEditable(true);
+                        textField.setEditable(!readOnly);
                         fileButton.setVisible(false);
                     }
                 }
@@ -88,18 +92,24 @@ public class FXMLStringField extends FXMLField implements ChangeListener<String>
         super.doLayout();
         double fWidth = getFieldWidth();
         double lWidth = getLabelWidth();
-        textField.setLayoutX(lWidth + 10);
-        if (hasFileButton) {
-            setControlWidth(textField, fWidth - 145);
-            setControlWidth(fileButton, 40);
-            fileButton.setVisible(true);
-            fileButton.setLayoutX((lWidth + fWidth) - 130);
+
+        if (isReadOnly()) {
+            textField.setLayoutX(getLabelWidth() - 20);
+            setControlWidth(textField, fWidth - 40);
         } else {
-            if (fileButton != null) {
-                fileButton.setVisible(false);
+            if (hasFileButton) {
+                setControlWidth(textField, fWidth - 145);
+                setControlWidth(fileButton, 40);
+                fileButton.setVisible(true);
+                fileButton.setLayoutX((lWidth + fWidth) - 130);
+            } else {
+                if (fileButton != null) {
+                    fileButton.setVisible(false);
+                }
+                setControlWidth(textField, fWidth - 20);
             }
-            setControlWidth(textField, fWidth - 20);
         }
+
     }
 
     @Override
