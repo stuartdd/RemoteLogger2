@@ -16,11 +16,12 @@
  */
 package client;
 
+import java.net.http.HttpHeaders;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- *
  * @author 802996013
  */
 public class ClientResponse {
@@ -38,6 +39,27 @@ public class ClientResponse {
         this.status = status;
         this.body = body;
         this.headers = headers;
+    }
+
+    public ClientResponse(int status, String body, HttpHeaders headers) {
+        this.status = status;
+        this.body = body;
+        this.headers = new HashMap<>();
+        for (Map.Entry<String, List<String>> l:headers.map().entrySet()) {
+            this.headers.put(l.getKey(), listToString(l.getValue()));
+        }
+    }
+
+    public String listToString(List<String> val) {
+        StringBuilder sb = new StringBuilder();
+        int mark = 0;
+        for (String s:val) {
+            sb.append(s);
+            mark = sb.length();
+            sb.append(';');
+        }
+        sb.setLength(mark);
+        return sb.toString();
     }
 
     public int getStatus() {

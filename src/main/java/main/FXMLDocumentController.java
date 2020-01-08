@@ -17,8 +17,7 @@
  */
 package main;
 
-import client.Client;
-import client.ClientConfig;
+import client.Client11;
 import common.*;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -56,10 +55,8 @@ import java.util.TreeMap;
  */
 public class FXMLDocumentController implements Initializable, Notifier {
 
-    private static final String SERVER_TAB_FX_ID = "servers";
     private static final String LOGS_TAB_FX_ID = "logs";
     private static final String HTTP_CLIENT_TAB_FX_ID = "httpClient";
-    private static final String EXPECTATIONS_TAB_FX_ID = "expectations";
 
     @FXML
     private TabPane mainTabbedPane;
@@ -101,7 +98,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
 
     private Integer currentSelectedServerPort = -1;
     private PackagedRequest currentPackagedRequest;
-    private String currentTabId = null;
     private boolean configDataHasChanged = false;
     private Map<Integer, CheckBox> logCheckBoxesByPort = new HashMap<>();
     private Map<String, Object> configChangesLog = new TreeMap<>();
@@ -110,6 +106,7 @@ public class FXMLDocumentController implements Initializable, Notifier {
     public void handleClearLogsButton() {
         if (SimpleDialogs.alertOkCancel(Main.getPoint(), "Clear logs", "Erase all log data!", "Press OK to continue")) {
             Main.getLogLines().clear();
+            Main.controllerNotification(new Notification(-1, Action.UPDATE_LOG, "Log  Cleared"));
         }
     }
 
@@ -126,9 +123,18 @@ public class FXMLDocumentController implements Initializable, Notifier {
     @FXML
     public void handleClientRequestSendButton() {
         if (currentPackagedRequest != null) {
-            Client c = new Client(new ClientConfig(currentPackagedRequest.getHost(), currentPackagedRequest.getPort(), currentPackagedRequest.getHeaders()), Main.getLogLines());
-            c.send(currentPackagedRequest.getPath(), currentPackagedRequest.getBodyFinal(null), currentPackagedRequest.getMethod());
             mainTabbedPane.getSelectionModel().select(getTabIndexForId(LOGS_TAB_FX_ID));
+            Client11.send(
+                    currentPackagedRequest.getName(),
+                    currentPackagedRequest.getHost(),
+                    currentPackagedRequest.getPort(),
+                    currentPackagedRequest.getPath(),
+                    currentPackagedRequest.getMethod(),
+                    currentPackagedRequest.getBodyFinal(null),
+                    currentPackagedRequest.getHeaders(),
+                    currentPackagedRequest.getTimeoutSeconds(),
+                    Main.getLogLines()
+            );
         }
     }
 
@@ -170,15 +176,15 @@ public class FXMLDocumentController implements Initializable, Notifier {
             }
 
             @Override
-            public Object add(String cloneId, String toId, String EntityName) {
+            public Object add(String cloneId, String toId, String entityName) {
                 int portNumber;
                 try {
                     portNumber = Integer.parseInt(toId);
                 } catch (Exception e) {
-                    throw new DataValidationException("!" + EntityName + " 'id' must be a valid integer port number");
+                    throw new DataValidationException("!" + entityName + " 'id' must be a valid integer port number");
                 }
                 if (ServerManager.hasPort(portNumber)) {
-                    throw new DataValidationException("!" + EntityName + " 'id' must be a 'Unique' port number");
+                    throw new DataValidationException("!" + entityName + " 'id' must be a 'Unique' port number");
                 }
                 ServerConfig sc = ConfigData.getInstance().serverWithDefaultConfig();
                 FXMLSettingsDialog newController = FXMLSettingsDialog.load(Main.getStage(), sc, "Server " + portNumber + ":", "New Server Settings", "Server", this);
@@ -276,7 +282,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
             if (oldTab.getId().equalsIgnoreCase(LOGS_TAB_FX_ID)) {
                 updateTheLogs(true);
             }
-            currentTabId = null;
         }
         if (newTab.getId().equalsIgnoreCase(LOGS_TAB_FX_ID)) {
             updateTheLogs(false);
@@ -284,7 +289,6 @@ public class FXMLDocumentController implements Initializable, Notifier {
         if (newTab.getId().equalsIgnoreCase(HTTP_CLIENT_TAB_FX_ID)) {
             initialiseClientTabPanel();
         }
-        currentTabId = newTab.getId();
     }
 
 

@@ -18,7 +18,6 @@
 package common;
 
 /**
- *
  * @author Stuart
  */
 public class LogLine implements Loggable {
@@ -98,7 +97,7 @@ public class LogLine implements Loggable {
         if (hasMessage()) {
             return message;
         }
-        return "";
+        return null;
     }
 
     @Override
@@ -107,22 +106,27 @@ public class LogLine implements Loggable {
     }
 
     public String toString(String dev) {
-        return pad(lineNo) + " | " + ConfigData.getInstance().timeStamp(time) + " [-] " + (hasPort() ? " [" + port + "]" : " ") + (dev == null ? " " : " [" + dev + "] ") + getMessage() + (exception == null ? "." : "." + exception.getMessage());
+        return pad(lineNo) + " | "
+                + ConfigData.getInstance().timeStamp(time) + " [-] "
+                + (hasPort() ? " [" + port + "] " : "")
+                + (dev == null ? "" : " [" + dev + "] ")
+                + (getMessage() == null ? "" : getMessage() + ". ")
+                + (exception == null ? "" : "EXCEPTION: " + exception.getClass().getSimpleName() + ": " + exception.getMessage());
     }
 
     private String pad(int n) {
-        if (n < 10){
-            return "00000"+n;
+        if (n < 10) {
+            return "00000" + n;
         } else if (n < 100) {
-            return "0000"+n;
+            return "0000" + n;
         } else if (n < 1000) {
-            return "000"+n;
+            return "000" + n;
         } else if (n < 10000) {
-            return "00"+n;
+            return "00" + n;
         } else if (n < 100000) {
-            return "0"+n;
+            return "0" + n;
         } else {
-            return ""+n; 
+            return "" + n;
         }
     }
 }

@@ -37,20 +37,21 @@ public class PackagedRequest implements Model, PropertyDataWithAnnotations {
     private String body;
     private String bodyTemplate;
     private Map<String, String> headers;
+    private Integer timeoutSeconds;
 
-    public PackagedRequest clone() {
-        PackagedRequest clone = new PackagedRequest();
-        clone.setHost(getHost());
-        clone.setPort(getPort());
-        clone.setPath(getPath());
-        clone.setMethod(getMethod());
-        clone.setBody(getBody());
-        clone.setBodyTemplate(getBodyTemplate());
-        clone.setHeaders(clone(getHeaders()));
-        return clone;
+    public PackagedRequest copyOfPackagedRequest() {
+        PackagedRequest newPackageRequest = new PackagedRequest();
+        newPackageRequest.setHost(getHost());
+        newPackageRequest.setPort(getPort());
+        newPackageRequest.setPath(getPath());
+        newPackageRequest.setMethod(getMethod());
+        newPackageRequest.setBody(getBody());
+        newPackageRequest.setBodyTemplate(getBodyTemplate());
+        newPackageRequest.setHeaders(copyOfMap(getHeaders()));
+        return newPackageRequest;
     }
 
-    private Map<String, String> clone(Map<String, String> headers) {
+    private Map<String, String> copyOfMap(Map<String, String> headers) {
         if (headers == null) {
             return null;
         }
@@ -121,6 +122,18 @@ public class PackagedRequest implements Model, PropertyDataWithAnnotations {
 
     public void setBodyTemplate(String bodyTemplate) {
         this.bodyTemplate = bodyTemplate;
+    }
+
+    @BeanProperty(description = "Time Out seconds (1..30) | min=1, max=30")
+    public Integer getTimeoutSeconds() {
+        if (timeoutSeconds == null) {
+            timeoutSeconds = 5;
+        }
+        return timeoutSeconds;
+    }
+
+    public void setTimeoutSeconds(Integer timeoutSeconds) {
+        this.timeoutSeconds = timeoutSeconds;
     }
 
     public Map<String, String> getHeaders() {
