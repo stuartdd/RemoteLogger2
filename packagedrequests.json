@@ -78,8 +78,8 @@
     }
   }, {
     "name" : "CH Device",
-    "host" : "http://192.168.1.13",
-    "port" : 80,
+    "host" : "http://localhost",
+    "port" : 3333,
     "path" : "/config",
     "method" : "GET",
     "body" : null,

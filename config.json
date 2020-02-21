@@ -2,7 +2,7 @@
   "servers" : {
     "5012" : {
       "expectationsFile" : "expectations5012.json",
-      "autoStart" : true,
+      "autoStart" : false,
       "showPort" : true,
       "timeToClose" : 1,
       "verbose" : true,
@@ -23,8 +23,8 @@
   "defaultPort" : 5012,
   "includeHeaders" : true,
   "includeBody" : true,
-  "x" : 0.0,
-  "y" : 0.0,
+  "x" : 79.0,
+  "y" : 82.0,
   "width" : 1209.0,
-  "height" : 878.0
+  "height" : 537.0
 }
